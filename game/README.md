@@ -19,7 +19,7 @@
 - [多 Agent 架构](architecture.md)：通用核心、默认参考编制、项目专属编制规则和阶段映射。
 - [统一管线契约](contracts/pipeline-contract.template.yaml)：所有工作流节点的输入、输出、验证、审批和回退格式。
 - [人工审批闸门](contracts/human-gates.md)：范围、核心体验、灰盒、内容冻结和发布五个决策点。
-- `agents/`：管线统筹、游戏设计、内容设计、Godot 实现、测试发布五个默认角色的参考职责契约；具体项目可以在责任完整映射的前提下拆分、合并、替换或新增 Agent。
+- `agents/`：项目经理、游戏设计、内容设计、Godot 实现、测试发布五个默认角色的参考职责契约；具体项目可以在责任完整映射的前提下拆分、合并、替换或新增 Agent。
 - [项目编制设计 Agent](agents/project-agent-architect.md)：根据项目资料和通用责任地图提出项目专属编制方案，经人工批准后才能实例化或改变长期 Agent。
 - [通用部门经理 Agent](agents/department-manager.md)：项目按需实例化的承上启下角色，负责部门内拆解、协作、整合和向项目经理汇报，不预设具体部门名称。
 - [Godot 适配层](adapters/godot.md)：把通用产物映射为 Godot 场景、资源、节点和工程证据。

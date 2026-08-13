@@ -1,0 +1,250 @@
+state_machine:
+  state_machine_id: "LOOP-SM-DEFAULT"
+  version: "0.1"
+  initial_state: "draft"
+  terminal_states:
+    - "completed"
+    - "cancelled"
+  operational_states:
+    - "ready"
+    - "active"
+    - "review"
+  interruption_states:
+    - "blocked"
+    - "paused"
+    - "waiting_approval"
+
+states:
+  draft:
+    description: "循环实例正在登记，尚未证明可以启动。"
+  ready:
+    description: "Contract、输入、责任与授权已通过准入检查，等待执行。"
+  active:
+    description: "责任角色正在执行本轮任务。"
+  review:
+    description: "本轮产物正在接受自动检查、专业审查和必要的人工 Gate 判断。"
+  blocked:
+    description: "客观条件、输入或依赖缺失，当前工作无法继续。"
+    requires_resume_state: true
+  paused:
+    description: "有权角色主动暂停循环，等待恢复决定。"
+    requires_resume_state: true
+  waiting_approval:
+    description: "继续执行或转换状态所需的授权或人工判断尚未返回。"
+    requires_resume_state: true
+  completed:
+    description: "成功条件、必要检查和 Gate 均已按绑定证据通过。"
+    terminal: true
+  cancelled:
+    description: "循环按已批准的取消条件终止，不再恢复。"
+    terminal: true
+
+runtime_requirements:
+  transition_record:
+    required_fields:
+      - "transition_id"
+      - "from_state"
+      - "to_state"
+      - "actor_role"
+      - "authority_id"
+      - "evidence"
+      - "occurred_at"
+  interruption_context:
+    required_in_states:
+      - "blocked"
+      - "paused"
+      - "waiting_approval"
+    fields:
+      resume_state:
+        allowed_values:
+          - "ready"
+          - "active"
+          - "review"
+      interruption_reason: "<进入中断状态的具体原因>"
+      entered_from_state: "<首次进入中断链时的正常工作状态>"
+      entered_at: "<ISO 8601 时间>"
+      entry_snapshot:
+        contract_id: "<绑定的 Contract ID>"
+        contract_version: "<绑定版本>"
+        input_versions: []
+        dependency_states: []
+        authority_id: "<当时有效的授权 ID>"
+        budget_usage: "<当时的轮次、时间或成本消耗>"
+
+invariants:
+  - id: "INV-001"
+    rule: "只有 review 可以转换到 completed。"
+  - id: "INV-002"
+    rule: "waiting_approval 的审批结果只解除等待，不得直接转换到 completed。"
+  - id: "INV-003"
+    rule: "进入中断状态时保存原 operational state 为 resume_state。"
+  - id: "INV-004"
+    rule: "中断状态之间转移时保留原 resume_state，不建立嵌套恢复栈。"
+  - id: "INV-005"
+    rule: "离开中断状态前必须重新检查 Contract、输入、依赖、授权、预算和转换证据。"
+  - id: "INV-006"
+    rule: "Contract 新版本不会自动替换运行实例绑定的版本。"
+  - id: "INV-007"
+    rule: "只有 review 返回 active 进行修订时增加 current_iteration。"
+
+resume_revalidation:
+  required_checks:
+    - id: "RESUME-CTR"
+      description: "实例绑定的 Contract 版本仍有效且未被撤销。"
+    - id: "RESUME-INPUT"
+      description: "必要输入仍存在；版本变化已完成影响检查。"
+    - id: "RESUME-DEP"
+      description: "依赖循环或外部条件仍满足当前转换要求。"
+    - id: "RESUME-AUTH"
+      description: "执行者授权仍有效，审批结果与当前请求和证据版本匹配。"
+    - id: "RESUME-BUDGET"
+      description: "预算仍可用，或预算扩展已经获得有权角色批准。"
+    - id: "RESUME-EVIDENCE"
+      description: "转换所需证据在等待期间没有失效。"
+  on_pass:
+    target: "$resume_state"
+    effects:
+      - "记录恢复检查结果。"
+      - "清除当前中断原因，保留历史记录。"
+  on_failure:
+    routes:
+      missing_condition_or_dependency: "blocked"
+      missing_authority_or_decision: "waiting_approval"
+      deliberate_hold: "paused"
+    effects:
+      - "保持首次中断时记录的 resume_state。"
+      - "更新中断原因和新的检查证据。"
+      - "不得增加 current_iteration。"
+
+transitions:
+  - transition_id: "TR-DRAFT-READY"
+    from: "draft"
+    to: "ready"
+    trigger: "registration_validated"
+    guards:
+      - "Contract 已批准且版本已绑定。"
+      - "必要输入、责任角色、授权和至少一种预算已登记。"
+    evidence:
+      - "准入检查记录"
+
+  - transition_id: "TR-READY-ACTIVE"
+    from: "ready"
+    to: "active"
+    trigger: "execution_started"
+    guards:
+      - "开始条件仍然成立。"
+      - "责任角色接受本轮工作。"
+    evidence:
+      - "启动记录"
+
+  - transition_id: "TR-ACTIVE-REVIEW"
+    from: "active"
+    to: "review"
+    trigger: "iteration_submitted"
+    guards:
+      - "本轮要求的产物和变更摘要已提交。"
+    evidence:
+      - "产物版本"
+      - "本轮变更摘要"
+
+  - transition_id: "TR-REVIEW-ACTIVE"
+    from: "review"
+    to: "active"
+    trigger: "revision_required"
+    iteration_effect: "increment"
+    guards:
+      - "自动检查、专业审查或 Gate 反馈要求修订。"
+      - "预算仍可用或扩展已获批准。"
+    effects:
+      - "current_iteration 增加 1。"
+      - "记录反馈和相对上一轮的变更要求。"
+    evidence:
+      - "审查或 Gate 反馈"
+
+  - transition_id: "TR-REVIEW-COMPLETED"
+    from: "review"
+    to: "completed"
+    trigger: "acceptance_satisfied"
+    guards:
+      - "所有成功条件和必要自动检查已通过。"
+      - "专业审查已通过。"
+      - "需要人工 Gate 时，审批记录与当前产物和证据版本匹配。"
+      - "最终交接内容完整。"
+    evidence:
+      - "验收汇总"
+      - "必要的 Gate 审批记录"
+      - "最终交接记录"
+
+  - transition_id: "TR-OPERATIONAL-INTERRUPTED"
+    from:
+      - "ready"
+      - "active"
+      - "review"
+    to:
+      - "blocked"
+      - "paused"
+      - "waiting_approval"
+    trigger: "interruption_detected"
+    iteration_effect: "preserve"
+    guards:
+      - "目标中断状态与实际原因一致。"
+      - "已保存当前状态为 resume_state 和 entry_snapshot。"
+    effects:
+      - "current_iteration 不变。"
+    evidence:
+      - "中断原因与责任路由"
+
+  - transition_id: "TR-INTERRUPTED-RESUME"
+    from:
+      - "blocked"
+      - "paused"
+      - "waiting_approval"
+    to: "$resume_state"
+    trigger: "interruption_resolved"
+    iteration_effect: "preserve"
+    guards:
+      - "恢复复检全部通过。"
+      - "waiting_approval 存在审批结果时，其记录与当前请求和证据版本匹配。"
+    effects:
+      - "返回 resume_state，不增加 current_iteration。"
+    evidence:
+      - "恢复复检记录"
+      - "适用时的审批结果"
+
+  - transition_id: "TR-INTERRUPTED-REROUTE"
+    from:
+      - "blocked"
+      - "paused"
+      - "waiting_approval"
+    to:
+      - "blocked"
+      - "paused"
+      - "waiting_approval"
+    trigger: "resume_revalidation_failed"
+    iteration_effect: "preserve"
+    guards:
+      - "新中断状态与失败原因一致。"
+      - "继续保留首次中断时的 resume_state。"
+    effects:
+      - "不得转换到 completed。"
+      - "current_iteration 不变。"
+    evidence:
+      - "失败的恢复检查与新责任路由"
+
+  - transition_id: "TR-NONTERMINAL-CANCELLED"
+    from:
+      - "draft"
+      - "ready"
+      - "active"
+      - "review"
+      - "blocked"
+      - "paused"
+      - "waiting_approval"
+    to: "cancelled"
+    trigger: "cancellation_approved"
+    guards:
+      - "满足 Contract 的取消条件。"
+      - "取消者拥有相应授权。"
+      - "已完成取消交接和证据保留。"
+    evidence:
+      - "取消决定、授权记录与最终交接"

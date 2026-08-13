@@ -159,6 +159,14 @@ Loop Coordinator 禁止自行批准状态转换、修改项目范围、改变长
 
 `contracts/loop-contract.template.yaml` 定义稳定规则；Loop Registry 负责绑定具体项目、Contract 版本、授权记录和运行状态。修改运行状态不得反向改写 Contract，Contract 升版后也不得静默改变正在运行的实例。
 
+### 默认状态机的中断恢复规则
+
+`blocked`、`paused` 和 `waiting_approval` 是中断状态，不是新的迭代。进入其中任一状态时，Registry 必须把进入前的 `ready`、`active` 或 `review` 保存为 `resume_state`，并记录 Contract 版本、输入版本、依赖、授权和预算快照。
+
+中断解除后不能直接继续工作，而要重新检查绑定 Contract、必要输入、依赖、授权、预算和转换证据。全部通过才返回 `resume_state`；复检发现新的阻塞、待审批或主动暂停原因时，可以转到对应中断状态，但继续保留最初的 `resume_state`，不建立嵌套恢复栈，也不增加迭代次数。
+
+审批结果只证明等待事项已有有权决定，不能替代专业审查或完成条件。`waiting_approval` 取得结果后先返回 `resume_state` 并重检；默认状态机只允许从 `review` 进入 `completed`。完整状态与转换规则见 `contracts/loop-state-machine.default.yaml`。
+
 ## 按需专业能力
 
 默认编制不把 P6 内容资产生产压缩为单一 Agent。环境美术、角色与动画、UI/UX、VFX、音频、本地化的工具链和验收方式差异较大，具体项目可以根据资产需求设置对应专业 Agent、Skill 或子管线。

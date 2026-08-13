@@ -1,0 +1,100 @@
+{
+  "schema_version": "0.1",
+  "replay_id": "RPL-ENDSHIFT-P0A-001",
+  "gate_id": "ENDSHIFT-P0-B-ENTRY",
+  "expected_decision": "blocked",
+  "human_approval_required": true,
+  "source_snapshot": {
+    "repository_id": "endshift-protocol",
+    "commit": "614166bfa6b929476e7ce847d45ba3b0a6ab9222",
+    "worktree_clean": false,
+    "observed_uncommitted_paths": 6,
+    "game_version": "0.1.13-p0a",
+    "build_exe_sha256": "74d85848656c17b8ea436118e4b8e8820afb8c6ba969b3d6c3f5a8c0806c8a24",
+    "build_checksum_matches": true,
+    "local_session_file_exists": false,
+    "exported_evidence_files_found": 0
+  },
+  "requirements": [
+    {
+      "id": "EVD-BUILD-HASH",
+      "category": "build",
+      "required": true,
+      "status": "passed",
+      "source_kind": "artifact_hash",
+      "reason": "0.1.13-p0a 当前 EXE 与 SHA256SUMS.txt 一致"
+    },
+    {
+      "id": "EVD-PROTOCOL-VERSION",
+      "category": "protocol",
+      "required": true,
+      "status": "stale",
+      "source_kind": "project_document",
+      "reason": "真人测试执行手册仍绑定 0.1.7-p0a，并描述旧的订单/配方操作；当前分发包为 0.1.13-p0a 手工制饼流程"
+    },
+    {
+      "id": "EVD-HUMAN-SAMPLE",
+      "category": "human",
+      "required": true,
+      "status": "missing",
+      "source_kind": "human_playtest",
+      "reason": "本机无 p0a_sessions.json，常用目录与项目目录未发现导出证据；不能推断其他电脑存在样本"
+    },
+    {
+      "id": "EVD-HUMAN-COST-BENEFIT",
+      "category": "human",
+      "required": true,
+      "status": "missing",
+      "source_kind": "human_observation",
+      "reason": "缺少至少 80% 玩家能说出短期代价和预期收益的原始观察"
+    },
+    {
+      "id": "EVD-HUMAN-ROUTE-DISTRIBUTION",
+      "category": "human",
+      "required": true,
+      "status": "missing",
+      "source_kind": "human_playtest",
+      "reason": "缺少两种资源路线各至少 2 人且单一路线不超过成功样本 75% 的记录"
+    },
+    {
+      "id": "EVD-HUMAN-DEATH-UNDERSTANDING",
+      "category": "human",
+      "required": true,
+      "status": "missing",
+      "source_kind": "human_observation",
+      "reason": "缺少死亡原因、此前提示与下一轮改法的玩家原话"
+    },
+    {
+      "id": "EVD-HUMAN-REPLAY-TIME",
+      "category": "human",
+      "required": true,
+      "status": "missing",
+      "source_kind": "human_observation",
+      "reason": "缺少真人快速复演不超过 90 秒的计时记录"
+    },
+    {
+      "id": "EVD-AUTO-SOLVABILITY",
+      "category": "automated",
+      "required": true,
+      "status": "stale",
+      "source_kind": "automated_test",
+      "reason": "100 固定种子报告生成后，生产资源、章节控制器与对应测试发生了变更；当前构建未附新的联合审计结果"
+    },
+    {
+      "id": "EVD-HUMAN-MISCLICK-RATE",
+      "category": "human",
+      "required": true,
+      "status": "missing",
+      "source_kind": "human_observation",
+      "reason": "缺少棋盘有效点击误选率低于 5% 的主持观察"
+    },
+    {
+      "id": "EVD-HUMAN-DAY-REPETITION",
+      "category": "human",
+      "required": true,
+      "status": "missing",
+      "source_kind": "human_playtest",
+      "reason": "缺少把白天评价为重复劳动的人数比例"
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+contract:
+  schema_version: "0.1"
+  contract_id: "CTR-X0-001"
+  title: "Endshift Protocol P0-A 只读回放校准"
+  stage: "X0"
+  status: "approved"
+  owner_agent: "AGT-DIR"
+  project_id: "PRJ-PIPELINE-PILOT"
+  version: 1
+
+objective:
+  player_facing_outcome: "玩家体验闸门不会因构建或自动检查通过而被错误批准。"
+  production_outcome: "交付可重复执行的 P0-A 证据夹具、闸门评估结果和责任路由报告。"
+
+entry_conditions:
+  - id: "ENTRY-001"
+    description: "双样本试点 GATE-0 已获人类批准，且样本 A 仅允许只读检查。"
+    evidence: "game/pilots/dual-sample-pilot.md"
+
+inputs:
+  - artifact_id: "PILOT-CHARTER-001"
+    path: "game/pilots/dual-sample-pilot.md"
+    version: "1"
+    required: true
+    owner_agent: "AGT-DIR"
+  - artifact_id: "REPLAY-EVIDENCE-ENDSHIFT-P0A-001"
+    path: "game/tests/replays/endshift-p0a-current.json"
+    version: "1"
+    required: true
+    owner_agent: "AGT-QA"
+
+constraints:
+  approved_decisions:
+    - "目标项目保持只读，不修改 Endshift Protocol 的文件、测试数据或构建。"
+    - "自动检查与人工体验闸门必须分离。"
+  forbidden_changes:
+    - "不得伪造真人记录或把合成夹具计入真人样本。"
+    - "不得以回放校准为由进入 P0-B 或继续修改 P0-A 核心玩法。"
+  engine_adapter: "godot"
+  assumptions:
+    - "本机与常用目录没有证据文件不等于其他电脑不存在记录，因此只能判定当前证据包不足。"
+
+steps:
+  - step_id: "STEP-001"
+    action: "绑定当前提交、构建版本、哈希、协议版本与证据位置。"
+    expected_artifact: "game/tests/replays/endshift-p0a-current.json"
+  - step_id: "STEP-002"
+    action: "运行闸门评估器并验证自动证据不能替代真人条件。"
+    expected_artifact: "结构化判断与单元测试结果"
+  - step_id: "STEP-003"
+    action: "对比预期和实际判断，输出阻塞原因、责任 Agent 与恢复顺序。"
+    expected_artifact: "game/pilots/reports/endshift-p0a-replay-calibration.md"
+
+outputs:
+  - artifact_id: "REPLAY-EVALUATOR-001"
+    path: "game/scripts/evaluate_replay_gate.py"
+    type: "code"
+    owner_agent: "AGT-DIR"
+    acceptance:
+      - "证据缺失或过期时输出 blocked。"
+      - "已有必需证据明确失败时输出 rejected。"
+      - "全部证据齐备时最多输出 review_required，不自动替代人工批准。"
+      - "自动化或合成来源不能满足 human 类条件。"
+  - artifact_id: "REPLAY-REPORT-ENDSHIFT-P0A-001"
+    path: "game/pilots/reports/endshift-p0a-replay-calibration.md"
+    type: "report"
+    owner_agent: "AGT-QA"
+    acceptance:
+      - "记录事实源版本、证据分类、实际判断、预期判断和差异。"
+      - "每个阻塞项都有责任 Agent 与下一动作。"
+
+automated_checks:
+  - check_id: "CHECK-001"
+    command: "python game/scripts/evaluate_replay_gate.py game/tests/replays/endshift-p0a-current.json --require-expected"
+    expected_result: "退出码 0，decision=blocked，matches_expected=true"
+    required: true
+  - check_id: "CHECK-002"
+    command: "python -m unittest game.tests.test_replay_gate"
+    expected_result: "4 项测试通过"
+    required: true
+  - check_id: "CHECK-003"
+    command: "python game/scripts/validate_pipeline_contract.py game/contracts/pilots/endshift-p0a-replay.yaml"
+    expected_result: "退出码 0"
+    required: true
+
+human_gate:
+  required: true
+  gate_id: "GATE-0"
+  reviewer: "human"
+  questions:
+    - "是否批准按双样本章程只读执行 Endshift Protocol P0-A 回放校准？"
+  approval_record: "2026-08-13 用户明确回复：通过 GATE-0"
+
+exit_conditions:
+  - "回放评估器、夹具与报告存在。"
+  - "自动检查全部通过。"
+  - "实际判断与预期 blocked 一致。"
+  - "目标游戏项目没有因本 Contract 被修改。"
+
+rollback:
+  triggers:
+    - "评估器把自动证据当作真人证据，或实际判断与已知基线不一致。"
+  return_to_stage: "X0"
+  return_to_agent: "AGT-DIR"
+  preserve:
+    - "原始只读观察、失败测试输出与版本差异。"
+
+handoff:
+  next_agent: "AGT-DIR"
+  summary: "校准完成后按阻塞原因先刷新协议与自动证据，再组织真人测试。"
+  changed_files:
+    - "game/scripts/evaluate_replay_gate.py"
+    - "game/tests/test_replay_gate.py"
+    - "game/tests/replays/endshift-p0a-current.json"
+    - "game/pilots/reports/endshift-p0a-replay-calibration.md"
+  decisions:
+    - "校准任务本身通过；Endshift P0-B 准入仍为 blocked。"
+    - "恢复顺序固定为协议绑定、自动回归、真人证据、人工评审。"
+  risks:
+    - "目标项目 0.1.13-p0a 与 0.1.7-p0a 测试手册存在版本漂移。"
+    - "目标项目存在 6 个未提交 .import 变更。"
+  open_questions:
+    - "是否授权在 Endshift Protocol 仓库中刷新测试协议并重跑证据？"
+  required_rechecks:
+    - "目标提交或测试包改变后必须重建回放夹具。"
+    - "人工样本齐备后仍需独立人工评审。"
+
+evidence:
+  commits: []
+  test_results:
+    - "回放判断：blocked，与预期一致"
+    - "闸门语义单元测试：4/4 通过"
+    - "Contract 结构验证：通过"
+  screenshots: []
+  playtest_records: []
+  builds:
+    - "Endshift Protocol 0.1.13-p0a EXE SHA-256：74d85848656c17b8ea436118e4b8e8820afb8c6ba969b3d6c3f5a8c0806c8a24"

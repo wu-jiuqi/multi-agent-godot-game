@@ -17,6 +17,7 @@
 - [多 Agent 架构](architecture.md)：通用核心、五个常驻角色、按需专业能力和阶段映射。
 - [统一管线契约](contracts/pipeline-contract.template.yaml)：所有工作流节点的输入、输出、验证、审批和回退格式。
 - [人工审批闸门](contracts/human-gates.md)：范围、核心体验、灰盒、内容冻结和发布五个决策点。
+- `agents/`：管线统筹、游戏设计、内容设计、Godot 实现、测试发布五个常驻角色的职责契约。
 
 具体 Agent 和 Skill 会在职责、触发场景、输入、输出、验收标准、失败回退以及人工决策点被确认后再创建。
 

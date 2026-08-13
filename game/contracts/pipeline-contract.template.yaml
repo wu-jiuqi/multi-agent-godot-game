@@ -1,0 +1,91 @@
+contract:
+  schema_version: "0.1"
+  contract_id: "CTR-<STAGE>-<NUMBER>"
+  title: "<工作项名称>"
+  stage: "P0|P1|P2|P3|P4|P5|P6|P7|P8|P9|X0"
+  status: "draft|ready|in_progress|review|approved|rejected|blocked"
+  owner_agent: "AGT-DIR|AGT-GD|AGT-CD|AGT-GODOT|AGT-QA|SPECIALIST"
+  project_id: "PRJ-<NAME>"
+  version: 1
+
+objective:
+  player_facing_outcome: "<玩家最终能感知到的变化>"
+  production_outcome: "<本工作项必须交付的生产结果>"
+
+entry_conditions:
+  - id: "ENTRY-001"
+    description: "<开始前必须成立的事实>"
+    evidence: "<文件、测试或审批记录>"
+
+inputs:
+  - artifact_id: "<稳定 ID>"
+    path: "<仓库相对路径>"
+    version: "<已批准版本>"
+    required: true
+    owner_agent: "<上游所有者>"
+
+constraints:
+  approved_decisions:
+    - "<不得在本工作项中改变的决定>"
+  forbidden_changes:
+    - "<禁止修改的系统、文件或范围>"
+  engine_adapter: "generic|godot"
+  assumptions:
+    - "<仍需验证但暂时采用的假设>"
+
+steps:
+  - step_id: "STEP-001"
+    action: "<可执行动作>"
+    expected_artifact: "<本步骤形成的产物或证据>"
+
+outputs:
+  - artifact_id: "<稳定 ID>"
+    path: "<仓库相对路径>"
+    type: "decision|spec|scene|resource|code|asset|test|build|report"
+    owner_agent: "<产物所有者>"
+    acceptance:
+      - "<可观察、可判断的验收条件>"
+
+automated_checks:
+  - check_id: "CHECK-001"
+    command: "<可重复执行的命令>"
+    expected_result: "<退出码或机器可判断结果>"
+    required: true
+
+human_gate:
+  required: true
+  gate_id: "GATE-0|GATE-1|GATE-2|GATE-3|GATE-4"
+  reviewer: "human"
+  questions:
+    - "<必须由人类判断的问题>"
+  approval_record: null
+
+exit_conditions:
+  - "<所有必要产物存在>"
+  - "<自动检查通过>"
+  - "<需要时已获得人工批准>"
+
+rollback:
+  triggers:
+    - "<何种失败或反馈触发回退>"
+  return_to_stage: "<P0-P9 或 X0>"
+  return_to_agent: "<负责修订的 Agent>"
+  preserve:
+    - "<回退时保留的证据、原型或资产>"
+
+handoff:
+  next_agent: "<接收者>"
+  summary: "<完成了什么，为什么这样做>"
+  changed_files: []
+  decisions: []
+  risks: []
+  open_questions: []
+  required_rechecks: []
+
+evidence:
+  commits: []
+  test_results: []
+  screenshots: []
+  playtest_records: []
+  builds: []
+

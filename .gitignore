@@ -16,3 +16,5 @@ build/
 .env.*
 !.env.example
 
+# 本地工具链
+.toolchains/

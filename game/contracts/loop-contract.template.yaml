@@ -1,5 +1,5 @@
 loop_contract:
-  schema_version: "0.1"
+  schema_version: "0.2"
   contract_id: "LOOP-CTR-<TYPE>-<NUMBER>"
   loop_type: "<可复用的循环类型>"
   title: "<循环名称>"
@@ -9,7 +9,8 @@ loop_contract:
 purpose:
   objective: "<这个循环要解决的持续性问题>"
   required_deliverables:
-    - artifact_type: "<产物类型>"
+    - deliverable_id: "DELIVERABLE-001"
+      artifact_type: "<产物类型>"
       description: "<结束时必须存在的产物>"
   out_of_scope:
     - "<本循环明确不负责的事项>"
@@ -31,7 +32,8 @@ start:
       description: "<启动前必须成立的事实>"
       required_evidence: "<文件、检查结果或审批记录>"
   required_inputs:
-    - artifact_type: "<输入类型>"
+    - input_slot_id: "INPUT-001"
+      artifact_type: "<输入类型>"
       version_requirement: "<版本或批准状态要求>"
       required: true
 
@@ -75,7 +77,7 @@ acceptance:
 
 state_machine:
   state_machine_id: "LOOP-SM-DEFAULT"
-  version: "0.1"
+  version: "0.2"
   allowed_overrides: []
 
 failure_and_exit:

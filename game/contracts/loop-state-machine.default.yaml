@@ -1,6 +1,6 @@
 state_machine:
   state_machine_id: "LOOP-SM-DEFAULT"
-  version: "0.1"
+  version: "0.2"
   initial_state: "draft"
   terminal_states:
     - "completed"
@@ -42,6 +42,9 @@ states:
 runtime_requirements:
   transition_record:
     required_fields:
+      - "event_id"
+      - "mutation_id"
+      - "sequence"
       - "transition_id"
       - "from_state"
       - "to_state"
@@ -49,6 +52,8 @@ runtime_requirements:
       - "authority_id"
       - "evidence"
       - "occurred_at"
+      - "expected_record_revision"
+      - "resulting_record_revision"
   interruption_context:
     required_in_states:
       - "blocked"
@@ -66,10 +71,11 @@ runtime_requirements:
       entry_snapshot:
         contract_id: "<绑定的 Contract ID>"
         contract_version: "<绑定版本>"
-        input_versions: []
-        dependency_states: []
-        authority_id: "<当时有效的授权 ID>"
-        budget_usage: "<当时的轮次、时间或成本消耗>"
+        contract_digest: "<绑定版本的 SHA-256>"
+        input_set_digest: "<输入版本集合的 SHA-256>"
+        dependency_set_digest: "<依赖关系及状态集合的 SHA-256>"
+        authority_set_digest: "<有效授权集合的 SHA-256>"
+        budget_usage_digest: "<预算使用快照的 SHA-256>"
 
 invariants:
   - id: "INV-001"
@@ -86,6 +92,10 @@ invariants:
     rule: "Contract 新版本不会自动替换运行实例绑定的版本。"
   - id: "INV-007"
     rule: "只有 review 返回 active 进行修订时增加 current_iteration。"
+  - id: "INV-008"
+    rule: "同一次状态变化只能由一个专用或通用核心事件表达，不得重复追加状态转换事件。"
+  - id: "INV-009"
+    rule: "Snapshot 更新与对应 Event 追加必须在同一原子事务中完成。"
 
 resume_revalidation:
   required_checks:
@@ -118,6 +128,7 @@ resume_revalidation:
 
 transitions:
   - transition_id: "TR-DRAFT-READY"
+    event_type: "core.state_transitioned"
     from: "draft"
     to: "ready"
     trigger: "registration_validated"
@@ -128,6 +139,7 @@ transitions:
       - "准入检查记录"
 
   - transition_id: "TR-READY-ACTIVE"
+    event_type: "core.loop_started"
     from: "ready"
     to: "active"
     trigger: "execution_started"
@@ -138,6 +150,7 @@ transitions:
       - "启动记录"
 
   - transition_id: "TR-ACTIVE-REVIEW"
+    event_type: "core.state_transitioned"
     from: "active"
     to: "review"
     trigger: "iteration_submitted"
@@ -148,6 +161,7 @@ transitions:
       - "本轮变更摘要"
 
   - transition_id: "TR-REVIEW-ACTIVE"
+    event_type: "core.state_transitioned"
     from: "review"
     to: "active"
     trigger: "revision_required"
@@ -162,6 +176,7 @@ transitions:
       - "审查或 Gate 反馈"
 
   - transition_id: "TR-REVIEW-COMPLETED"
+    event_type: "core.loop_completed"
     from: "review"
     to: "completed"
     trigger: "acceptance_satisfied"
@@ -176,6 +191,7 @@ transitions:
       - "最终交接记录"
 
   - transition_id: "TR-OPERATIONAL-INTERRUPTED"
+    event_type: "core.interruption_entered"
     from:
       - "ready"
       - "active"
@@ -195,6 +211,7 @@ transitions:
       - "中断原因与责任路由"
 
   - transition_id: "TR-INTERRUPTED-RESUME"
+    event_type: "core.resume_revalidation_recorded"
     from:
       - "blocked"
       - "paused"
@@ -212,6 +229,7 @@ transitions:
       - "适用时的审批结果"
 
   - transition_id: "TR-INTERRUPTED-REROUTE"
+    event_type: "core.interruption_rerouted"
     from:
       - "blocked"
       - "paused"
@@ -232,6 +250,7 @@ transitions:
       - "失败的恢复检查与新责任路由"
 
   - transition_id: "TR-NONTERMINAL-CANCELLED"
+    event_type: "core.loop_cancelled"
     from:
       - "draft"
       - "ready"

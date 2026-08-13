@@ -1,0 +1,185 @@
+event:
+  schema_version: "0.1"
+
+  event_id: "<全局唯一 UUID>"
+  mutation_id: "<本次原子修改的幂等键 UUID>"
+  loop_instance_id: "<所属 Loop 实例 UUID>"
+  sequence: 1
+  event_type: "core.loop_registered"
+
+  occurred_at: "<事件实际发生的 ISO 8601 时间>"
+  recorded_at: "<写入 Registry 的 ISO 8601 时间>"
+
+  actor:
+    actor_id: "<Agent 或人类 ID>"
+    role: "<执行动作时承担的角色>"
+    authority_id: "<允许该动作的授权记录 ID>"
+
+  causality:
+    correlation_id: "<同一批业务动作的关联 UUID>"
+    causation_event_id: null
+    request_id: null
+
+  concurrency:
+    expected_record_revision: 0
+    resulting_record_revision: 1
+
+  binding_snapshot:
+    contract_digest: "<事件发生时的 Contract SHA-256>"
+    state_machine_digest: "<事件发生时的状态机 SHA-256>"
+
+  payload:
+    project_id: "<项目 ID>"
+    initial_state: "draft"
+    identity:
+      display_key: null
+      title: "<实例名称>"
+      created_at: "<ISO 8601 时间>"
+      created_by:
+        actor_id: "<创建者 ID>"
+        role: "<创建角色>"
+        authority_id: "<创建授权 ID>"
+    contract_binding:
+      contract_id: "<Loop Contract ID>"
+      contract_version: 1
+      contract_digest: "<64 位小写 SHA-256>"
+    state_machine_binding:
+      state_machine_id: "LOOP-SM-DEFAULT"
+      state_machine_version: "0.2"
+      state_machine_digest: "<64 位小写 SHA-256>"
+    parent_loop_id: null
+    owner_assignment: "<Owner assignment 对象>"
+    budget_limits: "<初始预算上限对象>"
+
+  evidence_refs: []
+
+  integrity:
+    canonicalization: "registry-event-canonical-json-v1"
+    digest_algorithm: "sha256"
+    previous_event_digest: null
+    event_digest: "<按下述规范计算的 64 位小写 SHA-256>"
+
+integrity_contract:
+  canonicalization: "registry-event-canonical-json-v1"
+  rules:
+    - "计算 event_digest 时，将 integrity.event_digest 设为 null，其他字段全部参与。"
+    - "对象键按 Unicode 码点升序排列；数组保持原顺序。"
+    - "字符串使用 Unicode 原值；数字禁止 NaN 和 Infinity。"
+    - "输出无额外空白的 UTF-8 JSON，然后计算 SHA-256。"
+  chain:
+    first_event_previous_digest: null
+    later_event_previous_digest: "必须等于前一 sequence 的 event_digest"
+  immutability:
+    - "Event 成功写入后不得修改、覆盖或删除。"
+    - "纠错通过新的类型化补偿事件表达。"
+
+application_contract:
+  - "每个 mutation_id 只能成功应用一次；重试不得重复追加 Event。"
+  - "sequence 必须等于 Snapshot.last_event_sequence + 1。"
+  - "expected_record_revision 必须等于 Snapshot.record_revision。"
+  - "resulting_record_revision 必须等于 expected_record_revision + 1。"
+  - "追加 Event 和更新 Snapshot 必须处于同一原子事务。"
+  - "payload 必须符合 event_type 的专用结构；禁止通用 JSON Patch。"
+  - "一个 mutation 只追加一个表达该业务变化的 Event。"
+  - "core.loop_completed 和 core.loop_cancelled 是携带终态转换语义的专用事件；同一动作不得再追加 core.state_transitioned。"
+  - "binding_snapshot 记录本次 mutation 执行前用于验证和授权的绑定；迁移事件的新绑定从下一条 Event 开始生效。"
+
+event_namespace:
+  core:
+    - "core.loop_registered"
+    - "core.loop_started"
+    - "core.state_transitioned"
+    - "core.assignment_changed"
+    - "core.dependency_changed"
+    - "core.input_bound"
+    - "core.output_registered"
+    - "core.acceptance_recorded"
+    - "core.interruption_entered"
+    - "core.interruption_rerouted"
+    - "core.resume_revalidation_recorded"
+    - "core.approval_requested"
+    - "core.approval_decided"
+    - "core.budget_extended"
+    - "core.contract_migrated"
+    - "core.state_machine_migrated"
+    - "core.loop_completed"
+    - "core.loop_cancelled"
+  extension_pattern: "project.<project_id>.<event_name>"
+  extension_rule: "项目事件不得改变 core 事件的名称、Payload 语义、状态转换或授权要求。"
+
+payload_contracts:
+  core.loop_registered:
+    required_fields: ["project_id", "initial_state", "identity", "contract_binding", "state_machine_binding", "parent_loop_id", "owner_assignment", "budget_limits"]
+    snapshot_effect: "创建注册基线 Snapshot。"
+  core.loop_started:
+    required_fields: ["transition_id", "from_state", "to_state", "iteration"]
+    snapshot_effect: "状态从 ready 进入 active，并将第一轮初始化为 1。"
+  core.state_transitioned:
+    required_fields: ["transition_id", "from_state", "to_state", "iteration", "reason"]
+    snapshot_effect: "应用没有专用核心事件的合法状态转换。"
+  core.assignment_changed:
+    required_fields: ["assignment_kind", "operation", "before", "after"]
+    snapshot_effect: "替换 Owner，或增加、更新、撤销 Executor/Reviewer 任命。"
+  core.dependency_changed:
+    required_fields: ["operation", "before", "after"]
+    snapshot_effect: "增加、更新或移除一条依赖关系。"
+  core.input_bound:
+    required_fields: ["input_slot_id", "before", "after"]
+    snapshot_effect: "绑定或替换一个 Contract 输入槽的不可变产物引用。"
+  core.output_registered:
+    required_fields: ["deliverable_id", "before", "after"]
+    snapshot_effect: "登记、换版或废弃一个 Contract 交付项引用。"
+  core.acceptance_recorded:
+    required_fields: ["acceptance_kind", "record_id", "subject_digest", "record"]
+    snapshot_effect: "更新自动检查、专业审查或人工 Gate 的当前验收视图。"
+  core.interruption_entered:
+    required_fields: ["transition_id", "from_state", "to_state", "iteration", "interruption"]
+    snapshot_effect: "首次创建中断上下文并保存 resume_state 与 entry_snapshot。"
+  core.interruption_rerouted:
+    required_fields: ["transition_id", "from_state", "to_state", "iteration", "interruption_id", "current_reason", "revalidation"]
+    snapshot_effect: "保留首次中断现场并更新当前中断状态、原因和最近复检。"
+  core.resume_revalidation_recorded:
+    required_fields: ["transition_id", "from_state", "to_state", "iteration", "interruption_id", "revalidation"]
+    snapshot_effect: "复检通过时恢复原状态并清除当前中断；失败不得使用本事件。"
+  core.approval_requested:
+    required_fields: ["request_id", "requested_action", "subject_digest", "request"]
+    snapshot_effect: "加入一个当前审批请求；状态转换由独立事件表达。"
+  core.approval_decided:
+    required_fields: ["request_id", "decision", "subject_digest", "decision_ref"]
+    snapshot_effect: "更新请求决定；批准只授予动作权限，不直接转换状态。"
+  core.budget_extended:
+    required_fields: ["budget_before", "budget_after", "approval_id", "reason"]
+    snapshot_effect: "替换有效预算上限并保留原使用量。"
+  core.contract_migrated:
+    required_fields: ["contract_before", "contract_after", "migration_check_ref", "approval_id"]
+    snapshot_effect: "经检查和授权后替换实例绑定的 Contract。"
+  core.state_machine_migrated:
+    required_fields: ["state_machine_before", "state_machine_after", "migration_check_ref", "approval_id"]
+    snapshot_effect: "经状态兼容性检查和授权后替换实例绑定的状态机。"
+  core.loop_completed:
+    required_fields: ["transition_id", "from_state", "to_state", "iteration", "acceptance_subject_digest", "final_handoff_ref"]
+    snapshot_effect: "从 review 进入 completed，并固化最终验收与交接引用。"
+  core.loop_cancelled:
+    required_fields: ["transition_id", "from_state", "to_state", "iteration", "reason", "handoff_ref"]
+    snapshot_effect: "从非终态进入 cancelled，并固化取消依据与交接引用。"
+
+payload_examples:
+  state_transitioned:
+    transition_id: "TR-REVIEW-ACTIVE"
+    from_state: "review"
+    to_state: "active"
+    iteration:
+      before: 1
+      after: 2
+    reason: "<返工原因>"
+    subject_digest: "<转换依据的产物和证据引用集合 SHA-256>"
+
+  loop_completed:
+    transition_id: "TR-REVIEW-COMPLETED"
+    from_state: "review"
+    to_state: "completed"
+    iteration:
+      before: 1
+      after: 1
+    acceptance_subject_digest: "<最终验收对象集合 SHA-256>"
+    final_handoff_ref: "<带版本和摘要的交接引用>"

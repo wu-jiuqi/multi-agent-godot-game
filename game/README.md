@@ -23,6 +23,7 @@
 - [分级授权与例外升级契约](contracts/authority-delegation.md)：定义权力如何下放、边界内如何自主决定，以及越权事项如何逐级上报。
 - [Loop Contract 模板](contracts/loop-contract.template.yaml)：定义可复用循环的目标、职责、迭代、预算、验收、状态机引用、退出和协调规则，不保存具体实例的运行状态。
 - [默认 Loop 状态机](contracts/loop-state-machine.default.yaml)：定义正常状态、中断状态、合法转换、恢复复检，以及审批不能直接完成循环的约束。
+- [Loop Registry 契约](contracts/README.md)：以可重建 Snapshot 和不可变 Event History 保存具体循环实例的身份、拓扑、责任、状态、预算、产物引用、验收、中断和审批事实。
 - `agents/`：项目经理、游戏设计、内容设计、Godot 实现、测试发布五个默认角色的参考职责契约；具体项目可以在责任完整映射的前提下拆分、合并、替换或新增 Agent。
 - [项目编制设计 Agent](agents/project-agent-architect.md)：根据项目资料和通用责任地图提出项目专属编制方案，经人工批准后才能实例化或改变长期 Agent。
 - [通用部门经理 Agent](agents/department-manager.md)：项目按需实例化的承上启下角色，负责部门内拆解、协作、整合和向项目经理汇报，不预设具体部门名称。

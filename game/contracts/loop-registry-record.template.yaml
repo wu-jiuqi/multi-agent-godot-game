@@ -1,0 +1,214 @@
+registry_snapshot:
+  schema_version: "0.1"
+
+  identity:
+    loop_instance_id: "<UUID>"
+    project_id: "<项目 ID>"
+    display_key: null
+    title: "<实例名称>"
+    created_at: "<ISO 8601 时间>"
+    created_by:
+      actor_id: "<Agent 或人类 ID>"
+      role: "<创建时承担的角色>"
+      authority_id: "<允许创建实例的授权 ID>"
+
+  contract_binding:
+    contract_id: "<Loop Contract ID>"
+    contract_version: 1
+    contract_digest: "<64 位小写 SHA-256>"
+
+  state_machine_binding:
+    state_machine_id: "LOOP-SM-DEFAULT"
+    state_machine_version: "0.2"
+    state_machine_digest: "<64 位小写 SHA-256>"
+
+  topology:
+    parent_loop_id: null
+    dependencies: []
+
+  responsibility:
+    owner:
+      actor_id: "<唯一 Owner>"
+      role: "<当前角色>"
+      assignment_id: "<UUID>"
+      authority_id: "<任命和执行授权 ID>"
+      assigned_by: "<任命者 ID>"
+      effective_from: "<ISO 8601 时间>"
+    executors: []
+    reviewers: []
+
+  runtime:
+    current_state: "draft"
+    state_entered_at: "<ISO 8601 时间>"
+    current_iteration: 0
+    last_transition_id: null
+    last_event_id: "<core.loop_registered Event UUID>"
+    last_event_digest: "<最近应用 Event 的 64 位小写 SHA-256>"
+    last_event_sequence: 1
+    record_revision: 1
+
+  budget:
+    limits:
+      iteration_limit: null
+      time_limit_seconds: null
+      cost_limit:
+        amount: null
+        unit: null
+    usage:
+      completed_iterations: 0
+      active_time_seconds: 0
+      cost:
+        amount: 0
+        unit: null
+    status: "available"
+    last_updated_at: "<ISO 8601 时间>"
+
+  resources:
+    inputs: []
+    outputs: []
+
+  acceptance_snapshot:
+    subject_digest: null
+    automated_checks: []
+    professional_reviews: []
+    human_gates: []
+    final_handoff_ref: null
+
+  interruption: null
+  pending_approvals: []
+
+storage_contract:
+  authoritative_history: "event_history"
+  snapshot_role: "可由完整事件历史重建的当前物化视图"
+  artifact_storage: "Registry 仅保存带版本和摘要的引用，不保存产物正文"
+  physical_storage_options:
+    - "同一 YAML 或 JSON 文档中的独立区块"
+    - "Snapshot 文档加 JSONL Event 日志"
+    - "提供等价事务和排序语义的数据库"
+  transaction_rule: "一个 mutation_id 对应恰好一个 Event；Event 追加和 Snapshot 更新必须原子完成。"
+  registration_baseline: "Snapshot 首次持久化必须与 sequence=1 的 core.loop_registered 同时完成，record_revision=1。"
+  topology_rules:
+    - "parent_loop_id 与 dependency.target_loop_id 不得等于当前 loop_instance_id。"
+    - "父 Loop 图必须无环；不在父 Snapshot 中重复保存 child_loop_ids。"
+    - "同一依赖关系不得重复；所有 blocking=true 的依赖图必须无环。"
+  budget_rules:
+    - "任一种已配置预算耗尽都按 Contract 触发暂停复审或升级。"
+    - "cost_limit.amount 非空时 unit 必须非空，usage.cost.unit 必须与其一致。"
+    - "blocked、paused 和 waiting_approval 不累计 active_time_seconds。"
+
+# 以下仅描述可选或后续阶段字段的形状，不属于上方注册基线的持久化数据。
+field_examples:
+  dependency:
+    dependency_id: "<UUID>"
+    target_loop_id: "<被依赖的 Loop 实例 UUID>"
+    dependency_type: "input|decision|artifact|completion"
+    blocking: true
+    satisfaction_condition: "<依赖何时视为满足>"
+    created_by_event_id: "<core.dependency_changed 事件 UUID>"
+
+  executor_assignment:
+    actor_id: "<执行者 ID>"
+    role: "<执行角色>"
+    assignment_id: "<UUID>"
+    authority_id: "<授权 ID>"
+    scope:
+      - "<负责的 Contract task_id 或职责>"
+
+  reviewer_assignment:
+    actor_id: "<审查者 ID>"
+    role: "<专业审查角色>"
+    assignment_id: "<UUID>"
+    review_scope:
+      - "<负责的 check_id、deliverable_id 或标准>"
+
+  input_binding:
+    input_slot_id: "INPUT-001"
+    artifact:
+      artifact_id: "<逻辑产物 ID>"
+      artifact_type: "<输入类型>"
+      version: "<不可变版本>"
+      uri: "<项目相对路径或项目允许的 URI>"
+      digest:
+        algorithm: "sha256"
+        value: "<64 位小写 SHA-256>"
+    source_loop_id: null
+    bound_by_event_id: "<core.input_bound 事件 UUID>"
+    bound_at: "<ISO 8601 时间>"
+
+  output_registration:
+    deliverable_id: "DELIVERABLE-001"
+    artifact:
+      artifact_id: "<逻辑产物 ID>"
+      artifact_type: "<产物类型>"
+      version: "<不可变版本>"
+      uri: "<项目相对路径或项目允许的 URI>"
+      digest:
+        algorithm: "sha256"
+        value: "<64 位小写 SHA-256>"
+    produced_in_iteration: 1
+    lifecycle_status: "draft|submitted|accepted|superseded"
+    registered_by_event_id: "<core.output_registered 事件 UUID>"
+
+  automated_check:
+    check_id: "CHECK-001"
+    result: "passed|failed|error"
+    evidence_ref: "<带版本和摘要的 Evidence Reference>"
+    evaluated_at: "<ISO 8601 时间>"
+
+  professional_review:
+    review_id: "<UUID>"
+    reviewer_assignment_id: "<Reviewer assignment_id>"
+    verdict: "approved|revision_required|rejected"
+    evidence_ref: "<带版本和摘要的 Evidence Reference>"
+    subject_digest: "<审查对象集合的 SHA-256>"
+
+  human_gate:
+    gate_id: "<Contract gate_id>"
+    decision: "approved|rejected|pending"
+    approval_id: "<独立审批记录 ID>"
+    subject_digest: "<审批对象集合的 SHA-256>"
+
+  interruption:
+    interruption_id: "<一次连续中断链的 UUID>"
+    current_interruption_state: "blocked|paused|waiting_approval"
+    resume_state: "ready|active|review"
+    first_entered_from_state: "<首次中断前的 operational state>"
+    first_entered_at: "<ISO 8601 时间>"
+    current_reason:
+      reason_code: "<项目可扩展原因代码>"
+      description: "<具体原因>"
+      responsible_role: "<负责解除问题的角色>"
+      evidence_refs: []
+    entry_snapshot:
+      contract_digest: "<64 位小写 SHA-256>"
+      input_set_digest: "<64 位小写 SHA-256>"
+      dependency_set_digest: "<64 位小写 SHA-256>"
+      authority_set_digest: "<64 位小写 SHA-256>"
+      budget_usage_digest: "<64 位小写 SHA-256>"
+    latest_revalidation:
+      attempt_id: "<UUID>"
+      checked_at: "<ISO 8601 时间>"
+      overall_result: "passed|failed"
+      checks:
+        - check_id: "RESUME-CTR"
+          result: "passed|failed|error"
+          evidence_refs: []
+      resulting_route: "resume|blocked|paused|waiting_approval"
+      event_id: "<core.resume_revalidation_recorded 事件 UUID>"
+
+  pending_approval:
+    request_id: "<UUID>"
+    approval_type: "<预算扩展、继续执行或状态转换等>"
+    requested_action: "<批准后允许执行的一个动作>"
+    requested_by:
+      actor_id: "<申请者 ID>"
+      role: "<申请角色>"
+      authority_id: "<申请依据>"
+    required_approver_role: "<有权作出决定的角色>"
+    required_authority_scope: "<所需审批权限>"
+    subject_digest: "<请求、产物和证据引用集合的 SHA-256>"
+    evidence_refs: []
+    status: "pending|approved|rejected|withdrawn|expired"
+    requested_at: "<ISO 8601 时间>"
+    expires_at: null
+    decision_ref: null

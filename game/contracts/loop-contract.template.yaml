@@ -1,0 +1,108 @@
+loop_contract:
+  schema_version: "0.1"
+  contract_id: "LOOP-CTR-<TYPE>-<NUMBER>"
+  loop_type: "<可复用的循环类型>"
+  title: "<循环名称>"
+  version: 1
+  status: "draft|approved|deprecated"
+
+purpose:
+  objective: "<这个循环要解决的持续性问题>"
+  required_deliverables:
+    - artifact_type: "<产物类型>"
+      description: "<结束时必须存在的产物>"
+  out_of_scope:
+    - "<本循环明确不负责的事项>"
+
+responsibility:
+  owner_role: "<对循环结果负责的 Agent 或项目角色>"
+  reviewer_roles:
+    - "<负责专业审查的角色>"
+  required_authority_scope:
+    - "<运行本循环所需的授权范围>"
+  escalation_to: "<当前角色无权处理时的直属上报对象>"
+
+start:
+  triggers:
+    - trigger_id: "TRIGGER-001"
+      description: "<什么事件或条件触发循环候选>"
+  entry_conditions:
+    - condition_id: "ENTRY-001"
+      description: "<启动前必须成立的事实>"
+      required_evidence: "<文件、检查结果或审批记录>"
+  required_inputs:
+    - artifact_type: "<输入类型>"
+      version_requirement: "<版本或批准状态要求>"
+      required: true
+
+iteration:
+  task_sequence:
+    - task_id: "TASK-001"
+      responsible_role: "<执行角色>"
+      action: "<本轮动作>"
+      expected_output: "<本任务交回循环的产物或证据>"
+  carry_forward:
+    - "<下一轮必须继承的已批准输入、产物或决定>"
+  change_summary_required: true
+  review_rejection:
+    action: "revise_same_loop"
+    increment_iteration: true
+    create_new_loop: false
+
+budget:
+  # iteration_limit、time_limit、cost_limit 至少填写一项。
+  iteration_limit: null
+  time_limit: null
+  cost_limit: null
+  on_exhausted: "pause_and_review|escalate"
+
+acceptance:
+  automated_checks:
+    - check_id: "CHECK-001"
+      description: "<机器可判断的检查>"
+      required: true
+  professional_review:
+    required: true
+    reviewer_role: "<拥有专业审查责任的角色>"
+    criteria:
+      - "<专业规格或质量标准>"
+  human_gate:
+    required: false
+    gate_id: null
+    question: null
+  success_conditions:
+    - "<允许循环完成的可观察条件>"
+
+state_machine:
+  state_machine_id: "LOOP-SM-DEFAULT"
+  version: "0.1"
+  allowed_overrides: []
+
+failure_and_exit:
+  blocking_conditions:
+    - "<何种情况进入 blocked>"
+  rollback:
+    return_to: "<本循环的状态或上游循环类型>"
+    preserve:
+      - "<回退时必须保留的产物与证据>"
+  cancellation_conditions:
+    - "<何种情况允许终止且不再恢复>"
+  final_handoff:
+    receiver_role: "<循环结束后的接收者>"
+    required_contents:
+      - "<交接必须包含的产物、决定、风险或未解决问题>"
+
+coordination:
+  allowed_parent_loop_types:
+    - "<允许承载本循环的上层循环类型>"
+  dependency_rules:
+    - "<允许依赖的循环类型及依赖成立条件>"
+  child_loop_creation:
+    allowed: false
+    conditions:
+      - "<什么情况下可以创建子循环>"
+    required_authority_scope:
+      - "<创建子循环所需的授权>"
+  registry_binding:
+    # 具体父子 ID、依赖 ID、当前状态与当前轮次只写入 Registry。
+    store_runtime_relationships_in_registry: true

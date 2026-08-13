@@ -12,6 +12,7 @@
 - `skills/`：可被一个或多个 Agent 复用的单项能力和工作方法。
 - `workflows/`：描述 Agent、Skill、人工审批和产物之间的执行顺序与回退路径。
 - `contracts/`：统一输入、输出、状态、ID、验收条件和交接格式。
+- `departments/`：项目可选部门的职责、成立条件、边界和撤销模板，不代表默认常驻编制。
 - `tests/`：用于验证 Agent、Skill、契约和完整工作流的代表性任务。
 
 ## 当前架构
@@ -23,6 +24,7 @@
 - `agents/`：项目经理、游戏设计、内容设计、Godot 实现、测试发布五个默认角色的参考职责契约；具体项目可以在责任完整映射的前提下拆分、合并、替换或新增 Agent。
 - [项目编制设计 Agent](agents/project-agent-architect.md)：根据项目资料和通用责任地图提出项目专属编制方案，经人工批准后才能实例化或改变长期 Agent。
 - [通用部门经理 Agent](agents/department-manager.md)：项目按需实例化的承上启下角色，负责部门内拆解、协作、整合和向项目经理汇报，不预设具体部门名称。
+- [工具与生产管线部门模板](departments/tools-and-production-pipeline.md)：按需提供编辑、转换、导入导出和往返验证能力；小型项目可将其职责并入技术部门。
 - [Godot 适配层](adapters/godot.md)：把通用产物映射为 Godot 场景、资源、节点和工程证据。
 - [垂直切片工作流](workflows/vertical-slice.md)：第一版用于验证整条多 Agent 链路的代表性流程。
 - [灰盒 Contract 示例](contracts/examples/vertical-slice-greybox.yaml)：统一契约在真实工作项中的填写方式。

@@ -18,6 +18,9 @@
 - [统一管线契约](contracts/pipeline-contract.template.yaml)：所有工作流节点的输入、输出、验证、审批和回退格式。
 - [人工审批闸门](contracts/human-gates.md)：范围、核心体验、灰盒、内容冻结和发布五个决策点。
 - `agents/`：管线统筹、游戏设计、内容设计、Godot 实现、测试发布五个常驻角色的职责契约。
+- [Godot 适配层](adapters/godot.md)：把通用产物映射为 Godot 场景、资源、节点和工程证据。
+- [垂直切片工作流](workflows/vertical-slice.md)：第一版用于验证整条多 Agent 链路的代表性流程。
+- [灰盒 Contract 示例](contracts/examples/vertical-slice-greybox.yaml)：统一契约在真实工作项中的填写方式。
 
 具体 Agent 和 Skill 会在职责、触发场景、输入、输出、验收标准、失败回退以及人工决策点被确认后再创建。
 

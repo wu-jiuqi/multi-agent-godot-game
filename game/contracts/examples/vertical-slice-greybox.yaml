@@ -1,0 +1,121 @@
+contract:
+  schema_version: "0.1"
+  contract_id: "CTR-P4-001"
+  title: "垂直切片关卡灰盒"
+  stage: "P4"
+  status: "ready"
+  owner_agent: "AGT-CD"
+  project_id: "PRJ-EXAMPLE"
+  version: 1
+
+objective:
+  player_facing_outcome: "玩家能在 10～15 分钟内理解目标、完成核心交互并触发关键剧情节点。"
+  production_outcome: "交付可在 Godot 中完整试玩、可进入 GATE-2 评审的灰盒关卡。"
+
+entry_conditions:
+  - id: "ENTRY-001"
+    description: "项目范围与核心体验假设已批准。"
+    evidence: "docs/decisions/GATE-0.md 与 docs/decisions/GATE-1.md"
+  - id: "ENTRY-002"
+    description: "核心 Player Verbs 与相关系统已有批准规格。"
+    evidence: "docs/gameplay/player-verbs.yaml"
+
+inputs:
+  - artifact_id: "VERB-CORE-001"
+    path: "docs/gameplay/player-verbs.yaml"
+    version: "1"
+    required: true
+    owner_agent: "AGT-GD"
+  - artifact_id: "BEAT-SLICE-001"
+    path: "docs/narrative/beats/BEAT-SLICE-001.yaml"
+    version: "1"
+    required: true
+    owner_agent: "AGT-CD"
+
+constraints:
+  approved_decisions:
+    - "只验证一个核心玩法和一个剧情节点。"
+  forbidden_changes:
+    - "不得扩大关卡数量或增加未登记的核心系统。"
+    - "GATE-2 前不得制作批量最终环境资产。"
+  engine_adapter: "godot"
+  assumptions:
+    - "占位资源足以测试路线、节奏和交互可读性。"
+
+steps:
+  - step_id: "STEP-001"
+    action: "建立关卡简报、节拍表和空间流程。"
+    expected_artifact: "docs/levels/LVL-SLICE-001/"
+  - step_id: "STEP-002"
+    action: "使用预置 Godot 节点、子场景和占位资源搭建灰盒。"
+    expected_artifact: "game/scenes/levels/LVL-SLICE-001-greybox.tscn"
+  - step_id: "STEP-003"
+    action: "执行无提示试玩、修复阻断问题并整理 GATE-2 证据。"
+    expected_artifact: "reports/playtests/LVL-SLICE-001.md"
+
+outputs:
+  - artifact_id: "LVL-SLICE-001"
+    path: "game/scenes/levels/LVL-SLICE-001-greybox.tscn"
+    type: "scene"
+    owner_agent: "AGT-GODOT"
+    acceptance:
+      - "关键路径可以从入口完成到出口。"
+      - "玩家无需口头提示即可识别首个目标和主要交互。"
+      - "固定结构通过预置节点和场景表达。"
+  - artifact_id: "TEST-LVL-SLICE-001"
+    path: "reports/playtests/LVL-SLICE-001.md"
+    type: "report"
+    owner_agent: "AGT-QA"
+    acceptance:
+      - "记录完成时间、卡点、失败恢复时间和跳过内容。"
+      - "每个问题均映射到责任阶段和复现证据。"
+
+automated_checks:
+  - check_id: "CHECK-001"
+    command: "python game/scripts/validate_pipeline_contract.py game/contracts/examples/vertical-slice-greybox.yaml"
+    expected_result: "退出码 0"
+    required: true
+  - check_id: "CHECK-002"
+    command: "<由具体项目填写 Godot 无头场景加载命令>"
+    expected_result: "场景无错误加载且进程退出码为 0"
+    required: true
+
+human_gate:
+  required: true
+  gate_id: "GATE-2"
+  reviewer: "human"
+  questions:
+    - "目标、路线和关键反馈是否自然可读？"
+    - "玩法、剧情节点和交互是否形成目标体验？"
+    - "是否允许冻结灰盒并进入高成本资产生产？"
+  approval_record: null
+
+exit_conditions:
+  - "灰盒关键路径可以完成。"
+  - "自动检查通过。"
+  - "GATE-2 已获得人工批准。"
+
+rollback:
+  triggers:
+    - "目标体验、路线或交互可读性未通过 GATE-2。"
+  return_to_stage: "P4"
+  return_to_agent: "AGT-CD"
+  preserve:
+    - "试玩原始记录、失败版本和可复用占位组件。"
+
+handoff:
+  next_agent: "AGT-GODOT"
+  summary: "灰盒获批后开始正式资产集成准备。"
+  changed_files: []
+  decisions: []
+  risks: []
+  open_questions: []
+  required_rechecks: []
+
+evidence:
+  commits: []
+  test_results: []
+  screenshots: []
+  playtest_records: []
+  builds: []
+

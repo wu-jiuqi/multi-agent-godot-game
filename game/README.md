@@ -21,6 +21,7 @@
 - [Godot 适配层](adapters/godot.md)：把通用产物映射为 Godot 场景、资源、节点和工程证据。
 - [垂直切片工作流](workflows/vertical-slice.md)：第一版用于验证整条多 Agent 链路的代表性流程。
 - [灰盒 Contract 示例](contracts/examples/vertical-slice-greybox.yaml)：统一契约在真实工作项中的填写方式。
+- [第一轮双样本试点章程](pilots/dual-sample-pilot.md)：使用回放校准与前向验证检验判断可信度和实际生产能力，当前等待 `GATE-0` 确认。
 
 具体 Agent 和 Skill 会在职责、触发场景、输入、输出、验收标准、失败回退以及人工决策点被确认后再创建。
 

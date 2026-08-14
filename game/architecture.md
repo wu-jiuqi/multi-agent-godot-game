@@ -95,6 +95,12 @@ P0～P9 是生产阶段，不默认等于十个 Agent。只有同时满足以下
 
 上述对象使用不同稳定 ID，改名不改 ID、退出后不复用。组织图只能从结构化对象确定性生成，不能作为事实源或审批依据。完整定义见 `contracts/organization-identity.md`。
 
+### Organization Registry
+
+每个项目拥有独立的 Organization Registry，保存当前已批准 Department、Position、准确 Preset 绑定、Agent Instance 和治理事实。它与 Loop Registry 分离：前者回答“谁构成当前组织并正在运行”，后者回答“哪些生产循环处于什么状态”。Loop Registry 单向引用 Position 或 Instance；联合视图按两个 Registry 的明确水位生成，不保存可能漂移的反向列表。
+
+Organization Event History 是权威历史，Snapshot 必须可以从事件重建。Snapshot 从同一历史物化正式编制、运行实例、治理完整性三类视图。未批准组织变化只存在于 Organization Change Set；Registry 可以记录待审批引用，但不能把建议节点提前混入正式编制。当前组织图、运行图和待审批差异图都是确定性投影，不是事实源。完整边界见 `contracts/organization-registry.md`。
+
 部门经理负责部门产物的整合与初审，但不能替代必须独立执行的 QA、审计或人工体验闸门。生产者与独立验收者需要分离时，不得通过合并角色绕过该要求。
 
 跨部门协作采用“可直连、需留痕、不得越权”的原则：

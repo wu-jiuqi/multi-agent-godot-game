@@ -2,7 +2,7 @@
 
 状态：`approved-design`
 
-本契约定义项目组织中部门、Agent 能力模板、正式岗位和运行实例的稳定边界。它只回答“对象是什么、如何标识、何时需要审批”，不保存具体项目的当前组织状态；实际状态与历史将在 Organization Registry 中记录。
+本契约定义项目组织中部门、Agent 能力模板、正式岗位和运行实例的稳定边界。它只回答“对象是什么、如何标识、何时需要审批”，不保存具体项目的当前组织状态；实际状态与历史由 `organization-registry.md` 定义的 Organization Registry 记录。
 
 ## 核心对象
 
@@ -95,7 +95,7 @@ Temporary Instance 可以在部门经理或项目经理已有的有效授权额�
 
 ## 最小身份绑定
 
-具体 Schema 将由 Organization Registry 定义，但任何项目实现至少必须保存以下引用：
+具体 Schema 将在 Organization Registry 后续步骤定义，但任何项目实现至少必须保存以下引用：
 
 ```yaml
 department:

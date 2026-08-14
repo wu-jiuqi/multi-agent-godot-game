@@ -41,6 +41,7 @@ status: draft
 - 默认 Agent 的保留、拆分、合并、替换或停用清单；
 - 新增 Position、Agent Preset、Skill 或临时工作角色的理由；
 - 责任覆盖矩阵、冲突检查、成本评估和待人工审批项；
+- 相对当前 Organization Registry Snapshot 的待审批 Organization Change Set；
 - 批准后的项目 Agent 定义生成或更新计划。
 
 ## 可自主决定
@@ -70,6 +71,7 @@ status: draft
 ## 禁止
 
 - 未经人工批准直接改变项目长期 Department、Position 或 Preset 绑定；
+- 把 Change Set 中未批准的建议节点提前写入 Organization Registry 正式编制视图；
 - 把 Temporary Instance 静默转化为正式 Position，或通过反复重建临时实例规避审批；
 - 用项目特色覆盖或改写根框架的通用协作规则；
 - 为每个任务机械创建一个长期 Agent；

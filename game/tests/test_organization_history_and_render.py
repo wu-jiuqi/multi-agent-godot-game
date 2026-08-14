@@ -156,6 +156,19 @@ class OrganizationHistoryAndRenderTests(unittest.TestCase):
         self.assertIn("临时实例", rendered)
         self.assertIn("active 1/2", rendered)
 
+    def test_department_scope_contains_only_department_compilation(self) -> None:
+        rendered = RENDERER.render_mermaid(
+            *RENDERER.build_graph(
+                self.snapshot,
+                "change",
+                self.change_set,
+                "dept:sample-game:design",
+            )
+        )
+        self.assertIn("pos:sample-game:design:manager", rendered)
+        self.assertIn("pos:sample-game:design:ui-ux-designer", rendered)
+        self.assertNotIn("pos:sample-game:root:project-manager", rendered)
+
     def test_svg_is_self_contained_and_escapes_text(self) -> None:
         metadata, nodes, edges = RENDERER.build_graph(self.snapshot, "formal")
         rendered = RENDERER.render_svg(metadata, nodes, edges)

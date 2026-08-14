@@ -128,7 +128,46 @@ def _change_graph(snapshot: dict[str, Any], change_set: dict[str, Any]) -> tuple
     return sorted(nodes, key=lambda item: item.stable_id), sorted(edges, key=lambda item: (item.source, item.target, item.label))
 
 
-def build_graph(snapshot_doc: dict[str, Any], view: str, change_set_doc: dict[str, Any] | None = None) -> tuple[dict[str, Any], list[ChartNode], list[ChartEdge]]:
+def _filter_scope(snapshot: dict[str, Any], view: str, scope: str, nodes: list[ChartNode], edges: list[ChartEdge], change_set_doc: dict[str, Any] | None) -> tuple[list[ChartNode], list[ChartEdge]]:
+    departments = {item["department_id"]: item for item in snapshot["formal_structure"]["departments"]}
+    if scope not in departments:
+        raise ValueError(f"未知 Department scope: {scope}")
+    scoped_departments = {scope}
+    changed = True
+    while changed:
+        before = len(scoped_departments)
+        scoped_departments.update(department_id for department_id, department in departments.items() if department.get("parent_department_id") in scoped_departments)
+        changed = len(scoped_departments) != before
+    allowed = set(scoped_departments)
+    positions = snapshot["formal_structure"]["positions"]
+    allowed.update(item["position_id"] for item in positions if item.get("department_id") in scoped_departments)
+    if view == "runtime":
+        grants = snapshot["runtime"]["temporary_grants"]
+        allowed_grants = {item["grant_id"] for item in grants if item.get("grantee", {}).get("id") in allowed}
+        allowed.update(allowed_grants)
+        for instance in snapshot["runtime"]["instances"]:
+            if instance["instance_kind"] == "position" and instance["position_binding"]["position_id"] in allowed:
+                allowed.add(instance["instance_id"])
+            if instance["instance_kind"] == "temporary" and instance["temporary_binding"]["grant_id"] in allowed_grants:
+                allowed.add(instance["instance_id"])
+    if view == "change" and change_set_doc is not None:
+        change_set = change_set_doc["organization_change_set"]
+        relevant = False
+        for operation in change_set["proposal"]["operations"]:
+            after = operation.get("after") or {}
+            before = operation.get("before") or {}
+            if operation["target_id"] in allowed or after.get("department_id") in scoped_departments or before.get("department_id") in scoped_departments:
+                allowed.add(operation["target_id"])
+                relevant = True
+        if relevant:
+            allowed.add(change_set["identity"]["change_set_id"])
+    filtered_nodes = [node for node in nodes if node.stable_id in allowed]
+    filtered_ids = {node.stable_id for node in filtered_nodes}
+    filtered_edges = [edge for edge in edges if edge.source in filtered_ids and edge.target in filtered_ids]
+    return filtered_nodes, filtered_edges
+
+
+def build_graph(snapshot_doc: dict[str, Any], view: str, change_set_doc: dict[str, Any] | None = None, scope: str | None = None) -> tuple[dict[str, Any], list[ChartNode], list[ChartEdge]]:
     snapshot = snapshot_doc["organization_snapshot"]
     if view == "formal":
         nodes, edges = _formal_graph(snapshot)
@@ -143,6 +182,8 @@ def build_graph(snapshot_doc: dict[str, Any], view: str, change_set_doc: dict[st
         nodes, edges = _change_graph(snapshot, change_set)
     else:  # pragma: no cover - argparse constrains this
         raise ValueError(f"未知视图: {view}")
+    if scope is not None:
+        nodes, edges = _filter_scope(snapshot, view, scope, nodes, edges, change_set_doc)
     metadata = {
         "view": view,
         "project_id": snapshot["identity"]["project_id"],
@@ -151,6 +192,7 @@ def build_graph(snapshot_doc: dict[str, Any], view: str, change_set_doc: dict[st
         "snapshot_digest": snapshot["snapshot_integrity"]["snapshot_digest"],
         "change_set_id": None if change_set_doc is None else change_set_doc["organization_change_set"]["identity"]["change_set_id"],
         "change_set_digest": None if change_set_doc is None else change_set_doc["organization_change_set"]["integrity"]["change_set_digest"],
+        "scope": scope,
     }
     known = {node.stable_id for node in nodes}
     edges = [edge for edge in edges if edge.source in known and edge.target in known]
@@ -159,7 +201,7 @@ def build_graph(snapshot_doc: dict[str, Any], view: str, change_set_doc: dict[st
 
 def render_mermaid(metadata: dict[str, Any], nodes: list[ChartNode], edges: list[ChartEdge]) -> str:
     lines = [
-        f"%% Organization view={metadata['view']} project={metadata['project_id']} revision={metadata['organization_revision']} event_sequence={metadata['event_sequence']}",
+        f"%% Organization view={metadata['view']} project={metadata['project_id']} revision={metadata['organization_revision']} event_sequence={metadata['event_sequence']} scope={metadata.get('scope') or 'all'}",
         f"%% snapshot_digest={metadata['snapshot_digest']}",
     ]
     if metadata.get("change_set_id"):
@@ -179,6 +221,7 @@ def render_mermaid(metadata: dict[str, Any], nodes: list[ChartNode], edges: list
         "grant-active": "fill:#ede7f6,stroke:#5e35b1,color:#311b92",
         "revoked": "fill:#eeeeee,stroke:#616161,color:#212121",
         "pending_review": "fill:#fffde7,stroke:#f9a825,stroke-width:3px,color:#5d4037",
+        "pending-review": "fill:#fffde7,stroke:#f9a825,stroke-width:3px,color:#5d4037",
         "proposed": "fill:#e1f5fe,stroke:#0277bd,stroke-width:3px,stroke-dasharray:5 3,color:#01579b",
         "changed": "fill:#fff8e1,stroke:#ff8f00,stroke-width:3px,color:#5d4037",
     }
@@ -199,7 +242,7 @@ def render_svg(metadata: dict[str, Any], nodes: list[ChartNode], edges: list[Cha
     for index, node in enumerate(nodes):
         positions[node.stable_id] = (40 + (index % columns) * (card_width + gap), header_height + (index // columns) * (card_height + gap))
     palette = {"active": ("#e8f5e9", "#2e7d32"), "suspended": ("#fff8e1", "#f9a825"), "retiring": ("#ffebee", "#c62828"), "starting": ("#e3f2fd", "#1565c0"), "draining": ("#fff3e0", "#ef6c00"), "grant-active": ("#ede7f6", "#5e35b1"), "pending_review": ("#fffde7", "#f9a825"), "proposed": ("#e1f5fe", "#0277bd"), "changed": ("#fff8e1", "#ff8f00")}
-    out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">', '<title id="title">Organization Registry projection</title>', f'<desc id="desc">{html.escape(str(metadata))}</desc>', '<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#607d8b"/></marker></defs>', '<rect width="100%" height="100%" fill="#ffffff"/>', f'<text x="40" y="36" font-family="sans-serif" font-size="22" font-weight="700">{html.escape(metadata["project_id"])} · {html.escape(metadata["view"])} view</text>', f'<text x="40" y="62" font-family="monospace" font-size="13">revision={metadata["organization_revision"]} · event={metadata["event_sequence"]}</text>', f'<text x="40" y="84" font-family="monospace" font-size="11">snapshot={html.escape(metadata["snapshot_digest"])}</text>']
+    out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">', '<title id="title">Organization Registry projection</title>', f'<desc id="desc">{html.escape(str(metadata))}</desc>', '<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#607d8b"/></marker></defs>', '<rect width="100%" height="100%" fill="#ffffff"/>', f'<text x="40" y="36" font-family="sans-serif" font-size="22" font-weight="700">{html.escape(metadata["project_id"])} · {html.escape(metadata["view"])} view</text>', f'<text x="40" y="62" font-family="monospace" font-size="13">revision={metadata["organization_revision"]} · event={metadata["event_sequence"]} · scope={html.escape(metadata.get("scope") or "all")}</text>', f'<text x="40" y="84" font-family="monospace" font-size="11">snapshot={html.escape(metadata["snapshot_digest"])}</text>']
     if metadata.get("change_set_id"):
         out.append(f'<text x="40" y="104" font-family="monospace" font-size="11">change_set={html.escape(metadata["change_set_id"])} · {html.escape(metadata["change_set_digest"])}</text>')
     for edge in edges:
@@ -221,13 +264,14 @@ def main() -> int:
     parser.add_argument("--snapshot", required=True, type=Path)
     parser.add_argument("--change-set", type=Path)
     parser.add_argument("--view", choices=("formal", "runtime", "change"), default="formal")
+    parser.add_argument("--scope", help="可选 Department ID；只生成该部门及下属编制")
     parser.add_argument("--format", choices=("mermaid", "svg"), default="mermaid")
     parser.add_argument("--output", type=Path, help="省略时写到 stdout")
     args = parser.parse_args()
     try:
         snapshot_doc = read_yaml(args.snapshot)
         change_set_doc = read_yaml(args.change_set) if args.change_set else None
-        metadata, nodes, edges = build_graph(snapshot_doc, args.view, change_set_doc)
+        metadata, nodes, edges = build_graph(snapshot_doc, args.view, change_set_doc, args.scope)
         rendered = render_mermaid(metadata, nodes, edges) if args.format == "mermaid" else render_svg(metadata, nodes, edges)
         if args.output:
             args.output.write_text(rendered, encoding="utf-8", newline="\n")

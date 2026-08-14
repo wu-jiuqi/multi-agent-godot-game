@@ -14,6 +14,7 @@ organization_change_set:
   base:
     organization_revision: 1
     snapshot_digest: "<提案所依据 Snapshot 的 64 位小写 SHA-256>"
+    decision_basis_digest: "<从正式编制、治理绑定、临时授权、ID 索引与 tombstone 计算的 SHA-256>"
 
   proposal:
     rationale: "<为什么需要改变长期组织或授权边界>"
@@ -46,8 +47,10 @@ organization_change_set:
 
 change_set_contract:
   fact_boundary: "Change Set 是待审批提案，不是当前组织事实；只有批准后的 apply Event 才能改变 Snapshot。"
-  approval_binding: "人工决定必须同时绑定 change_set_id、change_set_digest、base.organization_revision 与 base.snapshot_digest。"
-  stale_rule: "当前 revision 或 snapshot_digest 与 base 不一致时，Change Set 进入 stale；必须重建并重新确认，不能静默重放旧批准。"
+  approval_binding: "人工决定必须同时绑定 change_set_id、change_set_digest、base.organization_revision、base.snapshot_digest 与 base.decision_basis_digest。"
+  stale_rule: "提交和决定事件可以推进全局 revision；应用前必须验证历史中的 base Snapshot 摘要，并要求当前 decision_basis_digest 仍与 base 一致。正式编制、治理绑定、临时授权、ID 占用或 tombstone 变化会使 Change Set 进入 stale，必须重建并重新确认。"
+  decision_basis_rule: "decision_basis_digest 只覆盖 project_id、governance_bindings、formal_structure、runtime.temporary_grants、governance.used_identity_index 与 governance.tombstones；排除事件水位、运行实例、审批队列和 latest_applied_change_set，避免提案因自己的提交/决定事件自我失效。"
+  materialization_rule: "after 对象中只有 $apply.event_id、$apply.recorded_at、$approval.decision_ref 和 $change_set.digest 四个保留令牌可在应用时确定性解析；禁止自然语言占位符或批准后任意补值。"
   atomicity_rule: "同一 Change Set 的 operations 按数组顺序作为一个原子 mutation 校验和应用；任一操作失败则全部失败。"
   no_patch_rule: "禁止 JSON Patch、任意路径写入和自然语言替换；只允许下列类型化 operation。"
   draft_rule: "Change Set 可以由 Agent 自动生成；所有长期 Department、Position、Preset 绑定和临时授权上限变更在应用前都需要人工批准。"
@@ -55,13 +58,13 @@ change_set_contract:
 operation_contracts:
   create_department:
     required_fields: [operation_id, operation_type, target_id, before, after, reason]
-    rule: "before 必须为 null；after 必须是完整 Department。"
+    rule: "before 必须为 null；after 必须是完整 Department，可使用契约保留的确定性令牌。"
   update_department:
     required_fields: [operation_id, operation_type, target_id, before, after, reason]
     rule: "before/after 必须是完整 Department；不得改变 department_id。"
   create_position:
     required_fields: [operation_id, operation_type, target_id, before, after, reason]
-    rule: "before 必须为 null；after 必须是完整 Position。"
+    rule: "before 必须为 null；after 必须是完整 Position，可使用契约保留的确定性令牌。"
   update_position:
     required_fields: [operation_id, operation_type, target_id, before, after, reason]
     rule: "before/after 必须是完整 Position；不得改变 position_id。"

@@ -83,6 +83,8 @@ Snapshot 只保留当前未结束实例和判断当前有效性所需的最近�
 
 审批图由“当前 Snapshot + 待审批 Change Set”确定性生成。建议增加、修改或退出的节点可以使用不同视觉样式，但图像不是事实源。人工批准后，Change Set 才能作为一个原子组织变更写入 Event History 并重建 Snapshot；拒绝、撤回或过期不得改变当前正式组织。
 
+Change Set 保留创建时的完整 Snapshot 摘要用于历史审计，同时绑定排除事件水位、运行实例和审批队列的 `decision_basis_digest`。提交和决定事件可以推进全局 revision，但不会令提案因自身治理事件而失效；若正式编制、治理绑定、临时授权、ID 占用或 tombstone 已改变，提案必须标记为 `stale` 并重新确认。
+
 ## Registry 不保存的内容
 
 - Agent Prompt、Skill 正文、工具或 Provider 实现；

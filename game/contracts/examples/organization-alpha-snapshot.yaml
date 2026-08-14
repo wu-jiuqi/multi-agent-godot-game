@@ -1,0 +1,137 @@
+organization_snapshot:
+  schema_version: "0.2-alpha"
+  identity:
+    project_id: "sample-game"
+    organization_revision: 2
+    created_at: "2026-08-14T08:00:00Z"
+    updated_at: "2026-08-14T08:10:00Z"
+  governance_bindings:
+    organization_contract: {id: "ORG-CONTRACT-CORE", version: "0.2-alpha", digest: "1111111111111111111111111111111111111111111111111111111111111111"}
+    lifecycle_contract: {id: "ORG-LIFECYCLE-CORE", version: "0.2-alpha", digest: "2222222222222222222222222222222222222222222222222222222222222222"}
+    authority_policy: {id: "AUTH-SAMPLE", version: "1.0.0", digest: "3333333333333333333333333333333333333333333333333333333333333333"}
+  event_watermark:
+    last_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y4"
+    last_event_sequence: 2
+    last_event_digest: "209e0810704d1b8c0efc2e0dc69f6f719d07d353a2a39aa6e995cd2bad6a1c97"
+  formal_structure:
+    departments:
+      - department_id: "dept:sample-game:design"
+        display_name: "设计部"
+        purpose: "维护玩法、内容与玩家体验的一致性"
+        parent_department_id: null
+        manager_position_id: "pos:sample-game:design:manager"
+        responsibilities: ["玩法与内容设计", "设计验收"]
+        ownership_refs: ["artifact:sample-game:design-docs@1"]
+        authority_binding: {id: "AUTH-DESIGN", version: "1.0.0", digest: "4444444444444444444444444444444444444444444444444444444444444444"}
+        temporary_workforce_policy: {allowed: true, grant_ceiling_ref: "policy:sample-game:temporary-workforce@1"}
+        lifecycle: {state: active, state_entered_at: "2026-08-14T08:00:00Z", transition_ref: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+        approval_binding: {approval_id: "approval:sample-game:initial-org", subject_digest: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+        audit: {created_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3", last_changed_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+    positions:
+      - position_id: "pos:sample-game:design:manager"
+        display_name: "设计部经理"
+        organization_scope: department
+        department_id: "dept:sample-game:design"
+        reports_to_position_id: "pos:sample-game:root:project-manager"
+        preset_binding: {preset_id: "preset:core:department-manager", version: "0.2.0", digest: "5555555555555555555555555555555555555555555555555555555555555555"}
+        responsibilities: ["拆解设计工作", "整合并汇报部门结论"]
+        ownership_refs: ["artifact:sample-game:design-backlog@1"]
+        authority_binding: {id: "AUTH-DESIGN-MANAGER", version: "1.0.0", digest: "6666666666666666666666666666666666666666666666666666666666666666"}
+        concurrency_policy: {maximum_active_instances: 1}
+        handoff_policy: {required_artifacts: ["change_summary", "validation_evidence"]}
+        independence_policy: {must_not_report_to: [], must_not_share_instance_with: []}
+        lifecycle: {state: active, state_entered_at: "2026-08-14T08:00:00Z", transition_ref: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+        approval_binding: {approval_id: "approval:sample-game:initial-org", subject_digest: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+        audit: {created_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3", last_changed_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+      - position_id: "pos:sample-game:root:project-agent-architect"
+        display_name: "项目编制设计"
+        organization_scope: root
+        department_id: null
+        reports_to_position_id: "pos:sample-game:root:project-manager"
+        preset_binding: {preset_id: "preset:core:project-agent-architect", version: "0.2.0", digest: "7777777777777777777777777777777777777777777777777777777777777777"}
+        responsibilities: ["提出项目专属部门与岗位变更集", "生成组织投影"]
+        ownership_refs: ["registry:sample-game:organization"]
+        authority_binding: {id: "AUTH-ORG-ARCHITECT", version: "1.0.0", digest: "8888888888888888888888888888888888888888888888888888888888888888"}
+        concurrency_policy: {maximum_active_instances: 1}
+        handoff_policy: {required_artifacts: ["organization_change_set", "organization_chart"]}
+        independence_policy: {must_not_report_to: [], must_not_share_instance_with: []}
+        lifecycle: {state: active, state_entered_at: "2026-08-14T08:00:00Z", transition_ref: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+        approval_binding: {approval_id: "approval:sample-game:initial-org", subject_digest: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+        audit: {created_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3", last_changed_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+      - position_id: "pos:sample-game:root:project-manager"
+        display_name: "项目经理"
+        organization_scope: root
+        department_id: null
+        reports_to_position_id: null
+        preset_binding: {preset_id: "preset:core:pipeline-director", version: "0.2.0", digest: "9999999999999999999999999999999999999999999999999999999999999999"}
+        responsibilities: ["跨部门调度", "向人类汇报决策与风险"]
+        ownership_refs: ["registry:sample-game:loops"]
+        authority_binding: {id: "AUTH-PROJECT-MANAGER", version: "1.0.0", digest: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}
+        concurrency_policy: {maximum_active_instances: 1}
+        handoff_policy: {required_artifacts: ["status_summary", "decision_requests"]}
+        independence_policy: {must_not_report_to: [], must_not_share_instance_with: ["pos:sample-game:root:project-agent-architect"]}
+        lifecycle: {state: active, state_entered_at: "2026-08-14T08:00:00Z", transition_ref: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+        approval_binding: {approval_id: "approval:sample-game:initial-org", subject_digest: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+        audit: {created_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3", last_changed_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+  runtime:
+    instances:
+      - instance_id: "inst:01K2M3N4P5Q6R7S8T9V0W1X2Y3"
+        instance_kind: position
+        preset_binding: {preset_id: "preset:core:pipeline-director", version: "0.2.0", digest: "9999999999999999999999999999999999999999999999999999999999999999"}
+        position_binding: {position_id: "pos:sample-game:root:project-manager", definition_digest: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}
+        temporary_binding: null
+        lifecycle: {state: active, state_entered_at: "2026-08-14T08:00:00Z", transition_ref: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+        started_at: "2026-08-14T08:00:00Z"
+        expires_at: null
+        audit: {registered_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3", last_changed_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+      - instance_id: "inst:01K2M3N4P5Q6R7S8T9V0W1X2Y4"
+        instance_kind: temporary
+        preset_binding: {preset_id: "preset:core:competitor-research", version: "0.1.0", digest: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}
+        position_binding: null
+        temporary_binding:
+          grant_id: "grant:sample-game:01K2M3N4P5Q6R7S8T9V0W1X2Y5"
+          created_by_instance_id: "inst:01K2M3N4P5Q6R7S8T9V0W1X2Y3"
+          grant_digest: "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+          creation_depth: 1
+          reservation: {cost: 2, duration_seconds: 1800}
+        lifecycle: {state: active, state_entered_at: "2026-08-14T08:00:00Z", transition_ref: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+        started_at: "2026-08-14T08:00:00Z"
+        expires_at: "2026-08-14T08:30:00Z"
+        audit: {registered_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3", last_changed_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+    temporary_grants:
+      - grant_id: "grant:sample-game:01K2M3N4P5Q6R7S8T9V0W1X2Y5"
+        grantee: {kind: position, id: "pos:sample-game:root:project-manager"}
+        issuer: {actor_kind: human, actor_id: "human:owner", acting_position_id: null}
+        parent_grant_id: null
+        allowed_presets:
+          - {preset_id: "preset:core:competitor-research", version: "0.1.0", digest: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}
+        scope: {responsibilities: ["竞品资料检索与结构化摘要"], resource_refs: []}
+        limits: {maximum_active_instances: 2, maximum_total_instances: 4, maximum_cost: 20, maximum_duration_seconds: 7200, maximum_creation_depth: 1}
+        permission_policy: {id: "AUTH-RESEARCH-READONLY", version: "1.0.0", digest: "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"}
+        obligations: {required_artifacts: ["result", "evidence"], event_visibility: immediate}
+        valid_from: "2026-08-14T08:00:00Z"
+        expires_at: "2026-08-15T08:00:00Z"
+        revoked_at: null
+        usage: {reserved_active_instances: 1, created_instances: 1, reserved_cost: 2, reserved_duration_seconds: 1800}
+        approval_binding: {approval_id: "approval:sample-game:initial-org", subject_digest: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+        audit: {created_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3", last_changed_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y3"}
+  governance:
+    used_identity_index:
+      department_ids: ["dept:sample-game:design"]
+      position_ids: ["pos:sample-game:design:manager", "pos:sample-game:root:project-agent-architect", "pos:sample-game:root:project-manager"]
+      instance_ids: ["inst:01K2M3N4P5Q6R7S8T9V0W1X2Y3", "inst:01K2M3N4P5Q6R7S8T9V0W1X2Y4"]
+      temporary_grant_ids: ["grant:sample-game:01K2M3N4P5Q6R7S8T9V0W1X2Y5"]
+    tombstones: []
+    pending_change_set_refs:
+      - change_set_id: "chg:sample-game:01K2M3N4P5Q6R7S8T9V0W1X2Y6"
+        change_set_digest: "3b6dcc96481ae289d0a89400d7e97eabc42fb4dd2f32532c99ae777a9c098f6b"
+        base_organization_revision: 1
+        base_snapshot_digest: "2ad19d3aa8877e44bcb4ea9870bb35bc3c0c41b2b93ffaf6dad69484a5a2a1fa"
+        status: pending_review
+        approval_ref: null
+        submitted_by_event_id: "evt:01K2M3N4P5Q6R7S8T9V0W1X2Y4"
+    latest_applied_change_set: null
+  snapshot_integrity:
+    canonicalization: "organization-snapshot-canonical-json-v1"
+    digest_algorithm: sha256
+    snapshot_digest: "f47f550a5f52f8714c5f2224af5d328685bd0e2100c0e26c3095083a3ed492af"

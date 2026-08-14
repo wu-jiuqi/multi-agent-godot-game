@@ -47,7 +47,7 @@ event:
 application_contract:
   - "一个 mutation_id 只能成功应用一次；幂等重试不得重复追加 Event。"
   - "sequence 必须等于 Snapshot.last_event_sequence + 1。"
-  - "expected_organization_revision 和 expected_snapshot_digest 必须同时匹配当前 Snapshot。"
+  - "每个 Event 的 expected_organization_revision 和 expected_snapshot_digest 必须同时匹配当前 Snapshot。Change Set 应用还必须匹配其 decision_basis_digest。"
   - "resulting_organization_revision 必须等于 expected_organization_revision + 1。"
   - "先校验旧 Snapshot，再构造并摘要 Event，随后应用类型化 Payload、更新水位并计算新 snapshot_digest。"
   - "追加 Event、更新 Snapshot 和占用稳定 ID 必须处于同一原子事务。"

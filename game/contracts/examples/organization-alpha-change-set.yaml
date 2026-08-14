@@ -1,0 +1,65 @@
+organization_change_set:
+  schema_version: "0.2-alpha"
+  identity:
+    change_set_id: "chg:sample-game:01K2M3N4P5Q6R7S8T9V0W1X2Y6"
+    project_id: "sample-game"
+    title: "新增 UI/UX 设计岗位"
+    created_at: "2026-08-14T08:05:00Z"
+    created_by:
+      actor_kind: instance
+      actor_id: "inst:01K2M3N4P5Q6R7S8T9V0W1X2Y3"
+      acting_position_id: "pos:sample-game:root:project-agent-architect"
+  base:
+    organization_revision: 1
+    snapshot_digest: "2ad19d3aa8877e44bcb4ea9870bb35bc3c0c41b2b93ffaf6dad69484a5a2a1fa"
+    decision_basis_digest: "a78b11c91a81fc939f56d623d11b4eab80ccba7bc7b3a1f575dbbb8fc79063f7"
+  proposal:
+    rationale: "UI 设计将持续跨越灰盒、内容生产和验收阶段，属于长期责任而不是一次性 Task。"
+    operations:
+      - operation_id: op-001
+        operation_type: create_position
+        target_id: "pos:sample-game:design:ui-ux-designer"
+        before: null
+        after:
+          position_id: "pos:sample-game:design:ui-ux-designer"
+          display_name: "UI/UX 设计师"
+          organization_scope: department
+          department_id: "dept:sample-game:design"
+          reports_to_position_id: "pos:sample-game:design:manager"
+          preset_binding: {preset_id: "preset:project:ui-ux-designer", version: "0.1.0", digest: "1212121212121212121212121212121212121212121212121212121212121212"}
+          responsibilities: ["UI 信息架构", "布局规格与交互验收"]
+          ownership_refs: ["artifact:sample-game:ui-spec@1"]
+          authority_binding: {id: "AUTH-UI-DESIGN", version: "1.0.0", digest: "1313131313131313131313131313131313131313131313131313131313131313"}
+          concurrency_policy: {maximum_active_instances: 1}
+          handoff_policy: {required_artifacts: ["layout_spec", "interaction_states", "validation_evidence"]}
+          independence_policy: {must_not_report_to: [], must_not_share_instance_with: []}
+          lifecycle: {state: active, state_entered_at: "$apply.recorded_at", transition_ref: "$apply.event_id"}
+          approval_binding: {approval_id: "$approval.decision_ref", subject_digest: "$change_set.digest"}
+          audit: {created_by_event_id: "$apply.event_id", last_changed_by_event_id: "$apply.event_id"}
+        reason: "项目需要可持续维护 UI 规格、可调布局数据与引擎映射。"
+  impact:
+    affected_department_ids: ["dept:sample-game:design"]
+    affected_position_ids: ["pos:sample-game:design:ui-ux-designer"]
+    affected_grant_ids: []
+    responsibility_coverage: ["UI 信息架构", "布局规格与交互验收"]
+    risk_level: low
+    reversibility: compensating_change_required
+    migration_refs: []
+  verification:
+    preconditions:
+      - check_id: PRE-ORG-001
+        assertion: "设计部和其经理岗位仍处于 active"
+    automated_checks:
+      - check_id: AUTO-ORG-001
+        result: passed
+        evidence_ref: "validation:organization-alpha"
+    reviewer_notes: []
+  approval_requirement:
+    human_approval_required: true
+    required_approver_role: project_owner
+    required_authority_scope: organization.change.apply
+    decision_deadline: null
+  integrity:
+    canonicalization: organization-change-set-canonical-json-v1
+    digest_algorithm: sha256
+    change_set_digest: "3b6dcc96481ae289d0a89400d7e97eabc42fb4dd2f32532c99ae777a9c098f6b"

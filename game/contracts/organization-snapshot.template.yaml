@@ -9,15 +9,15 @@ organization_snapshot:
 
   governance_bindings:
     organization_contract:
-      contract_id: "ORG-CONTRACT-CORE"
+      id: "ORG-CONTRACT-CORE"
       version: "0.2-alpha"
       digest: "<64 位小写 SHA-256>"
     lifecycle_contract:
-      contract_id: "ORG-LIFECYCLE-CORE"
+      id: "ORG-LIFECYCLE-CORE"
       version: "0.2-alpha"
       digest: "<64 位小写 SHA-256>"
     authority_policy:
-      policy_id: "<授权策略 ID>"
+      id: "<授权策略 ID>"
       version: "<不可变版本>"
       digest: "<64 位小写 SHA-256>"
 
@@ -141,7 +141,7 @@ field_examples:
     manager_position_id: "pos:<project_id>:<department_slug>:<slug>"
     responsibilities: ["<长期职责>"]
     ownership_refs: ["<带版本和摘要的事实源引用>"]
-    authority_binding: {authority_id: "<授权 ID>", version: "<版本>", digest: "<SHA-256>"}
+    authority_binding: {id: "<授权 ID>", version: "<版本>", digest: "<SHA-256>"}
     temporary_workforce_policy: {allowed: true, grant_ceiling_ref: "<额度策略引用>"}
     lifecycle: {state: active, state_entered_at: "<ISO 8601 时间>", transition_ref: "<Event ID>"}
     approval_binding: {approval_id: "<人工审批 ID>", subject_digest: "<Change Set SHA-256>"}
@@ -156,7 +156,7 @@ field_examples:
     preset_binding: {preset_id: "preset:<namespace>:<slug>", version: "<SemVer>", digest: "<SHA-256>"}
     responsibilities: ["<岗位职责>"]
     ownership_refs: []
-    authority_binding: {authority_id: "<授权 ID>", version: "<版本>", digest: "<SHA-256>"}
+    authority_binding: {id: "<授权 ID>", version: "<版本>", digest: "<SHA-256>"}
     concurrency_policy: {maximum_active_instances: 1}
     handoff_policy: {required_artifacts: ["change_summary", "validation_evidence"]}
     independence_policy: {must_not_report_to: [], must_not_share_instance_with: []}
@@ -183,7 +183,7 @@ field_examples:
     allowed_presets: [{preset_id: "preset:<namespace>:<slug>", version: "<SemVer>", digest: "<SHA-256>"}]
     scope: {responsibilities: ["<临时职责>"], resource_refs: []}
     limits: {maximum_active_instances: 2, maximum_total_instances: 4, maximum_cost: 20, maximum_duration_seconds: 7200, maximum_creation_depth: 1}
-    permission_policy: {authority_id: "<最小权限策略 ID>", version: "<版本>", digest: "<SHA-256>"}
+    permission_policy: {id: "<最小权限策略 ID>", version: "<版本>", digest: "<SHA-256>"}
     obligations: {required_artifacts: ["result", "evidence"], event_visibility: immediate}
     valid_from: "<ISO 8601 时间>"
     expires_at: "<ISO 8601 时间>"

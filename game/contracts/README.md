@@ -1,4 +1,17 @@
-# Loop Registry 契约
+# Registry 契约
+
+## Organization Registry
+
+Organization Registry 用一个可由不可变事件历史重建的 Snapshot 保存项目当前正式编制、运行实例、临时授权与治理引用。四份可执行契约分别承担不同职责：
+
+- `organization-snapshot.template.yaml`：当前权威组织事实与稳定 ID 索引；
+- `organization-event.template.yaml`：全局事件信封、类型化 Payload 与摘要链；
+- `organization-change-set.template.yaml`：尚未生效的长期组织变更及人工审批对象；
+- `organization-validation.template.yaml`：绑定特定 Snapshot 水位的派生校验与可视化数据。
+
+审批不绑定 Mermaid 或 SVG，而绑定 `change_set_id + change_set_digest + base revision + base snapshot_digest`。图片可随时由相同结构化输入重新生成；正式组织只能由批准后的类型化 Event 改变。
+
+## Loop Registry
 
 Loop Registry 保存具体 Loop 实例的运行事实，与可复用规则分离：
 

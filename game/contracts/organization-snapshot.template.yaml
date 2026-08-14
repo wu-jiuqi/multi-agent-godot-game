@@ -1,0 +1,210 @@
+organization_snapshot:
+  schema_version: "0.2-alpha"
+
+  identity:
+    project_id: "<项目 ID>"
+    organization_revision: 1
+    created_at: "<ISO 8601 时间>"
+    updated_at: "<ISO 8601 时间>"
+
+  governance_bindings:
+    organization_contract:
+      contract_id: "ORG-CONTRACT-CORE"
+      version: "0.2-alpha"
+      digest: "<64 位小写 SHA-256>"
+    lifecycle_contract:
+      contract_id: "ORG-LIFECYCLE-CORE"
+      version: "0.2-alpha"
+      digest: "<64 位小写 SHA-256>"
+    authority_policy:
+      policy_id: "<授权策略 ID>"
+      version: "<不可变版本>"
+      digest: "<64 位小写 SHA-256>"
+
+  event_watermark:
+    last_event_id: "<最近应用的 Organization Event ID>"
+    last_event_sequence: 1
+    last_event_digest: "<最近事件的 64 位小写 SHA-256>"
+
+  formal_structure:
+    departments: []
+    positions: []
+
+  runtime:
+    instances: []
+    temporary_grants: []
+
+  governance:
+    used_identity_index:
+      department_ids: []
+      position_ids: []
+      instance_ids: []
+      temporary_grant_ids: []
+    tombstones: []
+    pending_change_set_refs: []
+    latest_applied_change_set: null
+
+  snapshot_integrity:
+    canonicalization: "organization-snapshot-canonical-json-v1"
+    digest_algorithm: "sha256"
+    snapshot_digest: "<将本字段设为 null 后计算的 64 位小写 SHA-256>"
+
+storage_contract:
+  authoritative_history: "organization_event_history"
+  snapshot_role: "由全量 Organization Event History 重建的当前物化视图"
+  transaction_rule: "一个 mutation_id 对应恰好一个类型化 Event；追加 Event、更新 Snapshot 与占用 ID 必须原子完成。"
+  ordering_rule: "所有对象数组按稳定 ID 升序排列；集合内稳定 ID 唯一。"
+  digest_rule: "计算 snapshot_digest 时，仅将 organization_snapshot.snapshot_integrity.snapshot_digest 设为 null，其他字段全部参与 canonical JSON。"
+  derived_state_rule: "占用、有效可用性、额度余量、Loop 负载和校验结果均为派生投影，不写入权威 Snapshot。"
+
+object_contracts:
+  department:
+    required_fields:
+      - department_id
+      - display_name
+      - purpose
+      - parent_department_id
+      - manager_position_id
+      - responsibilities
+      - ownership_refs
+      - authority_binding
+      - temporary_workforce_policy
+      - lifecycle
+      - approval_binding
+      - audit
+    lifecycle_states: [active, suspended, retiring]
+    hierarchy_rule: "parent_department_id 为空或引用同项目当前 Department；父子图必须无环。"
+    manager_rule: "manager_position_id 必须唯一引用本 Department 中非 retiring 的 Position。"
+
+  position:
+    required_fields:
+      - position_id
+      - display_name
+      - organization_scope
+      - department_id
+      - reports_to_position_id
+      - preset_binding
+      - responsibilities
+      - ownership_refs
+      - authority_binding
+      - concurrency_policy
+      - handoff_policy
+      - independence_policy
+      - lifecycle
+      - approval_binding
+      - audit
+    lifecycle_states: [active, suspended, retiring]
+    reporting_rule: "reports_to_position_id 为空或引用当前 Position；汇报图必须无环。"
+    scope_rule: "root 岗位的 department_id 必须为空；department 岗位必须引用当前 Department。"
+
+  instance:
+    required_fields:
+      - instance_id
+      - instance_kind
+      - preset_binding
+      - position_binding
+      - temporary_binding
+      - lifecycle
+      - started_at
+      - expires_at
+      - audit
+    lifecycle_states: [starting, active, draining]
+    union_rule: "position 实例只允许 position_binding；temporary 实例只允许 temporary_binding。"
+    activation_rule: "实例必须先以 starting 登记并通过绑定、权限和额度校验，才能进入 active。"
+
+  temporary_grant:
+    required_fields:
+      - grant_id
+      - grantee
+      - issuer
+      - parent_grant_id
+      - allowed_presets
+      - scope
+      - limits
+      - permission_policy
+      - obligations
+      - valid_from
+      - expires_at
+      - revoked_at
+      - usage
+      - approval_binding
+      - audit
+    inheritance_rule: "limits 中的 null 表示从父授权继承，不表示无限；根授权的所有限制必须为显式有限值。"
+    reservation_rule: "登记 temporary starting 实例时必须在同一事务中预留并发、总量、成本、时间和深度额度。"
+
+field_examples:
+  department:
+    department_id: "dept:<project_id>:<slug>"
+    display_name: "<显示名称>"
+    purpose: "<长期使命>"
+    parent_department_id: null
+    manager_position_id: "pos:<project_id>:<department_slug>:<slug>"
+    responsibilities: ["<长期职责>"]
+    ownership_refs: ["<带版本和摘要的事实源引用>"]
+    authority_binding: {authority_id: "<授权 ID>", version: "<版本>", digest: "<SHA-256>"}
+    temporary_workforce_policy: {allowed: true, grant_ceiling_ref: "<额度策略引用>"}
+    lifecycle: {state: active, state_entered_at: "<ISO 8601 时间>", transition_ref: "<Event ID>"}
+    approval_binding: {approval_id: "<人工审批 ID>", subject_digest: "<Change Set SHA-256>"}
+    audit: {created_by_event_id: "<Event ID>", last_changed_by_event_id: "<Event ID>"}
+
+  position:
+    position_id: "pos:<project_id>:<department_slug>:<slug>"
+    display_name: "<岗位名称>"
+    organization_scope: department
+    department_id: "dept:<project_id>:<slug>"
+    reports_to_position_id: "pos:<project_id>:<department_slug>:<slug>"
+    preset_binding: {preset_id: "preset:<namespace>:<slug>", version: "<SemVer>", digest: "<SHA-256>"}
+    responsibilities: ["<岗位职责>"]
+    ownership_refs: []
+    authority_binding: {authority_id: "<授权 ID>", version: "<版本>", digest: "<SHA-256>"}
+    concurrency_policy: {maximum_active_instances: 1}
+    handoff_policy: {required_artifacts: ["change_summary", "validation_evidence"]}
+    independence_policy: {must_not_report_to: [], must_not_share_instance_with: []}
+    lifecycle: {state: active, state_entered_at: "<ISO 8601 时间>", transition_ref: "<Event ID>"}
+    approval_binding: {approval_id: "<人工审批 ID>", subject_digest: "<Change Set SHA-256>"}
+    audit: {created_by_event_id: "<Event ID>", last_changed_by_event_id: "<Event ID>"}
+
+  instance:
+    instance_id: "inst:<26 位 ULID>"
+    instance_kind: position
+    preset_binding: {preset_id: "preset:<namespace>:<slug>", version: "<SemVer>", digest: "<SHA-256>"}
+    position_binding: {position_id: "pos:<project_id>:<department_slug>:<slug>", definition_digest: "<SHA-256>"}
+    temporary_binding: null
+    lifecycle: {state: starting, state_entered_at: "<ISO 8601 时间>", transition_ref: "<Event ID>"}
+    started_at: "<ISO 8601 时间>"
+    expires_at: null
+    audit: {registered_by_event_id: "<Event ID>", last_changed_by_event_id: "<Event ID>"}
+
+  temporary_grant:
+    grant_id: "grant:<project_id>:<26 位 ULID>"
+    grantee: {kind: position, id: "pos:<project_id>:<department_slug>:<slug>"}
+    issuer: {actor_kind: human, actor_id: "<人类 ID>", acting_position_id: null}
+    parent_grant_id: null
+    allowed_presets: [{preset_id: "preset:<namespace>:<slug>", version: "<SemVer>", digest: "<SHA-256>"}]
+    scope: {responsibilities: ["<临时职责>"], resource_refs: []}
+    limits: {maximum_active_instances: 2, maximum_total_instances: 4, maximum_cost: 20, maximum_duration_seconds: 7200, maximum_creation_depth: 1}
+    permission_policy: {authority_id: "<最小权限策略 ID>", version: "<版本>", digest: "<SHA-256>"}
+    obligations: {required_artifacts: ["result", "evidence"], event_visibility: immediate}
+    valid_from: "<ISO 8601 时间>"
+    expires_at: "<ISO 8601 时间>"
+    revoked_at: null
+    usage: {reserved_active_instances: 0, created_instances: 0, reserved_cost: 0, reserved_duration_seconds: 0}
+    approval_binding: {approval_id: "<人工审批 ID>", subject_digest: "<Change Set SHA-256>"}
+    audit: {created_by_event_id: "<Event ID>", last_changed_by_event_id: "<Event ID>"}
+
+  pending_change_set_ref:
+    change_set_id: "chg:<project_id>:<26 位 ULID>"
+    change_set_digest: "<64 位小写 SHA-256>"
+    base_organization_revision: 1
+    base_snapshot_digest: "<64 位小写 SHA-256>"
+    status: pending_review
+    approval_ref: null
+    submitted_by_event_id: "<Event ID>"
+
+  tombstone:
+    object_kind: department
+    object_id: "dept:<project_id>:<slug>"
+    terminal_state: retired
+    terminal_event_id: "<Event ID>"
+    retired_at: "<ISO 8601 时间>"
+    migration_ref: null

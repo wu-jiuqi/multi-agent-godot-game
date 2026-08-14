@@ -1,0 +1,130 @@
+event:
+  schema_version: "0.2-alpha"
+  event_id: "evt:<26 位 ULID>"
+  mutation_id: "mut:<26 位 ULID>"
+  project_id: "<项目 ID>"
+  sequence: 1
+  event_type: "core.organization_initialized"
+  occurred_at: "<ISO 8601 时间>"
+  recorded_at: "<ISO 8601 时间>"
+
+  actor:
+    actor_kind: "human | instance | system"
+    actor_id: "<稳定 Actor ID>"
+    acting_position_id: null
+    role: "<动作发生时的角色>"
+
+  authorization:
+    authority_ref: {id: "<授权 ID>", version: "<版本>", digest: "<64 位 SHA-256>"}
+    approval_refs: []
+    change_set_ref: null
+
+  causality:
+    correlation_id: "<关联 ID>"
+    causation_event_id: null
+    request_id: null
+
+  concurrency:
+    expected_organization_revision: 0
+    expected_snapshot_digest: null
+    resulting_organization_revision: 1
+
+  binding_snapshot:
+    organization_contract: {id: "ORG-CONTRACT-CORE", version: "0.2-alpha", digest: "<SHA-256>"}
+    lifecycle_contract: {id: "ORG-LIFECYCLE-CORE", version: "0.2-alpha", digest: "<SHA-256>"}
+    authority_policy: {id: "<策略 ID>", version: "<版本>", digest: "<SHA-256>"}
+
+  payload:
+    initial_organization: "<不含 event_watermark 与 snapshot_integrity 的 Organization Snapshot 内容>"
+
+  evidence_refs: []
+  integrity:
+    canonicalization: "registry-event-canonical-json-v1"
+    digest_algorithm: "sha256"
+    previous_event_digest: null
+    event_digest: "<将本字段设为 null 后计算的 64 位小写 SHA-256>"
+
+application_contract:
+  - "一个 mutation_id 只能成功应用一次；幂等重试不得重复追加 Event。"
+  - "sequence 必须等于 Snapshot.last_event_sequence + 1。"
+  - "expected_organization_revision 和 expected_snapshot_digest 必须同时匹配当前 Snapshot。"
+  - "resulting_organization_revision 必须等于 expected_organization_revision + 1。"
+  - "先校验旧 Snapshot，再构造并摘要 Event，随后应用类型化 Payload、更新水位并计算新 snapshot_digest。"
+  - "追加 Event、更新 Snapshot 和占用稳定 ID 必须处于同一原子事务。"
+  - "Payload 必须符合 event_type 的专用结构；禁止通用 JSON Patch。"
+  - "一个 mutation 只追加一个表达该业务变化的 Event。"
+  - "system actor 只能执行契约预先授权且结果完全确定的动作。"
+  - "Event 不保存 resulting_snapshot_digest，避免 Event 摘要与 Snapshot 摘要形成哈希环。"
+
+integrity_contract:
+  canonicalization: "registry-event-canonical-json-v1"
+  rules:
+    - "计算 event_digest 时，将 integrity.event_digest 设为 null，其他字段全部参与。"
+    - "对象键按 Unicode 码点升序排列；数组保持原顺序。"
+    - "输出无额外空白的 UTF-8 JSON 后计算 SHA-256；禁止 NaN 和 Infinity。"
+  chain:
+    first_event_previous_digest: null
+    later_event_previous_digest: "必须等于前一 sequence 的 event_digest"
+
+event_namespace:
+  core:
+    - core.organization_initialized
+    - core.change_set_submitted
+    - core.change_set_decided
+    - core.change_set_applied
+    - core.department_lifecycle_transitioned
+    - core.position_lifecycle_transitioned
+    - core.instance_registered
+    - core.instance_lifecycle_transitioned
+    - core.temporary_grant_usage_changed
+    - core.governance_binding_migrated
+  extension_pattern: "project.<project_id>.<event_name>"
+  extension_rule: "项目扩展事件不得改变 core 事件语义、稳定 ID、审批边界或生命周期规则。"
+
+payload_contracts:
+  core.organization_initialized:
+    required_fields: [initial_organization]
+    effect: "建立 revision=1、sequence=1 的组织基线并一次性占用初始稳定 ID。"
+  core.change_set_submitted:
+    required_fields: [change_set_ref]
+    effect: "登记 pending_review Change Set 引用；不改变正式组织。"
+  core.change_set_decided:
+    required_fields: [change_set_id, change_set_digest, decision, decision_ref]
+    effect: "记录批准、拒绝或撤回；批准只进入 approved_pending_apply，不直接改变正式组织。"
+  core.change_set_applied:
+    required_fields: [change_set_ref, approval_ref, operations]
+    effect: "在基线未漂移时原子应用已批准类型化 Operations，并更新正式组织、ID 索引与 tombstone。"
+  core.department_lifecycle_transitioned:
+    required_fields: [department_id, from_state, to_state, reason, approval_ref]
+    effect: "执行 active/suspended/retiring/retired 的合法转换；retired 时移出当前结构并留下 tombstone。"
+  core.position_lifecycle_transitioned:
+    required_fields: [position_id, from_state, to_state, reason, approval_ref]
+    effect: "执行 active/suspended/retiring/retired 的合法转换；retired 时移出当前结构并留下 tombstone。"
+  core.instance_registered:
+    required_fields: [instance, reservation]
+    effect: "以 starting 登记新实例；temporary 实例同时原子预留授权额度。"
+  core.instance_lifecycle_transitioned:
+    required_fields: [instance_id, from_state, to_state, reason, release_reservation]
+    effect: "执行 starting/active/draining/ended 的合法转换；ended 时移出当前运行集并释放预留。"
+  core.temporary_grant_usage_changed:
+    required_fields: [grant_id, usage_before, usage_after, reason]
+    effect: "记录非实例注册/结束动作导致的授权额度更正；不得借此扩大批准上限。"
+  core.governance_binding_migrated:
+    required_fields: [binding_kind, before, after, migration_check_ref, approval_ref]
+    effect: "经人工批准和兼容性检查后迁移 Contract 或授权策略绑定。"
+
+lifecycle_transition_contract:
+  department_and_position:
+    - "active -> suspended"
+    - "suspended -> active"
+    - "active -> retiring"
+    - "suspended -> retiring"
+    - "retiring -> active"
+    - "retiring -> retired"
+  instance:
+    - "starting -> active"
+    - "starting -> draining"
+    - "starting -> ended"
+    - "active -> draining"
+    - "draining -> ended"
+  terminal_states: [retired, ended]

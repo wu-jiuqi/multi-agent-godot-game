@@ -1,0 +1,50 @@
+organization_validation:
+  schema_version: "0.2-alpha"
+  validation_id: "val:<project_id>:<26 位 ULID>"
+
+  source_binding:
+    project_id: "<项目 ID>"
+    organization_revision: 1
+    snapshot_digest: "<被校验 Snapshot 的 64 位小写 SHA-256>"
+    last_event_sequence: 1
+    last_event_digest: "<最近事件的 64 位小写 SHA-256>"
+
+  validator_binding:
+    validator_id: "organization-registry-validator"
+    version: "0.2-alpha"
+    digest: "<校验器实现的 64 位小写 SHA-256>"
+
+  generated_at: "<ISO 8601 时间>"
+  overall_result: "passed | failed"
+  issues: []
+
+  projections:
+    occupancy: []
+    effective_availability: []
+    temporary_grant_capacity: []
+    pending_approval_summary: []
+
+  integrity:
+    canonicalization: "organization-validation-canonical-json-v1"
+    digest_algorithm: "sha256"
+    validation_digest: "<将本字段设为 null 后计算的 64 位小写 SHA-256>"
+
+validation_contract:
+  authority: "Validation 是绑定特定 Snapshot 水位的派生旁车，不是 Organization Event，也不增加 organization_revision。"
+  freshness: "source_binding 任一字段与当前 Snapshot 不一致时，报告立即过期。"
+  issue_shape:
+    required_fields: [issue_id, severity, code, object_refs, message, remediation]
+    severity_values: [error, warning, info]
+  minimum_checks:
+    - stable_id_format_and_non_reuse
+    - deterministic_order_and_uniqueness
+    - department_hierarchy_acyclic
+    - position_reporting_acyclic
+    - manager_position_validity
+    - lifecycle_validity
+    - preset_and_authority_binding_integrity
+    - instance_discriminated_union
+    - temporary_grant_finite_limits_and_usage
+    - pending_change_set_freshness
+    - event_watermark_and_digest_chain
+    - snapshot_digest

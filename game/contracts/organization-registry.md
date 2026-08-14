@@ -4,7 +4,7 @@
 
 Organization Registry 是单个项目当前实际组织的事实源。它保存已批准 Department、Position 与 Agent Preset 绑定，以及当前 Agent Instance 和组织治理事实；它不定义可复用组织规则，也不管理生产循环的执行状态。
 
-本阶段只确认职责边界、物化视图和记录原则。对象生命周期见 `organization-lifecycle.md`；完整 Snapshot/Event Schema、事件类型和校验器将在后续步骤定义。
+对象生命周期见 `organization-lifecycle.md`；可执行数据形状由 `organization-snapshot.template.yaml`、`organization-event.template.yaml`、`organization-change-set.template.yaml` 与 `organization-validation.template.yaml` 共同定义。校验报告属于绑定水位的派生旁车，不写回权威 Snapshot。
 
 ## 一项目一 Registry
 
@@ -29,6 +29,8 @@ Loop Contract 和 Loop Registry 可以用稳定 ID 引用负责的 Position 或�
 - Event 与 Snapshot 更新必须全部成功或全部失败；
 - Snapshot 使用单调递增的 `organization_revision` 拒绝并发覆盖，并记录已经重放到的事件水位；
 - 退出对象的稳定 ID 必须保留在身份索引或 tombstone 中，防止复用；完整历史不能只依赖当前 Snapshot。
+
+一个项目只允许存在一个逻辑 Organization Snapshot 和一条全局有序 Organization Event 序列。每次成功 mutation 同时把全局 `organization_revision` 和 Event `sequence` 增加 1；不得为各部门建立相互独立、无法原子协调的组织事实源。
 
 ## 三类物化视图
 

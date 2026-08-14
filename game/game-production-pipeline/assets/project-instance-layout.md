@@ -10,6 +10,7 @@
     ├── agents/                     # 项目 Agent Presets
     ├── approvals/                  # 人工审批记录
     ├── bindings/                   # Skill 与事实源绑定
+    ├── .cache/migrations/          # 迁移逐字节备份（Git 忽略）
     ├── loops/                      # 生产循环实例
     ├── project-definition/         # 经确认的项目文档基线与编制输入
     └── organization/

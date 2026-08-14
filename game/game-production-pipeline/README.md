@@ -2,7 +2,7 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.4.0-alpha.1`。它新增项目经理启动模式、项目简报审批边界和中文编码回归保护，仍需通过更多真实游戏项目验证，不是 Production Ready。
+当前版本：`v0.4.0-alpha.2`。它在项目经理启动模式、项目简报审批边界和中文编码回归保护基础上，新增从已发行 `v0.3.0-alpha.1` 项目到 v0.4 的显式迁移器；仍需通过更多真实游戏项目验证，不是 Production Ready。
 
 ## 层级
 
@@ -76,6 +76,46 @@ python scripts/validate_project_instance.py --project-root D:\Game\MyProject
 ```
 
 脚本拒绝覆盖现有非托管文件。版本不一致进入 `read_only`，相同版本但框架摘要不一致进入 `blocked`；不得手工改写 `plugin-lock.yaml` 绕过迁移。
+
+## 从 v0.3 迁移
+
+`v0.4.0-alpha.2` 只支持从已发行且框架摘要位于白名单内的 `v0.3.0-alpha.1` 迁移。未知摘要、损坏 managed block、已有冲突项目简报或计划后文件漂移都会 fail closed。迁移器不修改组织快照、事件历史、Change Set、Agent Preset、Skill Binding 或游戏内容。
+
+先在项目 Git 工作区干净且已有额外备份的前提下执行 dry-run。保存输出中的 `migration_at` 和 `plan_digest`：
+
+```powershell
+$plan = python scripts/migrate_plugin.py `
+  --project-root D:\Game\MyProject | ConvertFrom-Json
+
+$plan.outcome
+$plan.actions
+$plan.plan_digest
+```
+
+只有 `outcome` 为 `migration_ready`，并由项目所有者审阅全部动作和精确摘要后才能应用：
+
+```powershell
+python scripts/migrate_plugin.py `
+  --project-root D:\Game\MyProject `
+  --migration-at $plan.migration_at `
+  --apply `
+  --approval-digest $plan.plan_digest `
+  --approved-by human:owner
+```
+
+执行器在 `game-pipeline/.cache/migrations/<plan_digest>/` 保存逐字节备份；写入项目简报、说明、事实源和审批记录后，最后更新 plugin lock，并要求 `validate_plugin_lock.py`、`validate_project_instance.py` 和重复规划全部通过。任何失败都会自动回退。
+
+如迁移成功后尚未继续编辑目标文件，可显式回退：
+
+```powershell
+python scripts/migrate_plugin.py `
+  --project-root D:\Game\MyProject `
+  --rollback `
+  --plan-digest $plan.plan_digest `
+  --confirm-rollback $plan.plan_digest
+```
+
+回退前会验证迁移后摘要；目标文件一旦又被修改，脚本会拒绝覆盖。禁止只把 `plugin-lock.yaml` 改回旧版本。
 
 ## 项目文档基线
 
@@ -175,6 +215,6 @@ python scripts/build_release.py --plugin-root . --output-dir ..\..\dist
 
 - 治理层仍是文件契约与确定性校验器，没有强制拦截所有手工文件修改的 MCP 或 Hook。
 - Registry 没有数据库事务适配器；脚本会预检和原子写单文件，但不能提供跨文件数据库级事务。
-- 尚未提供从 `v0.3.0-alpha.1` 到 `v0.4.0-alpha.1` 的实际 migrator；现有项目继续锁定旧版本，迁移预检会 fail closed，禁止只改 `plugin-lock.yaml`。
+- v0.3→v0.4 迁移目前只覆盖已发行 `v0.3.0-alpha.1` 的三个已知框架摘要；其他 v0.3 开发快照和更早版本会 fail closed。
 - 目前只有 Godot 适配层，Unity 和其他引擎尚未验证。
-- The Nameless Vessel 当前锁定 `v0.3.0-alpha.1+codex.20260814152940`，本次升级不会自动修改或迁移该项目；需要另行制定、审批并验证迁移计划。
+- 迁移器不会自动操作任何现有游戏项目；每个项目都必须单独在隔离副本验证、审阅计划摘要，再决定是否迁移原项目。

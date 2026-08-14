@@ -37,6 +37,7 @@ from pipeline_common import (
 
 ORG_SCHEMA = "0.2-alpha"
 MANAGED_SCHEMA = "v1"
+PROJECT_DEFINITION_README = "# 项目文档基线\n\n项目经理启动工作流把项目所有者已确认的方向整理到 `project-brief.yaml`。草案不得作为正式编制依据；只有摘要匹配的人工确认后才能进入组织设计。\n"
 AGENTS_START_RE = re.compile(
     r"<!-- game-production-pipeline:start schema=v1 digest=([0-9a-f]{64}) -->\n"
 )
@@ -401,6 +402,30 @@ def read_existing(path: Path) -> str | None:
     return path.read_text(encoding="utf-8-sig") if path.is_file() else None
 
 
+def build_managed_blocks(version: str, digest: str) -> dict[str, dict[str, Any]]:
+    """Return the current managed project blocks for bootstrap and migration."""
+    agents_body = f"""## Game Production Pipeline
+
+- 项目管线状态位于 `game-pipeline/`，项目专属 Skills 位于 `.agents/skills/`。
+- 当前锁定插件：`{PLUGIN_ID}@{version}`，框架摘要：`{digest}`。
+- 初始项目简报位于 `game-pipeline/project-definition/project-brief.yaml`；未确认前不得批准正式编制。
+- 持久部门、岗位、Agent Preset 与 Skill 绑定必须先获得项目所有者人工审批。
+- 临时 Agent Instance 只有在批准且未过期的 Temporary Grant 范围和额度内才可免逐实例审批，但必须先登记并保持可见。
+- 管线治理审批、Codex 沙箱权限与技术验收是三个独立条件。
+- 插件锁非 `normal` 时禁止修改组织和生产状态，只允许检查或迁移规划。
+"""
+    ignore_body = """game-pipeline/.runtime/
+game-pipeline/.cache/
+game-pipeline/tmp/
+game-pipeline/evidence/raw-temp/
+game-pipeline/organization/views/*.svg
+"""
+    return {
+        "AGENTS.md": {"content": managed_block(agents_body, markdown=True), "markdown": True},
+        ".gitignore": {"content": managed_block(ignore_body, markdown=False), "markdown": False},
+    }
+
+
 def build_contents(
     project_root: Path,
     project_id: str,
@@ -474,31 +499,12 @@ def build_contents(
         "game-pipeline/agents/README.md": "# 项目 Agent Presets\n\n只有经人工批准且摘要匹配的项目 Agent Preset 才能生成 `.codex/agents/*.toml`。\n",
         "game-pipeline/approvals/README.md": "# 人工审批记录\n\n审批记录必须绑定对象 ID、不可变摘要、决定者与决定时间；自动检查不能代替人工决定。\n",
         "game-pipeline/loops/README.md": "# 生产循环实例\n\n此处保存项目实际 Pipeline/Loop Contract 绑定、状态、事件与证据引用。\n",
-        "game-pipeline/project-definition/README.md": "# 项目文档基线\n\n项目经理启动工作流把项目所有者已确认的方向整理到 `project-brief.yaml`。草案不得作为正式编制依据；只有摘要匹配的人工确认后才能进入组织设计。\n",
+        "game-pipeline/project-definition/README.md": PROJECT_DEFINITION_README,
         "game-pipeline/organization/views/README.md": "# 组织视图\n\nMermaid 源文件可跟踪；生成的 SVG 仅作投影并由 `.gitignore` 忽略。\n",
         "game-pipeline/organization/validations/README.md": "# 组织校验\n\n保存可复核的校验结论与证据引用，不把自动校验结果伪装成人工审批。\n",
         ".agents/skills/README.md": "# 项目专属 Skills\n\n只保存该游戏项目特有的可执行方法；可复用框架能力仍由全局插件提供。\n",
     }
-    agents_body = f"""## Game Production Pipeline
-
-- 项目管线状态位于 `game-pipeline/`，项目专属 Skills 位于 `.agents/skills/`。
-- 当前锁定插件：`{PLUGIN_ID}@{version}`，框架摘要：`{digest}`。
-- 初始项目简报位于 `game-pipeline/project-definition/project-brief.yaml`；未确认前不得批准正式编制。
-- 持久部门、岗位、Agent Preset 与 Skill 绑定必须先获得项目所有者人工审批。
-- 临时 Agent Instance 只有在批准且未过期的 Temporary Grant 范围和额度内才可免逐实例审批，但必须先登记并保持可见。
-- 管线治理审批、Codex 沙箱权限与技术验收是三个独立条件。
-- 插件锁非 `normal` 时禁止修改组织和生产状态，只允许检查或迁移规划。
-"""
-    ignore_body = """game-pipeline/.runtime/
-game-pipeline/.cache/
-game-pipeline/tmp/
-game-pipeline/evidence/raw-temp/
-game-pipeline/organization/views/*.svg
-"""
-    blocks = {
-        "AGENTS.md": {"content": managed_block(agents_body, markdown=True), "markdown": True},
-        ".gitignore": {"content": managed_block(ignore_body, markdown=False), "markdown": False},
-    }
+    blocks = build_managed_blocks(version, digest)
     warnings: list[str] = []
     if engine == "unknown":
         warnings.append("未识别游戏引擎；项目已初始化，但引擎适配必须在后续确认")

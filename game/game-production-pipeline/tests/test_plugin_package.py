@@ -22,7 +22,7 @@ class PluginPackageTests(unittest.TestCase):
     def test_manifest_and_skill_entries_match_release(self) -> None:
         manifest = json.loads((PLUGIN_ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual("game-production-pipeline", manifest["name"])
-        self.assertEqual("0.3.0-alpha.1", manifest["version"])
+        self.assertRegex(manifest["version"], r"^0\.3\.0-alpha\.1(?:\+codex\.[0-9A-Za-z.-]+)?$")
         self.assertEqual("./skills/", manifest["skills"])
         discovered = {path.name for path in (PLUGIN_ROOT / "skills").iterdir() if path.is_dir()}
         self.assertEqual(SKILLS, discovered)

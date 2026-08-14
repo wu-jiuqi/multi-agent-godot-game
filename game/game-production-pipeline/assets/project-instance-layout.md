@@ -11,6 +11,7 @@
     ├── approvals/                  # 人工审批记录
     ├── bindings/                   # Skill 与事实源绑定
     ├── loops/                      # 生产循环实例
+    ├── project-definition/         # 经确认的项目文档基线与编制输入
     └── organization/
         ├── snapshot.yaml
         ├── event-history.yaml

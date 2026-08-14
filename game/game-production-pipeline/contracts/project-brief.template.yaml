@@ -1,0 +1,83 @@
+project_brief:
+  schema_version: game-production-project-brief/v1
+  identity:
+    brief_id: "brief:<project-id>:initial"
+    project_id: "<project-id>"
+    version: 1
+  coordination:
+    project_owner: "human:<owner-id>"
+    coordinator_role_id: AGT-DIR
+    execution_mode: bootstrap-workflow
+    coordinator_position_id: null
+  sources:
+    - source_id: "source:<project-id>:owner-plan"
+      uri: "<仓库相对路径、外部 URI 或 conversation:// 引用>"
+      version_or_digest: "<版本或 SHA-256>"
+      supplied_by: "human:<owner-id>"
+      authority: project.direction.input
+  statements:
+    - statement_id: "stmt:<project-id>:project-goal"
+      domain: project-goal
+      text: "<项目目标与目标玩家体验>"
+      status: confirmed
+      decision_owner: "human:<owner-id>"
+      source_refs: ["source:<project-id>:owner-plan"]
+    - statement_id: "stmt:<project-id>:gameplay"
+      domain: gameplay
+      text: "<核心玩法或明确的未知项>"
+      status: preference
+      decision_owner: "human:<owner-id>"
+      source_refs: ["source:<project-id>:owner-plan"]
+    - statement_id: "stmt:<project-id>:art-direction"
+      domain: art-direction
+      text: "<美术方向或明确的未知项>"
+      status: preference
+      decision_owner: "human:<owner-id>"
+      source_refs: ["source:<project-id>:owner-plan"]
+    - statement_id: "stmt:<project-id>:implementation"
+      domain: implementation
+      text: "<大致实现方案，并注明是约束、偏好还是待验证假设>"
+      status: hypothesis
+      decision_owner: "human:<owner-id>"
+      source_refs: ["source:<project-id>:owner-plan"]
+    - statement_id: "stmt:<project-id>:platform-engine"
+      domain: platform-engine
+      text: "<目标平台与引擎>"
+      status: confirmed
+      decision_owner: "human:<owner-id>"
+      source_refs: ["source:<project-id>:owner-plan"]
+    - statement_id: "stmt:<project-id>:scope-constraints"
+      domain: scope-constraints
+      text: "<时间、成本、团队、内容量或发布约束>"
+      status: unknown
+      decision_owner: "human:<owner-id>"
+      source_refs: []
+  open_questions:
+    - question_id: "question:<project-id>:scope"
+      question: "<需要项目所有者确认的问题>"
+      decision_owner: "human:<owner-id>"
+      blocks_staffing: true
+  risks:
+    - risk_id: "risk:<project-id>:initial-scope"
+      description: "<当前风险>"
+      evidence_refs: ["stmt:<project-id>:scope-constraints"]
+      impact: medium
+      staffing_implication: "<该风险如何影响职责或独立验收>"
+  staffing_input:
+    responsibility_needs:
+      - need_id: "need:<project-id>:game-design"
+        responsibility: "<需要长期承担的责任，不直接指定 Agent 名称>"
+        rationale_statement_refs: ["stmt:<project-id>:gameplay"]
+        expected_artifacts: ["<预期产物>"]
+        acceptance_owner_kind: human
+    readiness: blocked
+    blocker_refs: ["question:<project-id>:scope"]
+  review:
+    status: draft
+    approval_id: null
+    confirmed_by: null
+    confirmed_at: null
+  integrity:
+    canonicalization: project-brief-subject-canonical-json-v1
+    digest_algorithm: sha256
+    subject_digest: null

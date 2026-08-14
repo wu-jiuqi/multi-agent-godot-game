@@ -18,7 +18,7 @@ Create the project-owned control plane without inventing project direction or si
 
 ## Boundaries
 
-- Initialization may create an empty organization baseline and an initial pending Change Set. It must not activate departments, positions, project Agent Presets, or runtime agents.
+- Initialization may create an empty organization baseline, a blocked project-brief draft, and an initial pending Change Set. It must not activate departments, positions, project Agent Presets, or runtime agents.
 - Never overwrite an unmanaged file. Managed blocks may only be updated by their marker and matching digest.
 - Keep `game-pipeline/` tracked by the target repository. Ignore only `.runtime/`, `.cache/`, `tmp/`, raw temporary evidence, and generated SVG views.
 - Treat plugin governance approval and Codex filesystem/sandbox permission as separate checks; neither substitutes for the other.
@@ -26,4 +26,4 @@ Create the project-owned control plane without inventing project direction or si
 
 ## Outputs
 
-Return the project path, installed plugin identity/version, lock validation result, created or unchanged files, pending human decisions, and the next recommended skill. For first-time setup, route to `$design-game-organization`.
+Return the project path, installed plugin identity/version, lock validation result, created or unchanged files, pending human decisions, and the next recommended skill. For first-time setup, route to `$prepare-game-project-brief`; only a confirmed staffing-ready brief may continue to `$design-game-organization`.

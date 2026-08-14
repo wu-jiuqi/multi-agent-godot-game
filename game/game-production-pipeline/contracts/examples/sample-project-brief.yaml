@@ -1,0 +1,88 @@
+project_brief:
+  schema_version: game-production-project-brief/v1
+  identity:
+    brief_id: brief:sample-game:initial
+    project_id: sample-game
+    version: 1
+  coordination:
+    project_owner: human:owner
+    coordinator_role_id: AGT-DIR
+    execution_mode: bootstrap-workflow
+    coordinator_position_id: null
+  sources:
+    - source_id: source:sample-game:owner-plan
+      uri: docs/source/owner-plan.md
+      version_or_digest: v1
+      supplied_by: human:owner
+      authority: project.direction.input
+  statements:
+    - statement_id: stmt:sample-game:project-goal
+      domain: project-goal
+      text: 用一个十分钟垂直切片验证玩家能否理解并享受核心协作玩法。
+      status: confirmed
+      decision_owner: human:owner
+      source_refs: [source:sample-game:owner-plan]
+    - statement_id: stmt:sample-game:gameplay
+      domain: gameplay
+      text: 两名角色通过互补能力共同解除场景机关。
+      status: confirmed
+      decision_owner: human:owner
+      source_refs: [source:sample-game:owner-plan]
+    - statement_id: stmt:sample-game:art-direction
+      domain: art-direction
+      text: 使用高对比、低饱和的手绘剪影风格。
+      status: preference
+      decision_owner: human:owner
+      source_refs: [source:sample-game:owner-plan]
+    - statement_id: stmt:sample-game:implementation
+      domain: implementation
+      text: 优先使用 Godot 预置场景和节点完成本地双人灰盒。
+      status: hypothesis
+      decision_owner: human:owner
+      source_refs: [source:sample-game:owner-plan]
+    - statement_id: stmt:sample-game:platform-engine
+      domain: platform-engine
+      text: 首个样本面向 Windows，使用 Godot。
+      status: confirmed
+      decision_owner: human:owner
+      source_refs: [source:sample-game:owner-plan]
+    - statement_id: stmt:sample-game:scope-constraints
+      domain: scope-constraints
+      text: 第一轮只制作一个关卡、两种角色能力和一套占位 UI。
+      status: confirmed
+      decision_owner: human:owner
+      source_refs: [source:sample-game:owner-plan]
+  open_questions:
+    - question_id: question:sample-game:networking
+      question: 后续是否扩展在线联机？
+      decision_owner: human:owner
+      blocks_staffing: false
+  risks:
+    - risk_id: risk:sample-game:cooperation-readability
+      description: 两种角色能力的互补关系可能无法在无口头提示时被理解。
+      evidence_refs: [stmt:sample-game:gameplay]
+      impact: high
+      staffing_implication: 玩法设计与独立试玩验收必须分离。
+  staffing_input:
+    responsibility_needs:
+      - need_id: need:sample-game:game-design
+        responsibility: 定义核心协作规则并维护玩法验收标准。
+        rationale_statement_refs: [stmt:sample-game:gameplay]
+        expected_artifacts: [核心循环规格, 玩家行为与失败恢复规则]
+        acceptance_owner_kind: human
+      - need_id: need:sample-game:godot-implementation
+        responsibility: 将已批准规则实现为可试玩 Godot 灰盒。
+        rationale_statement_refs: [stmt:sample-game:implementation, stmt:sample-game:platform-engine]
+        expected_artifacts: [预置场景, 自动测试, 可试玩构建]
+        acceptance_owner_kind: independent
+    readiness: ready
+    blocker_refs: []
+  review:
+    status: draft
+    approval_id: null
+    confirmed_by: null
+    confirmed_at: null
+  integrity:
+    canonicalization: project-brief-subject-canonical-json-v1
+    digest_algorithm: sha256
+    subject_digest: 8989399b6b82dbbd24995058818630f2ba4fcbdd1a70f8896c54b9dd68523072

@@ -20,9 +20,10 @@ from pipeline_common import (
 )
 from validate_organization_registry import validate_change_set, validate_history
 from validate_plugin_lock import evaluate_lock
+from validate_project_brief import validate_project_brief
 
 
-REQUIRED_FILES = (
+BASE_REQUIRED_FILES = (
     "game-pipeline/project.yaml",
     "game-pipeline/plugin-lock.yaml",
     "game-pipeline/bindings/skill-bindings.yaml",
@@ -30,6 +31,7 @@ REQUIRED_FILES = (
     "game-pipeline/organization/snapshot.yaml",
     "game-pipeline/organization/event-history.yaml",
 )
+CURRENT_REQUIRED_FILES = BASE_REQUIRED_FILES + ("game-pipeline/project-definition/project-brief.yaml",)
 
 
 def nested_mapping(document: dict[str, Any], key: str, path: str, errors: list[str]) -> dict[str, Any]:
@@ -46,19 +48,31 @@ def validate_instance(project_root: Path, source_root: Path | None = None) -> di
     errors: list[str] = []
     warnings: list[str] = []
     checked: list[str] = []
-    for relative_path in REQUIRED_FILES:
+    lock = evaluate_lock(project_root, source_root)
+    errors.extend(lock["errors"])
+    warnings.extend(lock["warnings"])
+    required_files = CURRENT_REQUIRED_FILES if lock["state"] == "normal" else BASE_REQUIRED_FILES
+    for relative_path in required_files:
         path = project_root / relative_path
         if not path.is_file():
             errors.append(f"缺少必需文件: {relative_path}")
         else:
             checked.append(relative_path)
 
-    lock = evaluate_lock(project_root, source_root)
-    errors.extend(lock["errors"])
-    warnings.extend(lock["warnings"])
-    if errors and any(not (project_root / path).is_file() for path in REQUIRED_FILES):
+    if errors and any(not (project_root / path).is_file() for path in required_files):
         return {
             "state": "blocked",
+            "project_root": str(project_root),
+            "plugin_lock": lock,
+            "checked": checked,
+            "errors": errors,
+            "warnings": warnings,
+        }
+
+    if lock["state"] != "normal":
+        warnings.append("插件锁不是 normal；只检查了跨版本公共基线，跳过当前版本项目简报、Registry 和 Agent 适配器校验")
+        return {
+            "state": lock["state"],
             "project_root": str(project_root),
             "plugin_lock": lock,
             "checked": checked,
@@ -72,6 +86,7 @@ def validate_instance(project_root: Path, source_root: Path | None = None) -> di
         history_doc = load_yaml(project_root / "game-pipeline" / "organization" / "event-history.yaml")
         bindings_doc = load_yaml(project_root / "game-pipeline" / "bindings" / "skill-bindings.yaml")
         facts_doc = load_yaml(project_root / "game-pipeline" / "bindings" / "fact-sources.yaml")
+        project_brief_doc = load_yaml(project_root / "game-pipeline" / "project-definition" / "project-brief.yaml")
     except (OSError, ValueError) as exc:
         errors.append(str(exc))
         return {
@@ -125,6 +140,7 @@ def validate_instance(project_root: Path, source_root: Path | None = None) -> di
 
     approvals_dir = project_root / "game-pipeline" / "approvals"
     approval_ids: set[str] = set()
+    approval_records: dict[str, dict[str, Any]] = {}
     for path in sorted(approvals_dir.glob("*.yaml")) if approvals_dir.is_dir() else []:
         try:
             approval_doc = load_yaml(path)
@@ -141,12 +157,22 @@ def validate_instance(project_root: Path, source_root: Path | None = None) -> di
             errors.append(f"重复 approval_id: {approval_id}")
         else:
             approval_ids.add(approval_id)
+            approval_records[approval_id] = approval
         if approval.get("decision") not in {"approved", "rejected", "revise"}:
             errors.append(f"{path.name}: decision 非法")
         for key in ("subject_kind", "subject_id", "subject_digest", "decided_by", "decided_at"):
             if not isinstance(approval.get(key), str) or not approval.get(key):
                 errors.append(f"{path.name}: 缺少 {key}")
         checked.append(path.relative_to(project_root).as_posix())
+
+    brief_result = validate_project_brief(
+        project_brief_doc,
+        expected_project_id=project_id if isinstance(project_id, str) else None,
+        approvals=approval_records,
+    )
+    errors.extend(f"Project Brief: {message}" for message in brief_result["errors"])
+    warnings.extend(f"Project Brief: {message}" for message in brief_result["warnings"])
+    checked.append("game-pipeline/project-definition/project-brief.yaml")
 
     if lock["state"] == "normal":
         generation_plan, _ = build_generation_plan(project_root, source_root)

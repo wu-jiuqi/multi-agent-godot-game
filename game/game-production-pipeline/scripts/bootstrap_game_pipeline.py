@@ -17,6 +17,7 @@ from pipeline_common import (
     FACT_SOURCES_SCHEMA,
     LOCK_SCHEMA,
     PLUGIN_ID,
+    PROJECT_BRIEF_SCHEMA,
     PROJECT_ID_RE,
     PROJECT_SCHEMA,
     SKILL_BINDINGS_SCHEMA,
@@ -27,6 +28,7 @@ from pipeline_common import (
     framework_digest,
     manifest_version,
     plugin_root,
+    project_brief_subject_digest,
     stable_token,
     text_digest,
     write_new_text,
@@ -228,7 +230,7 @@ def build_initial_change_set(project_id: str, human_id: str, created_at: str, sn
             "migration_refs": [],
         },
         "verification": {
-            "preconditions": ["项目事实源已登记", "职责覆盖与授权边界已明确"],
+            "preconditions": ["项目文档基线已由项目所有者确认", "职责覆盖与授权边界已明确"],
             "automated_checks": ["Organization Change Set 校验通过", "组织图可确定性渲染"],
             "reviewer_notes": ["这是未提交的初始草案；补全 operations 后才可进入人工审批。"],
         },
@@ -246,6 +248,118 @@ def build_initial_change_set(project_id: str, human_id: str, created_at: str, sn
     }
     change_set["integrity"]["change_set_digest"] = canonical_change_set_digest(change_set)
     return {"organization_change_set": change_set}
+
+
+def build_initial_project_brief(
+    project_id: str,
+    project_name: str,
+    engine: str,
+    human_id: str,
+    created_at: str,
+) -> dict[str, Any]:
+    source_id = f"source:{project_id}:project-identity"
+    statement_specs = [
+        ("project-goal", f"{project_name} 的项目目标与目标玩家体验尚待项目所有者提供。"),
+        ("gameplay", "核心玩法尚待项目所有者提供。"),
+        ("art-direction", "美术方向尚待项目所有者提供。"),
+        ("implementation", "大致实现方案尚待项目所有者提供并标明约束强度。"),
+        ("scope-constraints", "时间、成本、团队、内容量与发布约束尚待项目所有者提供。"),
+    ]
+    statements = [
+        {
+            "statement_id": f"stmt:{project_id}:{domain}",
+            "domain": domain,
+            "text": text,
+            "status": "unknown",
+            "decision_owner": human_id,
+            "source_refs": [],
+        }
+        for domain, text in statement_specs
+    ]
+    platform_status = "unknown" if engine == "unknown" else "confirmed"
+    statements.append(
+        {
+            "statement_id": f"stmt:{project_id}:platform-engine",
+            "domain": "platform-engine",
+            "text": "目标平台尚待确认；游戏引擎尚未识别。"
+            if engine == "unknown"
+            else f"游戏引擎已确认为 {engine}；目标平台尚待项目所有者确认。",
+            "status": platform_status,
+            "decision_owner": human_id,
+            "source_refs": [] if platform_status == "unknown" else [source_id],
+        }
+    )
+    questions = [
+        {
+            "question_id": f"question:{project_id}:{domain}",
+            "question": f"请项目所有者确认 {domain} 的当前规划、约束或明确未知项。",
+            "decision_owner": human_id,
+            "blocks_staffing": True,
+        }
+        for domain, _ in statement_specs
+    ]
+    questions.append(
+        {
+            "question_id": f"question:{project_id}:target-platform",
+            "question": "请项目所有者确认目标平台，并确认当前引擎选择是否属于已批准约束。",
+            "decision_owner": human_id,
+            "blocks_staffing": True,
+        }
+    )
+    document = {
+        "project_brief": {
+            "schema_version": PROJECT_BRIEF_SCHEMA,
+            "identity": {
+                "brief_id": f"brief:{project_id}:initial",
+                "project_id": project_id,
+                "version": 1,
+            },
+            "coordination": {
+                "project_owner": human_id,
+                "coordinator_role_id": "AGT-DIR",
+                "execution_mode": "bootstrap-workflow",
+                "coordinator_position_id": None,
+            },
+            "sources": [
+                {
+                    "source_id": source_id,
+                    "uri": "game-pipeline/project.yaml",
+                    "version_or_digest": f"bootstrap:{created_at}",
+                    "supplied_by": human_id,
+                    "authority": "project.identity",
+                }
+            ],
+            "statements": statements,
+            "open_questions": questions,
+            "risks": [
+                {
+                    "risk_id": f"risk:{project_id}:incomplete-project-brief",
+                    "description": "启动资料尚不足以判断长期职责、专业边界和独立验收关系。",
+                    "evidence_refs": [item["statement_id"] for item in statements if item["status"] == "unknown"],
+                    "impact": "high",
+                    "staffing_implication": "在项目所有者确认必要方向前禁止批准初始长期编制。",
+                }
+            ],
+            "staffing_input": {
+                "responsibility_needs": [],
+                "readiness": "blocked",
+                "blocker_refs": [item["question_id"] for item in questions],
+            },
+            "review": {
+                "status": "draft",
+                "approval_id": None,
+                "confirmed_by": None,
+                "confirmed_at": None,
+            },
+            "integrity": {
+                "canonicalization": "project-brief-subject-canonical-json-v1",
+                "digest_algorithm": "sha256",
+                "subject_digest": None,
+            },
+        }
+    }
+    document["project_brief"]["integrity"]["subject_digest"] = project_brief_subject_digest(document)
+    return document
 
 
 def managed_block(body: str, *, markdown: bool) -> str:
@@ -298,6 +412,7 @@ def build_contents(
 ) -> tuple[dict[str, str], dict[str, dict[str, Any]], list[str]]:
     history, snapshot = build_registry(project_id, human_id, created_at, source_root)
     change_set = build_initial_change_set(project_id, human_id, created_at, snapshot)
+    project_brief = build_initial_project_brief(project_id, project_name, engine, human_id, created_at)
     version = manifest_version(source_root)
     digest = framework_digest(source_root)
     project_doc = {
@@ -337,7 +452,13 @@ def build_contents(
                     "path": "game-pipeline/project.yaml",
                     "owner": human_id,
                     "authority": "project.identity",
-                }
+                },
+                {
+                    "fact_id": f"fact:{project_id}:project-brief",
+                    "path": "game-pipeline/project-definition/project-brief.yaml",
+                    "owner": human_id,
+                    "authority": "project.definition.draft",
+                },
             ],
         }
     }
@@ -346,12 +467,14 @@ def build_contents(
         "game-pipeline/plugin-lock.yaml": dump_yaml(lock_doc),
         "game-pipeline/bindings/skill-bindings.yaml": dump_yaml(bindings_doc),
         "game-pipeline/bindings/fact-sources.yaml": dump_yaml(facts_doc),
+        "game-pipeline/project-definition/project-brief.yaml": dump_yaml(project_brief),
         "game-pipeline/organization/snapshot.yaml": dump_yaml(snapshot),
         "game-pipeline/organization/event-history.yaml": dump_yaml(history),
         "game-pipeline/organization/change-sets/initial-organization.draft.yaml": dump_yaml(change_set),
         "game-pipeline/agents/README.md": "# 项目 Agent Presets\n\n只有经人工批准且摘要匹配的项目 Agent Preset 才能生成 `.codex/agents/*.toml`。\n",
         "game-pipeline/approvals/README.md": "# 人工审批记录\n\n审批记录必须绑定对象 ID、不可变摘要、决定者与决定时间；自动检查不能代替人工决定。\n",
         "game-pipeline/loops/README.md": "# 生产循环实例\n\n此处保存项目实际 Pipeline/Loop Contract 绑定、状态、事件与证据引用。\n",
+        "game-pipeline/project-definition/README.md": "# 项目文档基线\n\n项目经理启动工作流把项目所有者已确认的方向整理到 `project-brief.yaml`。草案不得作为正式编制依据；只有摘要匹配的人工确认后才能进入组织设计。\n",
         "game-pipeline/organization/views/README.md": "# 组织视图\n\nMermaid 源文件可跟踪；生成的 SVG 仅作投影并由 `.gitignore` 忽略。\n",
         "game-pipeline/organization/validations/README.md": "# 组织校验\n\n保存可复核的校验结论与证据引用，不把自动校验结果伪装成人工审批。\n",
         ".agents/skills/README.md": "# 项目专属 Skills\n\n只保存该游戏项目特有的可执行方法；可复用框架能力仍由全局插件提供。\n",
@@ -360,6 +483,7 @@ def build_contents(
 
 - 项目管线状态位于 `game-pipeline/`，项目专属 Skills 位于 `.agents/skills/`。
 - 当前锁定插件：`{PLUGIN_ID}@{version}`，框架摘要：`{digest}`。
+- 初始项目简报位于 `game-pipeline/project-definition/project-brief.yaml`；未确认前不得批准正式编制。
 - 持久部门、岗位、Agent Preset 与 Skill 绑定必须先获得项目所有者人工审批。
 - 临时 Agent Instance 只有在批准且未过期的 Temporary Grant 范围和额度内才可免逐实例审批，但必须先登记并保持可见。
 - 管线治理审批、Codex 沙箱权限与技术验收是三个独立条件。

@@ -1,5 +1,11 @@
 # Registry 契约
 
+## Project Brief
+
+[`project-brief.template.yaml`](project-brief.template.yaml) 定义项目经理启动工作流整理的项目文档基线。它保存事实源、`confirmed / preference / hypothesis / unknown` 结论、开放问题、风险和责任需求；只有 staffing-ready、摘要匹配且有人类审批记录的简报才能进入组织设计。
+
+项目简报不替代 GDD、美术规范、技术设计或测试计划。编制获批后，这些专业文档仍由对应领域角色拥有和深化。
+
 ## Organization Registry
 
 Organization Registry 用一个可由不可变事件历史重建的 Snapshot 保存项目当前正式编制、运行实例、临时授权与治理引用。四份可执行契约分别承担不同职责：

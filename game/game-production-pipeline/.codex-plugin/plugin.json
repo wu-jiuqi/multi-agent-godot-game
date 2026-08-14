@@ -1,7 +1,7 @@
 {
   "name": "game-production-pipeline",
-  "version": "0.3.0-alpha.1",
-  "description": "Instantiate and operate auditable multi-agent production pipelines for game projects in Codex.",
+  "version": "0.4.0",
+  "description": "Turn owner-defined game plans into approved project briefs, staffing proposals, and auditable production pipelines in Codex.",
   "author": {
     "name": "wu-jiuqi",
     "url": "https://github.com/wu-jiuqi"
@@ -12,7 +12,7 @@
   "interface": {
     "displayName": "Game Production Pipeline",
     "shortDescription": "Build auditable multi-agent teams for game production.",
-    "longDescription": "Create project-specific game production organizations from reusable contracts, keep every role and authority change visible, and operate gated production loops in Codex.",
+    "longDescription": "Structure owner-defined game plans into source-traceable project briefs, create project-specific production organizations from approved responsibility needs, keep every role and authority change visible, and operate gated production loops in Codex.",
     "developerName": "wu-jiuqi",
     "category": "Productivity",
     "capabilities": [
@@ -21,6 +21,7 @@
     ],
     "defaultPrompt": [
       "Initialize this game project with an auditable multi-agent production pipeline.",
+      "Turn my gameplay, art direction, and implementation outline into a staffing-ready project brief.",
       "Show the current game production organization and pending staffing decisions.",
       "Run the next approved production loop and stop at required human gates."
     ]

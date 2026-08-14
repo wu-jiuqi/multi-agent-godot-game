@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prepare Game Project Brief"
+  short_description: "Prepare staffing-ready game project briefs."
+  default_prompt: "Use $prepare-game-project-brief to turn my confirmed game plan into a staffing-ready project brief."

@@ -9,7 +9,9 @@ Translate project needs into a visible staffing proposal while keeping every per
 
 ## Required Context
 
-Validate the project instance first. Read the project facts and then these shared contracts only as needed:
+Validate the project instance first. Require `game-pipeline/project-definition/project-brief.yaml` to be `confirmed`, staffing-ready, digest-matched, and backed by a valid human approval record. Draft or blocked briefs return to `$prepare-game-project-brief`.
+
+Read the confirmed project brief and then these shared contracts only as needed:
 
 - `../../architecture.md`
 - `../../agents/project-agent-architect.md`
@@ -20,8 +22,8 @@ Validate the project instance first. Read the project facts and then these share
 
 ## Workflow
 
-1. Separate verified project facts from assumptions and design choices. Do not place genre, story, visual style, mechanics, or acceptance thresholds into the global plugin.
-2. Map required responsibilities before naming agents. Prefer the smallest viable organization; a department manager may cover multiple functions until workload or risk justifies specialization.
+1. Preserve each brief statement's `confirmed`, `preference`, `hypothesis`, or `unknown` status. Do not reinterpret a preference or hypothesis as an approved project fact.
+2. Map the brief's responsibility needs to complete coverage before naming agents. Prefer the smallest viable organization; a department manager may cover multiple functions until workload or risk justifies specialization.
 3. Propose persistent changes as a project-owned Organization Change Set. Include stable IDs, responsibilities, authority boundaries, required Skills, acceptance ownership, cost, risks, rollback, and affected loops.
 4. Create or revise project Agent Presets under `game-pipeline/agents/` only as proposal artifacts. Keep them `pending`; do not generate `.codex/agents/*.toml` yet.
 5. Validate the proposal with `../../scripts/validate_organization_registry.py` and render the current and proposed views with `../../scripts/render_organization.py`.

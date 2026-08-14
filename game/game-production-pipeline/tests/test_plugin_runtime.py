@@ -20,6 +20,7 @@ import generate_codex_agents as generator  # noqa: E402
 import plan_plugin_migration as migration  # noqa: E402
 import validate_project_instance as project_validator  # noqa: E402
 import validate_plugin_lock as lock_validator  # noqa: E402
+import validate_text_encoding as encoding_validator  # noqa: E402
 from pipeline_common import (  # noqa: E402
     AGENT_PRESET_SCHEMA,
     APPROVAL_SCHEMA,
@@ -67,6 +68,7 @@ class PluginRuntimeTests(unittest.TestCase):
         self.assertFalse((self.project_root / "game-pipeline").exists())
         result = bootstrap.apply_plan(plan, desired, self.project_root, plan["approval_digest"])
         self.assertIn("game-pipeline/project.yaml", result["applied"])
+        self.assertIn("game-pipeline/project-definition/project-brief.yaml", result["applied"])
 
         second_plan, second_desired = self.make_plan()
         self.assertTrue(second_plan["can_apply"])
@@ -123,6 +125,20 @@ class PluginRuntimeTests(unittest.TestCase):
         self.assertEqual("migration_blocked", plan["outcome"])
         self.assertFalse(plan["can_apply"])
 
+    def test_old_version_without_current_brief_remains_read_only(self) -> None:
+        self.apply_bootstrap()
+        brief_path = self.project_root / "game-pipeline" / "project-definition" / "project-brief.yaml"
+        brief_path.unlink()
+        lock_path = self.project_root / "game-pipeline" / "plugin-lock.yaml"
+        lock_doc = load_yaml(lock_path)
+        lock_doc["plugin_lock"]["plugin_version"] = "0.3.0-alpha.1"
+        lock_path.write_text(dump_yaml(lock_doc), encoding="utf-8")
+
+        validation = project_validator.validate_instance(self.project_root, PLUGIN_ROOT)
+        self.assertEqual("read_only", validation["state"], validation)
+        self.assertEqual([], validation["errors"])
+        self.assertNotIn("game-pipeline/project-definition/project-brief.yaml", validation["checked"])
+
     def create_agent_preset(self, *, approved: bool = True, create_approval: bool = True) -> tuple[Path, str]:
         preset_path = self.project_root / "game-pipeline" / "agents" / "milestone-reviewer.md"
         approval_id = "approval:test-game:agent:milestone-reviewer"
@@ -139,7 +155,7 @@ class PluginRuntimeTests(unittest.TestCase):
             "skills": ["review-game-gates"],
             "sandbox_mode": "read-only",
         }
-        body = "# Role\n\nReview evidence independently and never self-approve a human gate.\n"
+        body = "# Role\n\n独立审查已批准的里程碑证据，绝不自行批准人工门禁。\n"
         digest = generator.preset_digest(metadata, body)
         if approved:
             metadata["preset_digest"] = digest
@@ -199,12 +215,19 @@ class PluginRuntimeTests(unittest.TestCase):
         changed = generator.apply_generation(plan, desired, self.project_root)
         self.assertEqual([".codex/agents/milestone-reviewer.toml"], changed)
         adapter_path = self.project_root / changed[0]
-        parsed = tomllib.loads(adapter_path.read_text(encoding="utf-8"))
+        adapter_bytes = adapter_path.read_bytes()
+        adapter_text = adapter_bytes.decode("utf-8", errors="strict")
+        self.assertFalse(adapter_bytes.startswith(b"\xef\xbb\xbf"))
+        self.assertNotIn("\ufffd", adapter_text)
+        parsed = tomllib.loads(adapter_text)
         self.assertEqual("里程碑审查 Agent", parsed["name"])
         self.assertEqual("read-only", parsed["sandbox_mode"])
+        self.assertIn("独立审查已批准的里程碑证据", parsed["developer_instructions"])
         self.assertIn(digest, parsed["developer_instructions"])
         validation = project_validator.validate_instance(self.project_root, PLUGIN_ROOT)
         self.assertEqual("normal", validation["state"], validation)
+        encoding = encoding_validator.validate_project_tree(self.project_root, PLUGIN_ROOT)
+        self.assertEqual("valid", encoding["state"], encoding)
 
     def test_missing_approval_blocks_agent_generation(self) -> None:
         self.apply_bootstrap()

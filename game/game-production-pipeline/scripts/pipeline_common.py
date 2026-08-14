@@ -18,6 +18,7 @@ LOCK_SCHEMA = "game-production-pipeline-lock/v1"
 PROJECT_SCHEMA = "game-production-project/v1"
 SKILL_BINDINGS_SCHEMA = "game-production-skill-bindings/v1"
 FACT_SOURCES_SCHEMA = "game-production-fact-sources/v1"
+PROJECT_BRIEF_SCHEMA = "game-production-project-brief/v1"
 AGENT_PRESET_SCHEMA = "game-production-agent-preset/v1"
 APPROVAL_SCHEMA = "game-production-approval/v1"
 MANAGED_MARKER = "game-production-pipeline:managed"
@@ -40,6 +41,27 @@ def canonical_json(value: Any) -> bytes:
 
 def canonical_digest(value: Any) -> str:
     return hashlib.sha256(canonical_json(value)).hexdigest()
+
+
+def project_brief_subject(document: dict[str, Any]) -> dict[str, Any]:
+    """Return the immutable subject a human approves for project-definition readiness."""
+    brief = document.get("project_brief")
+    if not isinstance(brief, dict):
+        raise ValueError("项目简报缺少 project_brief 映射")
+    return {
+        "schema_version": brief.get("schema_version"),
+        "identity": brief.get("identity"),
+        "coordination": brief.get("coordination"),
+        "sources": brief.get("sources"),
+        "statements": brief.get("statements"),
+        "open_questions": brief.get("open_questions"),
+        "risks": brief.get("risks"),
+        "staffing_input": brief.get("staffing_input"),
+    }
+
+
+def project_brief_subject_digest(document: dict[str, Any]) -> str:
+    return canonical_digest(project_brief_subject(document))
 
 
 def text_digest(value: str) -> str:
@@ -67,7 +89,16 @@ def directory_digest(path: Path) -> str:
 def framework_digest(root: Path | None = None) -> str:
     root = (root or plugin_root()).resolve()
     sources: list[Path] = []
-    for directory_name in ("adapters", "agents", "contracts", "departments", "scripts", "skills", "workflows"):
+    for directory_name in (
+        "adapters",
+        "agents",
+        "contracts",
+        "departments",
+        "migrations",
+        "scripts",
+        "skills",
+        "workflows",
+    ):
         directory = root / directory_name
         if directory.exists():
             sources.extend(candidate for candidate in directory.rglob("*") if candidate.is_file())

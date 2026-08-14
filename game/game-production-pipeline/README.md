@@ -1,0 +1,58 @@
+# 游戏制作多 Agent 管线
+
+本目录用于设计、验证和维护面向所有游戏项目的可复用 Codex Agent 根框架与协作管线。
+
+根框架覆盖游戏制作的完整流程和必要扩展点，但不写死任何具体游戏的玩法、内容、验收阈值或项目事实。复制或安装到具体项目后，通过项目配置、模块选择和覆盖层完成裁剪与特化；项目特有内容不得反向成为通用核心的默认规则。
+
+当前处于 `v0.2.0-alpha.1` 前向试运行阶段。通用组织、授权、Contract、Loop 状态机、Organization/Loop Registry、事件重放、变更审批和确定性组织图已经落地；下一步仍需通过一个 10～15 分钟垂直切片，实际跑通“定义 → 编制 → 设计 → 实现 → 试玩 → 回退”的最小闭环，再决定哪些能力可以标记为稳定。
+
+## 分层约定
+
+- `agents/`：承担明确职责、拥有决策边界的角色定义。
+- `skills/`：可被一个或多个 Agent 复用的单项能力和工作方法。
+- `workflows/`：描述 Agent、Skill、人工审批和产物之间的执行顺序与回退路径。
+- `contracts/`：统一输入、输出、状态、ID、验收条件和交接格式。
+- `departments/`：项目可选部门的职责、成立条件、边界和撤销模板，不代表默认常驻编制。
+- `tests/`：用于验证 Agent、Skill、契约和完整工作流的代表性任务。
+
+## 当前架构
+
+- [多 Agent 架构](architecture.md)：通用核心、默认参考编制、项目专属编制规则和阶段映射。
+- [统一管线契约](contracts/pipeline-contract.template.yaml)：所有工作流节点的输入、输出、验证、审批和回退格式。
+- [人工审批闸门](contracts/human-gates.md)：范围、核心体验、灰盒、内容冻结和发布五个决策点。
+- [分级授权与例外升级契约](contracts/authority-delegation.md)：定义权力如何下放、边界内如何自主决定，以及越权事项如何逐级上报。
+- [组织对象与身份契约](contracts/organization-identity.md)：区分 Department、Agent Preset、Position 与 Agent Instance，定义稳定 ID、正式岗位审批和临时实例额度边界。
+- [Organization Registry 边界契约](contracts/organization-registry.md)：分离组织与生产循环事实，以 Event History 重建正式编制、运行实例和治理完整性视图，并隔离未批准 Change Set。
+- [Organization Snapshot 模板](contracts/organization-snapshot.template.yaml)、[Event 模板](contracts/organization-event.template.yaml)、[Change Set 模板](contracts/organization-change-set.template.yaml)和[Validation 模板](contracts/organization-validation.template.yaml)：定义可执行组织数据、审批基线和派生校验形状。
+- [Organization Alpha 示例](contracts/examples/organization-alpha-snapshot.yaml)：包含正式编制、运行实例、有限临时授权和待审批岗位变更的完整示例。
+- [组织对象生命周期契约](contracts/organization-lifecycle.md)：定义 Department、Position 和 Agent Instance 的最小状态、转换权限、退出条件与派生可用性，避免复制 Loop 状态。
+- [Loop Contract 模板](contracts/loop-contract.template.yaml)：定义可复用循环的目标、职责、迭代、预算、验收、状态机引用、退出和协调规则，不保存具体实例的运行状态。
+- [默认 Loop 状态机](contracts/loop-state-machine.default.yaml)：定义正常状态、中断状态、合法转换、恢复复检，以及审批不能直接完成循环的约束。
+- [Loop Registry 契约](contracts/README.md)：以可重建 Snapshot 和不可变 Event History 保存具体循环实例的身份、拓扑、责任、状态、预算、产物引用、验收、中断和审批事实。
+- `agents/`：项目经理、游戏设计、内容设计、Godot 实现、测试发布五个默认角色的参考职责契约；具体项目可以在责任完整映射的前提下拆分、合并、替换或新增 Agent。
+- [项目编制设计 Agent](agents/project-agent-architect.md)：根据项目资料和通用责任地图提出项目专属编制方案，经人工批准后才能实例化或改变长期 Agent。
+- [通用部门经理 Agent](agents/department-manager.md)：项目按需实例化的承上启下角色，负责部门内拆解、协作、整合和向项目经理汇报，不预设具体部门名称。
+- [工具与生产管线部门模板](departments/tools-and-production-pipeline.md)：按需提供编辑、转换、导入导出和往返验证能力；小型项目可将其职责并入技术部门。
+- [Godot 适配层](adapters/godot.md)：把通用产物映射为 Godot 场景、资源、节点和工程证据。
+- [垂直切片工作流](workflows/vertical-slice.md)：第一版用于验证整条多 Agent 链路的代表性流程。
+- [灰盒 Contract 示例](contracts/examples/vertical-slice-greybox.yaml)：统一契约在真实工作项中的填写方式。
+- [第一轮双样本试点章程](pilots/dual-sample-pilot.md)：使用回放校准与前向验证检验判断可信度和实际生产能力，`GATE-0` 已批准。
+- [Endshift Protocol P0-A 回放校准](pilots/reports/endshift-p0a-replay-calibration.md)：样本 A 的证据分类、实际闸门判断与责任路由。
+
+项目专属 Agent 会在职责、触发场景、输入、输出、验收标准、失败回退以及人工决策点被确认后再创建。通用 Skill 只有在至少两个真实样本中重复验证后才会进入根框架。
+
+## 当前验证基线
+
+P0～P9 仍作为游戏生产阶段，X0 作为贯穿全程的元管线；生产阶段不会机械映射为常驻 Agent。长期职责由 Agent 承担，可复用方法由 Skill 承担，执行顺序由 Workflow 表达，跨角色交接和状态事实由 Contract 与 Registry 约束。
+
+第一轮验证采用两个样本：Endshift Protocol 回放校准已经完成并正确保持 `blocked`；The Nameless Vessel 前向样本尚未执行。只有前向样本到达可完整试玩的 `GATE-2` 灰盒，并完成架构复盘后，第一轮试点才算结束。
+
+## Organization Registry 验证与组织图
+
+```powershell
+python game/scripts/validate_organization_registry.py --templates --snapshot game/contracts/examples/organization-alpha-snapshot.yaml --change-set game/contracts/examples/organization-alpha-change-set.yaml
+python game/scripts/render_organization.py --snapshot game/contracts/examples/organization-alpha-snapshot.yaml --view formal --format mermaid
+python game/scripts/render_organization.py --snapshot game/contracts/examples/organization-alpha-snapshot.yaml --change-set game/contracts/examples/organization-alpha-change-set.yaml --view change --scope dept:sample-game:design --format svg --output organization-change.svg
+```
+
+渲染器不会修改 Registry。人工审批应使用 Change Set ID、摘要、决策基线和影响说明；图只用于快速理解当前部门、职责、运行实例、额度与待审批变化。

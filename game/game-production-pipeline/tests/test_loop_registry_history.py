@@ -8,11 +8,11 @@ from pathlib import Path
 import yaml
 
 
-ROOT = Path(__file__).resolve().parents[2]
-SCRIPT = ROOT / "game" / "scripts" / "validate_loop_registry.py"
-SNAPSHOT = ROOT / "game" / "contracts" / "loop-registry-record.template.yaml"
-EVENT = ROOT / "game" / "contracts" / "loop-registry-event.template.yaml"
-STATE_MACHINE = ROOT / "game" / "contracts" / "loop-state-machine.default.yaml"
+PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = PLUGIN_ROOT / "scripts" / "validate_loop_registry.py"
+SNAPSHOT = PLUGIN_ROOT / "contracts" / "loop-registry-record.template.yaml"
+EVENT = PLUGIN_ROOT / "contracts" / "loop-registry-event.template.yaml"
+STATE_MACHINE = PLUGIN_ROOT / "contracts" / "loop-state-machine.default.yaml"
 
 SPEC = importlib.util.spec_from_file_location("validate_loop_registry_history", SCRIPT)
 MODULE = importlib.util.module_from_spec(SPEC)

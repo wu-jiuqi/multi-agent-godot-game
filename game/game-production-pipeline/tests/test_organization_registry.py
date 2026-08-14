@@ -8,11 +8,11 @@ from pathlib import Path
 import yaml
 
 
-ROOT = Path(__file__).resolve().parents[2]
-SCRIPT = ROOT / "game" / "scripts" / "validate_organization_registry.py"
-SNAPSHOT = ROOT / "game" / "contracts" / "examples" / "organization-alpha-snapshot.yaml"
-CHANGE_SET = ROOT / "game" / "contracts" / "examples" / "organization-alpha-change-set.yaml"
-CONTRACTS = ROOT / "game" / "contracts"
+PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = PLUGIN_ROOT / "scripts" / "validate_organization_registry.py"
+SNAPSHOT = PLUGIN_ROOT / "contracts" / "examples" / "organization-alpha-snapshot.yaml"
+CHANGE_SET = PLUGIN_ROOT / "contracts" / "examples" / "organization-alpha-change-set.yaml"
+CONTRACTS = PLUGIN_ROOT / "contracts"
 
 SPEC = importlib.util.spec_from_file_location("validate_organization_registry", SCRIPT)
 MODULE = importlib.util.module_from_spec(SPEC)

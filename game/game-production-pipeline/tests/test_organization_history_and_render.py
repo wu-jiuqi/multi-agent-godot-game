@@ -9,11 +9,11 @@ from pathlib import Path
 import yaml
 
 
-ROOT = Path(__file__).resolve().parents[2]
-VALIDATOR_PATH = ROOT / "game" / "scripts" / "validate_organization_registry.py"
-RENDERER_PATH = ROOT / "game" / "scripts" / "render_organization.py"
-SNAPSHOT_PATH = ROOT / "game" / "contracts" / "examples" / "organization-alpha-snapshot.yaml"
-CHANGE_SET_PATH = ROOT / "game" / "contracts" / "examples" / "organization-alpha-change-set.yaml"
+PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+VALIDATOR_PATH = PLUGIN_ROOT / "scripts" / "validate_organization_registry.py"
+RENDERER_PATH = PLUGIN_ROOT / "scripts" / "render_organization.py"
+SNAPSHOT_PATH = PLUGIN_ROOT / "contracts" / "examples" / "organization-alpha-snapshot.yaml"
+CHANGE_SET_PATH = PLUGIN_ROOT / "contracts" / "examples" / "organization-alpha-change-set.yaml"
 
 
 def import_module(name: str, path: Path):

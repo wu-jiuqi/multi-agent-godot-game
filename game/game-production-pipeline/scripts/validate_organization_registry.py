@@ -16,7 +16,7 @@ from typing import Any, Iterable
 try:
     import yaml
 except ImportError as exc:  # pragma: no cover - environment failure
-    raise SystemExit("缺少 PyYAML；请先安装 game/scripts/requirements.txt") from exc
+    raise SystemExit("缺少 PyYAML；请先安装插件 scripts/requirements.txt") from exc
 
 
 SCHEMA_VERSION = "0.2-alpha"

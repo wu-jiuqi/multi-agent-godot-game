@@ -7,9 +7,9 @@ import unittest
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
-SCRIPT = ROOT / "game" / "scripts" / "evaluate_replay_gate.py"
-FIXTURE = ROOT / "game" / "tests" / "replays" / "endshift-p0a-current.json"
+PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+SCRIPT = PLUGIN_ROOT / "scripts" / "evaluate_replay_gate.py"
+FIXTURE = PLUGIN_ROOT / "tests" / "replays" / "endshift-p0a-current.json"
 
 SPEC = importlib.util.spec_from_file_location("evaluate_replay_gate", SCRIPT)
 MODULE = importlib.util.module_from_spec(SPEC)

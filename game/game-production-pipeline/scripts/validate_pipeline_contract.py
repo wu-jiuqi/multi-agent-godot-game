@@ -10,7 +10,7 @@ from pathlib import Path, PurePosixPath
 try:
     import yaml
 except ImportError as exc:  # pragma: no cover - environment failure
-    raise SystemExit("缺少 PyYAML；请先安装 game/scripts/requirements.txt") from exc
+    raise SystemExit("缺少 PyYAML；请先安装插件 scripts/requirements.txt") from exc
 
 
 AGENTS = {"AGT-DIR", "AGT-GD", "AGT-CD", "AGT-GODOT", "AGT-QA", "SPECIALIST"}
@@ -142,4 +142,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

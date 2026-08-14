@@ -4,7 +4,7 @@
 
 ## 当前版本
 
-当前版本为 `v0.4.0`：在可安装的 `game-production-pipeline` 插件中增加项目经理启动模式，把项目所有者确定的玩法、美术方向和实现概要整理为经确认的项目文档基线，再进入组织设计、生产循环、门禁审查与 Godot 适配；同时建立 UTF-8 中文编码回归保护和 Windows PowerShell 5.1 读取指引。
+当前发布候选为 `v0.4.0-alpha.1`：在可安装的 `game-production-pipeline` 插件中增加项目经理启动模式，把项目所有者确定的玩法、美术方向和实现概要整理为经确认的项目文档基线，再进入组织设计、生产循环、门禁审查与 Godot 适配；同时建立 UTF-8 中文编码回归保护和 Windows PowerShell 5.1 读取指引。该版本仍是 Alpha，不是 Production Ready。
 
 ## 目录
 

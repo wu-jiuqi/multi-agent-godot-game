@@ -2,7 +2,7 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.4.0`。它新增项目经理启动模式、项目简报审批边界和中文编码回归保护。功能仍需通过更多真实游戏项目验证，不应仅凭版本号视为 Production Ready。
+当前版本：`v0.4.0-alpha.1`。它新增项目经理启动模式、项目简报审批边界和中文编码回归保护，仍需通过更多真实游戏项目验证，不是 Production Ready。
 
 ## 层级
 
@@ -175,6 +175,6 @@ python scripts/build_release.py --plugin-root . --output-dir ..\..\dist
 
 - 治理层仍是文件契约与确定性校验器，没有强制拦截所有手工文件修改的 MCP 或 Hook。
 - Registry 没有数据库事务适配器；脚本会预检和原子写单文件，但不能提供跨文件数据库级事务。
-- 尚未提供从 `v0.3.0-alpha.1` 到 `v0.4.0` 的实际 migrator；现有项目继续锁定旧版本，迁移预检会 fail closed，禁止只改 `plugin-lock.yaml`。
+- 尚未提供从 `v0.3.0-alpha.1` 到 `v0.4.0-alpha.1` 的实际 migrator；现有项目继续锁定旧版本，迁移预检会 fail closed，禁止只改 `plugin-lock.yaml`。
 - 目前只有 Godot 适配层，Unity 和其他引擎尚未验证。
 - The Nameless Vessel 当前锁定 `v0.3.0-alpha.1+codex.20260814152940`，本次升级不会自动修改或迁移该项目；需要另行制定、审批并验证迁移计划。

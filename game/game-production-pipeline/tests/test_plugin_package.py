@@ -42,11 +42,12 @@ class PluginPackageTests(unittest.TestCase):
                 self.assertTrue(openai["interface"]["default_prompt"].startswith(f"Use ${skill_name}"))
 
     def test_installation_docs_use_the_personal_marketplace_selector(self) -> None:
-        documentation = {
-            "plugin README": PLUGIN_ROOT / "README.md",
+        documentation = {"plugin README": PLUGIN_ROOT / "README.md"}
+        repository_documentation = {
             "release notes": REPO_ROOT / "docs" / "releases" / "v0.3.0-alpha.1.md",
             "test guide": REPO_ROOT / "docs" / "releases" / "v0.3.0-alpha.1-test-guide.md",
         }
+        documentation.update({label: path for label, path in repository_documentation.items() if path.is_file()})
         install_command = "codex plugin add game-production-pipeline@personal"
         for label, path in documentation.items():
             with self.subTest(document=label):

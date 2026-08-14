@@ -4,7 +4,7 @@
 
 ## 当前状态
 
-`v0.1.0-alpha.1` 发布候选：游戏制作多 Agent 核心框架已经形成，可以开始真实项目的前向试运行；在完成真实项目闭环、Registry 持久化适配器和跨样本复盘之前，不视为稳定版本。
+`v0.2.0-alpha.1` 预发布候选：除游戏制作多 Agent 核心框架外，现已具备可重放的 Organization Registry、长期编制 Change Set 人工审批、有限临时授权和确定性 Mermaid/SVG 组织图。它可以进入真实项目前向试运行；在完成真实项目闭环、Registry 持久化适配器和跨样本复盘之前，不视为稳定版本。
 
 ## 目录
 
@@ -18,4 +18,5 @@
 ```powershell
 python -m unittest discover -s game/tests -p 'test_*.py' -v
 python game/scripts/validate_pipeline_contract.py game/contracts/examples/vertical-slice-greybox.yaml
+python game/scripts/validate_organization_registry.py --templates --snapshot game/contracts/examples/organization-alpha-snapshot.yaml --change-set game/contracts/examples/organization-alpha-change-set.yaml
 ```

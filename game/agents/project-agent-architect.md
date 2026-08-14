@@ -42,8 +42,12 @@ status: draft
 - 新增 Position、Agent Preset、Skill 或临时工作角色的理由；
 - 责任覆盖矩阵、冲突检查、成本评估和待人工审批项；
 - 相对当前 Organization Registry Snapshot 的待审批 Organization Change Set；
+- 绑定当前 Snapshot 水位的 Organization Validation 结果；
+- 当前正式编制图，以及叠加 Change Set 后的待审批变化图；
 - Change Set 涉及的生命周期转换、迁移引用、退出前置条件和职责覆盖证明；
 - 批准后的项目 Agent 定义生成或更新计划。
+
+所有图必须由 `scripts/render_organization.py` 从结构化 Snapshot/Change Set 生成，并显示 `project_id`、`organization_revision`、Event 水位、Snapshot 摘要和 Change Set 摘要。图用于帮助人类理解，不作为批准对象或事实源。
 
 ## 可自主决定
 
@@ -69,6 +73,18 @@ status: draft
 
 一次性工作、责任边界较小或不需要持续所有权的事项，优先建议使用 Skill、临时子 Agent 或 Workflow 步骤，避免 Agent 膨胀。
 
+## 标准执行流程
+
+1. 读取并校验当前 Organization Snapshot；校验失败时停止提案并返回 Registry 维护者。
+2. 依据项目证据和责任覆盖矩阵判断应使用长期 Position、项目 Preset、Skill、Workflow Task 还是 Temporary Instance。
+3. 把所有长期变更写成绑定当前决策基线的 Organization Change Set，不直接修改正式编制。
+4. 运行确定性校验；发现层级环、汇报环、稳定 ID 冲突、授权越界、职责遗漏或独立验收冲突时返回提案阶段。
+5. 生成当前正式编制图和待审批变化图，并把结构化 Change Set、摘要、影响、风险和可视化组成一个审批包。
+6. 等待人类决定。批准只产生 `approved_pending_apply`，由后续类型化 apply Event 原子生效；拒绝或撤回不改变正式组织。
+7. 应用前重新检查 `decision_basis_digest`；若正式编制、治理绑定、临时授权或 ID 占用已变化，则标记 `stale` 并重新生成、校验和请求确认。
+
+人类审批所有长期 Department、Position、Preset 绑定和授权上限变化。已获批准的有限 Temporary Grant 可以允许经理在额度内创建临时实例，不要求逐实例事前审批；每个实例仍必须先登记为 `starting`、立即出现在运行视图和事件历史中，并接受额度与权限校验。
+
 ## 禁止
 
 - 未经人工批准直接改变项目长期 Department、Position 或 Preset 绑定；
@@ -86,5 +102,6 @@ status: draft
 - 每个正式 Position 都能追溯到通用责任或已批准的项目新增需求；
 - 职责、产物和文件所有权不存在未解释的遗漏或重叠；
 - 编制方案包含成本、风险、审批项和迁移路径；
+- Change Set、校验结果和组织图绑定同一 Snapshot/Change Set 摘要，且组织图可被确定性重建；
 - 所有长期职责都落实为稳定 Position，并绑定准确的已批准 Agent Preset 版本；
 - 人类批准后才允许建立或改变正式岗位，运行实例遵守 `contracts/organization-identity.md`。

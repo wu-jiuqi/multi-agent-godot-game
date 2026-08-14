@@ -4,7 +4,7 @@
 
 根框架覆盖游戏制作的完整流程和必要扩展点，但不写死任何具体游戏的玩法、内容、验收阈值或项目事实。复制或安装到具体项目后，通过项目配置、模块选择和覆盖层完成裁剪与特化；项目特有内容不得反向成为通用核心的默认规则。
 
-当前处于 Alpha 前向试运行阶段。通用组织、授权、Contract、Loop 状态机、Registry 契约和确定性校验已经落地；下一步仍需通过一个 10～15 分钟垂直切片，实际跑通“定义 → 设计 → 实现 → 试玩 → 回退”的最小闭环，再决定哪些能力可以标记为稳定。
+当前处于 `v0.2.0-alpha.1` 前向试运行阶段。通用组织、授权、Contract、Loop 状态机、Organization/Loop Registry、事件重放、变更审批和确定性组织图已经落地；下一步仍需通过一个 10～15 分钟垂直切片，实际跑通“定义 → 编制 → 设计 → 实现 → 试玩 → 回退”的最小闭环，再决定哪些能力可以标记为稳定。
 
 ## 分层约定
 
@@ -23,6 +23,8 @@
 - [分级授权与例外升级契约](contracts/authority-delegation.md)：定义权力如何下放、边界内如何自主决定，以及越权事项如何逐级上报。
 - [组织对象与身份契约](contracts/organization-identity.md)：区分 Department、Agent Preset、Position 与 Agent Instance，定义稳定 ID、正式岗位审批和临时实例额度边界。
 - [Organization Registry 边界契约](contracts/organization-registry.md)：分离组织与生产循环事实，以 Event History 重建正式编制、运行实例和治理完整性视图，并隔离未批准 Change Set。
+- [Organization Snapshot 模板](contracts/organization-snapshot.template.yaml)、[Event 模板](contracts/organization-event.template.yaml)、[Change Set 模板](contracts/organization-change-set.template.yaml)和[Validation 模板](contracts/organization-validation.template.yaml)：定义可执行组织数据、审批基线和派生校验形状。
+- [Organization Alpha 示例](contracts/examples/organization-alpha-snapshot.yaml)：包含正式编制、运行实例、有限临时授权和待审批岗位变更的完整示例。
 - [组织对象生命周期契约](contracts/organization-lifecycle.md)：定义 Department、Position 和 Agent Instance 的最小状态、转换权限、退出条件与派生可用性，避免复制 Loop 状态。
 - [Loop Contract 模板](contracts/loop-contract.template.yaml)：定义可复用循环的目标、职责、迭代、预算、验收、状态机引用、退出和协调规则，不保存具体实例的运行状态。
 - [默认 Loop 状态机](contracts/loop-state-machine.default.yaml)：定义正常状态、中断状态、合法转换、恢复复检，以及审批不能直接完成循环的约束。
@@ -44,3 +46,13 @@
 P0～P9 仍作为游戏生产阶段，X0 作为贯穿全程的元管线；生产阶段不会机械映射为常驻 Agent。长期职责由 Agent 承担，可复用方法由 Skill 承担，执行顺序由 Workflow 表达，跨角色交接和状态事实由 Contract 与 Registry 约束。
 
 第一轮验证采用两个样本：Endshift Protocol 回放校准已经完成并正确保持 `blocked`；The Nameless Vessel 前向样本尚未执行。只有前向样本到达可完整试玩的 `GATE-2` 灰盒，并完成架构复盘后，第一轮试点才算结束。
+
+## Organization Registry 验证与组织图
+
+```powershell
+python game/scripts/validate_organization_registry.py --templates --snapshot game/contracts/examples/organization-alpha-snapshot.yaml --change-set game/contracts/examples/organization-alpha-change-set.yaml
+python game/scripts/render_organization.py --snapshot game/contracts/examples/organization-alpha-snapshot.yaml --view formal --format mermaid
+python game/scripts/render_organization.py --snapshot game/contracts/examples/organization-alpha-snapshot.yaml --change-set game/contracts/examples/organization-alpha-change-set.yaml --view change --scope dept:sample-game:design --format svg --output organization-change.svg
+```
+
+渲染器不会修改 Registry。人工审批应使用 Change Set ID、摘要、决策基线和影响说明；图只用于快速理解当前部门、职责、运行实例、额度与待审批变化。

@@ -4,7 +4,7 @@
 
 ## 当前版本
 
-当前发布候选为 `v0.3.0-alpha.1`：已把游戏制作多 Agent 框架封装为可被 Codex 安装和发现的 `game-production-pipeline` 插件。该版本提供项目初始化、组织设计、生产循环、门禁审查与 Godot 适配能力，但仍属于需要真实项目验证的 Alpha 版本。
+当前版本为 `v0.4.0`：在可安装的 `game-production-pipeline` 插件中增加项目经理启动模式，把项目所有者确定的玩法、美术方向和实现概要整理为经确认的项目文档基线，再进入组织设计、生产循环、门禁审查与 Godot 适配；同时建立 UTF-8 中文编码回归保护和 Windows PowerShell 5.1 读取指引。
 
 ## 目录
 
@@ -19,5 +19,7 @@
 ```powershell
 python -m unittest discover -s game/game-production-pipeline/tests -p 'test_*.py' -v
 python game/game-production-pipeline/scripts/validate_pipeline_contract.py game/game-production-pipeline/contracts/examples/vertical-slice-greybox.yaml
+python game/game-production-pipeline/scripts/validate_project_brief.py game/game-production-pipeline/contracts/examples/sample-project-brief.yaml --project-id sample-game
 python game/game-production-pipeline/scripts/validate_organization_registry.py --templates --snapshot game/game-production-pipeline/contracts/examples/organization-alpha-snapshot.yaml --change-set game/game-production-pipeline/contracts/examples/organization-alpha-change-set.yaml
+python game/game-production-pipeline/scripts/validate_text_encoding.py --plugin-root game/game-production-pipeline
 ```

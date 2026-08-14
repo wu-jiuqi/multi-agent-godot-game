@@ -120,3 +120,5 @@ instance:
 ```
 
 审批、授权、Preset 和 Position 必须绑定不可变版本或摘要，不能依赖会漂移的文件路径或“最新版本”别名。
+
+Department、Position 和 Agent Instance 的长期与运行状态遵守 `organization-lifecycle.md`。未批准对象留在 Organization Change Set，不通过 `proposed` 状态进入 Registry。

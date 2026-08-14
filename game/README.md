@@ -23,6 +23,7 @@
 - [分级授权与例外升级契约](contracts/authority-delegation.md)：定义权力如何下放、边界内如何自主决定，以及越权事项如何逐级上报。
 - [组织对象与身份契约](contracts/organization-identity.md)：区分 Department、Agent Preset、Position 与 Agent Instance，定义稳定 ID、正式岗位审批和临时实例额度边界。
 - [Organization Registry 边界契约](contracts/organization-registry.md)：分离组织与生产循环事实，以 Event History 重建正式编制、运行实例和治理完整性视图，并隔离未批准 Change Set。
+- [组织对象生命周期契约](contracts/organization-lifecycle.md)：定义 Department、Position 和 Agent Instance 的最小状态、转换权限、退出条件与派生可用性，避免复制 Loop 状态。
 - [Loop Contract 模板](contracts/loop-contract.template.yaml)：定义可复用循环的目标、职责、迭代、预算、验收、状态机引用、退出和协调规则，不保存具体实例的运行状态。
 - [默认 Loop 状态机](contracts/loop-state-machine.default.yaml)：定义正常状态、中断状态、合法转换、恢复复检，以及审批不能直接完成循环的约束。
 - [Loop Registry 契约](contracts/README.md)：以可重建 Snapshot 和不可变 Event History 保存具体循环实例的身份、拓扑、责任、状态、预算、产物引用、验收、中断和审批事实。

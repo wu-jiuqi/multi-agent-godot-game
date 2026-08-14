@@ -51,6 +51,7 @@ status: template
 - 拒收未达到部门专业标准或 Contract 验收条件的产物；
 - 在职责与独立验收边界允许时亲自承担专项执行工作。
 - 在上级批准的临时编制、成本、权限、生命周期和层级额度内创建临时 Agent Instance，为其结果负责，并保证每次创建都按 `contracts/organization-registry.md` 登记可见。
+- 在明确授权内临时暂停和复检恢复 Department 或 Position；若会造成长期职责缺失、独立验收失效、所有权变化或无期限暂停，必须升级人工审批。
 
 以上自主决定必须能定位到有效授权记录。未超出授权时无需逐项上报审批；预计越过范围、预算、期限、工具权限、质量或风险上限时，才按 `contracts/authority-delegation.md` 暂停相关决定并向项目经理升级。
 
@@ -60,6 +61,7 @@ status: template
 - 需要改变部门之间的产物所有权或事实源；
 - 跨部门依赖冲突无法在现有 Contract 内解决；
 - 当前编制无法覆盖必要职责，或需要新增、删除、拆分、合并长期 Department 或 Position；
+- 需要让 Department 或 Position 进入 `retiring`、取消已批准退出，或退出前置条件无法满足；
 - 失败可能影响其他部门、关键路径或人工闸门。
 
 ## 必须请求人工判断

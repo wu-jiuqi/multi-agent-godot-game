@@ -101,6 +101,8 @@ P0～P9 是生产阶段，不默认等于十个 Agent。只有同时满足以下
 
 Organization Event History 是权威历史，Snapshot 必须可以从事件重建。Snapshot 从同一历史物化正式编制、运行实例、治理完整性三类视图。未批准组织变化只存在于 Organization Change Set；Registry 可以记录待审批引用，但不能把建议节点提前混入正式编制。当前组织图、运行图和待审批差异图都是确定性投影，不是事实源。完整边界见 `contracts/organization-registry.md`。
 
+Department 与 Position 使用 `active / suspended / retiring / retired` 的长期生命周期；未批准对象只存在于 Change Set，不使用 `proposed` 状态。Agent Instance 使用 `starting / active / draining / ended` 的运行生命周期，结束后重启必须创建新 ID。Position 空缺、父 Department 暂停和绑定失效属于派生状态，不级联改写生命周期。完整转换与审批规则见 `contracts/organization-lifecycle.md`。
+
 部门经理负责部门产物的整合与初审，但不能替代必须独立执行的 QA、审计或人工体验闸门。生产者与独立验收者需要分离时，不得通过合并角色绕过该要求。
 
 跨部门协作采用“可直连、需留痕、不得越权”的原则：

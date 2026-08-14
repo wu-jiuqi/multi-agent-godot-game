@@ -4,7 +4,7 @@
 
 Organization Registry 是单个项目当前实际组织的事实源。它保存已批准 Department、Position 与 Agent Preset 绑定，以及当前 Agent Instance 和组织治理事实；它不定义可复用组织规则，也不管理生产循环的执行状态。
 
-本阶段只确认职责边界、物化视图和记录原则。对象生命周期、完整 Snapshot/Event Schema、事件类型和校验器将在后续步骤定义。
+本阶段只确认职责边界、物化视图和记录原则。对象生命周期见 `organization-lifecycle.md`；完整 Snapshot/Event Schema、事件类型和校验器将在后续步骤定义。
 
 ## 一项目一 Registry
 
@@ -60,7 +60,7 @@ Loop Contract 和 Loop Registry 可以用稳定 ID 引用负责的 Position 或�
 - Instance 是否已经越过额度、授权或有效期；
 - 在指定 Loop Registry 水位下，哪些 Loop ID 引用了该 Instance 或 Position。
 
-Snapshot 只保留当前活动实例和判断当前有效性所需的最近事实。已经结束的完整实例历史保存在 Event History 或符合本契约的历史存储中，避免 Snapshot 随运行次数无限增长。
+Snapshot 只保留当前未结束实例和判断当前有效性所需的最近事实。已经结束的完整实例历史保存在 Event History 或符合本契约的历史存储中，避免 Snapshot 随运行次数无限增长。
 
 ### 治理与完整性视图
 

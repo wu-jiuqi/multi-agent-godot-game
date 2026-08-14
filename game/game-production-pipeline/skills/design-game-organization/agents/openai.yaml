@@ -1,0 +1,4 @@
+interface:
+  display_name: "Design Game Organization"
+  short_description: "Design visible, approval-gated game project teams."
+  default_prompt: "Use $design-game-organization to propose the right agent organization for this project."

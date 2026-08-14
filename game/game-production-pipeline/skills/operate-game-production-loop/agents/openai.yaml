@@ -1,0 +1,4 @@
+interface:
+  display_name: "Operate Game Production Loop"
+  short_description: "Run approved multi-agent game production loops."
+  default_prompt: "Use $operate-game-production-loop to execute the next approved production cycle."

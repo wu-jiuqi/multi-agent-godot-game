@@ -1,0 +1,4 @@
+interface:
+  display_name: "Adapt Godot Production"
+  short_description: "Map approved production work into Godot artifacts."
+  default_prompt: "Use $adapt-godot-production to adapt this approved task for the Godot project."

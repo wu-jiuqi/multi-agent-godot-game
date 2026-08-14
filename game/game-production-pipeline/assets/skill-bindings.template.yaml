@@ -1,0 +1,12 @@
+skill_bindings:
+  schema_version: game-production-skill-bindings/v1
+  project_id: "<project-id>"
+  bindings:
+    - preset_id: "preset:project:<project-id>:<agent-slug>"
+      preset_digest: "<Agent Preset 摘要>"
+      approval_id: "<人工审批 ID>"
+      skills:
+        - skill_id: "<skill-id>"
+          source: "plugin | project"
+          path: "<相对于插件或项目根目录的 Skill 路径>"
+          digest: "<文件或目录摘要>"

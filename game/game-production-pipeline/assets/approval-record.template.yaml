@@ -1,0 +1,11 @@
+approval:
+  schema_version: game-production-approval/v1
+  approval_id: "approval:<project-id>:<subject>:<id>"
+  subject_kind: "agent-preset"
+  subject_id: "preset:project:<project-id>:<agent-slug>"
+  subject_digest: "<64 位小写 SHA-256>"
+  decision: "approved"
+  decided_by: "human:<owner-id>"
+  decided_at: "<ISO 8601 时间>"
+  evidence:
+    change_set_id: "<Organization Change Set ID>"

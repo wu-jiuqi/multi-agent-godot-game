@@ -1,10 +1,18 @@
-# 游戏制作多 Agent 架构 v0.2 Alpha
+# 游戏制作多 Agent 架构 v0.3 Alpha
 
-状态：`alpha-contract-implemented`
+状态：`codex-plugin-alpha-implemented`
 
 本架构面向所有游戏项目，采用可复制、可裁剪、可特化的通用根框架。根框架覆盖游戏制作的完整流程，但不写死具体游戏的玩法、内容、验收阈值或项目事实。复制或安装到具体项目后，通过项目配置、模块选择和覆盖层完成特化；项目特有内容不得反向成为通用核心的默认规则。
 
 引擎能力属于适配范围：通用层描述职责、交接、审批和产物，适配内容负责把通用要求映射到 Godot、Unity 或其他生产环境。当前只实现 Godot 适配内容。
+
+## Codex 插件映射
+
+通用根框架作为全局 `game-production-pipeline` 插件安装。插件通过五个 Skill 暴露初始化、组织设计、生产循环、门禁审查和 Godot 适配工作流，但不会直接携带某个游戏的项目答案。
+
+目标项目通过 `game-pipeline/` 保存 Registry、版本锁、审批、绑定、循环和项目 Agent Preset，通过 `.agents/skills/` 保存项目专属方法。只有已批准且摘要匹配的 Preset 才能确定性生成 `.codex/agents/*.toml`；TOML 是运行适配器，不是审批事实源。
+
+初始化只建立空组织基线和编制草案。项目经理、编制设计、部门经理或专项 Agent 都必须在项目分析后进入 Organization Change Set，并由人类决定是否成为长期编制。运行时实例可以在批准的 Position 或有限 Temporary Grant 内动态创建，但必须先登记并保持可见。
 
 ## 已批准的根框架原则
 

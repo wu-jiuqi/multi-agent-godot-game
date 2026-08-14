@@ -15,16 +15,16 @@ objective:
 entry_conditions:
   - id: "ENTRY-001"
     description: "双样本试点 GATE-0 已获人类批准，且样本 A 仅允许只读检查。"
-    evidence: "game/pilots/dual-sample-pilot.md"
+    evidence: "pilots/dual-sample-pilot.md"
 
 inputs:
   - artifact_id: "PILOT-CHARTER-001"
-    path: "game/pilots/dual-sample-pilot.md"
+    path: "pilots/dual-sample-pilot.md"
     version: "1"
     required: true
     owner_agent: "AGT-DIR"
   - artifact_id: "REPLAY-EVIDENCE-ENDSHIFT-P0A-001"
-    path: "game/tests/replays/endshift-p0a-current.json"
+    path: "tests/replays/endshift-p0a-current.json"
     version: "1"
     required: true
     owner_agent: "AGT-QA"
@@ -43,17 +43,17 @@ constraints:
 steps:
   - step_id: "STEP-001"
     action: "绑定当前提交、构建版本、哈希、协议版本与证据位置。"
-    expected_artifact: "game/tests/replays/endshift-p0a-current.json"
+    expected_artifact: "tests/replays/endshift-p0a-current.json"
   - step_id: "STEP-002"
     action: "运行闸门评估器并验证自动证据不能替代真人条件。"
     expected_artifact: "结构化判断与单元测试结果"
   - step_id: "STEP-003"
     action: "对比预期和实际判断，输出阻塞原因、责任 Agent 与恢复顺序。"
-    expected_artifact: "game/pilots/reports/endshift-p0a-replay-calibration.md"
+    expected_artifact: "pilots/reports/endshift-p0a-replay-calibration.md"
 
 outputs:
   - artifact_id: "REPLAY-EVALUATOR-001"
-    path: "game/scripts/evaluate_replay_gate.py"
+    path: "scripts/evaluate_replay_gate.py"
     type: "code"
     owner_agent: "AGT-DIR"
     acceptance:
@@ -62,7 +62,7 @@ outputs:
       - "全部证据齐备时最多输出 review_required，不自动替代人工批准。"
       - "自动化或合成来源不能满足 human 类条件。"
   - artifact_id: "REPLAY-REPORT-ENDSHIFT-P0A-001"
-    path: "game/pilots/reports/endshift-p0a-replay-calibration.md"
+    path: "pilots/reports/endshift-p0a-replay-calibration.md"
     type: "report"
     owner_agent: "AGT-QA"
     acceptance:
@@ -71,7 +71,7 @@ outputs:
 
 automated_checks:
   - check_id: "CHECK-001"
-    command: "python game/scripts/evaluate_replay_gate.py game/tests/replays/endshift-p0a-current.json --require-expected"
+    command: "python scripts/evaluate_replay_gate.py tests/replays/endshift-p0a-current.json --require-expected"
     expected_result: "退出码 0，decision=blocked，matches_expected=true"
     required: true
   - check_id: "CHECK-002"
@@ -79,7 +79,7 @@ automated_checks:
     expected_result: "4 项测试通过"
     required: true
   - check_id: "CHECK-003"
-    command: "python game/scripts/validate_pipeline_contract.py game/contracts/pilots/endshift-p0a-replay.yaml"
+    command: "python scripts/validate_pipeline_contract.py contracts/pilots/endshift-p0a-replay.yaml"
     expected_result: "退出码 0"
     required: true
 
@@ -109,10 +109,10 @@ handoff:
   next_agent: "AGT-DIR"
   summary: "校准完成后按阻塞原因先刷新协议与自动证据，再组织真人测试。"
   changed_files:
-    - "game/scripts/evaluate_replay_gate.py"
-    - "game/tests/test_replay_gate.py"
-    - "game/tests/replays/endshift-p0a-current.json"
-    - "game/pilots/reports/endshift-p0a-replay-calibration.md"
+    - "scripts/evaluate_replay_gate.py"
+    - "tests/test_replay_gate.py"
+    - "tests/replays/endshift-p0a-current.json"
+    - "pilots/reports/endshift-p0a-replay-calibration.md"
   decisions:
     - "校准任务本身通过；Endshift P0-B 准入仍为 blocked。"
     - "恢复顺序固定为协议绑定、自动回归、真人证据、人工评审。"

@@ -72,7 +72,7 @@ outputs:
 
 automated_checks:
   - check_id: "CHECK-001"
-    command: "python game/scripts/validate_pipeline_contract.py game/contracts/examples/vertical-slice-greybox.yaml"
+    command: "python scripts/validate_pipeline_contract.py contracts/examples/vertical-slice-greybox.yaml"
     expected_result: "退出码 0"
     required: true
   - check_id: "CHECK-002"
@@ -118,4 +118,3 @@ evidence:
   screenshots: []
   playtest_records: []
   builds: []
-

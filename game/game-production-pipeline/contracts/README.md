@@ -75,13 +75,13 @@ Loop Registry 保存具体 Loop 实例的运行事实，与可复用规则分离
 运行：
 
 ```powershell
-python game/scripts/validate_loop_registry.py --snapshot game/contracts/loop-registry-record.template.yaml --event game/contracts/loop-registry-event.template.yaml --contract game/contracts/loop-contract.template.yaml --state-machine game/contracts/loop-state-machine.default.yaml
+python scripts/validate_loop_registry.py --snapshot contracts/loop-registry-record.template.yaml --event contracts/loop-registry-event.template.yaml --contract contracts/loop-contract.template.yaml --state-machine contracts/loop-state-machine.default.yaml
 ```
 
 校验实际 Snapshot 与 Event History 时追加：
 
 ```powershell
-python game/scripts/validate_loop_registry.py --snapshot <snapshot.yaml> --history <event-history.yaml> --event game/contracts/loop-registry-event.template.yaml --contract <bound-contract.yaml> --state-machine <bound-state-machine.yaml>
+python scripts/validate_loop_registry.py --snapshot <snapshot.yaml> --history <event-history.yaml> --event contracts/loop-registry-event.template.yaml --contract <bound-contract.yaml> --state-machine <bound-state-machine.yaml>
 ```
 
 校验器检查模板结构、Contract 输入/交付 ID、状态集合、轮次规则和事件边界；提供 `--history` 时还会重算每个 Event 摘要、检查哈希链、`sequence`、`record_revision`、`mutation_id`，按状态机重放状态与轮次，并核对 Snapshot 水位。所选存储适配器仍必须实现原子事务和幂等写入。

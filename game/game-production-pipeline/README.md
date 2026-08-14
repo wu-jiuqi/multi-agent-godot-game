@@ -108,7 +108,23 @@ python scripts/validate_project_instance.py --project-root D:\Game\MyProject
 }
 ```
 
-重新打开一个 Codex 任务，从个人 Marketplace 安装或启用插件，再检查五个 `$skill-name` 是否可发现。更新本地插件时应使用新的 SemVer 或构建元数据 cache-buster，并重新安装；不要依赖当前任务热刷新。
+先确认 Codex 已发现个人 Marketplace 和插件源：
+
+```powershell
+codex plugin marketplace list
+codex plugin list
+```
+
+首次安装必须从已发现的个人 Marketplace 执行：
+
+```powershell
+codex plugin add game-production-pipeline@personal
+codex plugin list
+```
+
+第二次 `plugin list` 应显示 `game-production-pipeline@personal` 为 `installed, enabled`。在首次安装前，Codex 设置页的插件搜索可能不会显示尚未安装的个人插件，因此不能把 UI 搜索结果作为 Marketplace 发现或安装状态的判据。
+
+安装后新建 Codex 任务，再检查五个 `$skill-name` 是否可发现；当前任务不会热刷新插件能力。更新本地插件时应使用构建元数据 cache-buster，并再次执行同一个 `codex plugin add game-production-pipeline@personal` 命令，不要依赖 UI 搜索或当前任务热刷新。
 
 ## 验证
 

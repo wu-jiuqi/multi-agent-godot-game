@@ -8,6 +8,7 @@ import yaml
 
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = PLUGIN_ROOT.parents[1]
 SKILLS = {
     "bootstrap-game-pipeline",
     "design-game-organization",
@@ -39,6 +40,22 @@ class PluginPackageTests(unittest.TestCase):
                     (PLUGIN_ROOT / "skills" / skill_name / "agents" / "openai.yaml").read_text(encoding="utf-8")
                 )
                 self.assertTrue(openai["interface"]["default_prompt"].startswith(f"Use ${skill_name}"))
+
+    def test_installation_docs_use_the_personal_marketplace_selector(self) -> None:
+        documentation = {
+            "plugin README": PLUGIN_ROOT / "README.md",
+            "release notes": REPO_ROOT / "docs" / "releases" / "v0.3.0-alpha.1.md",
+            "test guide": REPO_ROOT / "docs" / "releases" / "v0.3.0-alpha.1-test-guide.md",
+        }
+        install_command = "codex plugin add game-production-pipeline@personal"
+        for label, path in documentation.items():
+            with self.subTest(document=label):
+                text = path.read_text(encoding="utf-8")
+                self.assertIn(install_command, text)
+                self.assertIn("installed, enabled", text)
+
+        readme = documentation["plugin README"].read_text(encoding="utf-8")
+        self.assertIn("UI 搜索结果", readme)
 
 
 if __name__ == "__main__":

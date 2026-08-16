@@ -1,9 +1,14 @@
 from __future__ import annotations
 
 import copy
+import contextlib
 import importlib.util
+import io
+import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import yaml
 
@@ -12,6 +17,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = PLUGIN_ROOT / "scripts" / "validate_loop_registry.py"
 SNAPSHOT = PLUGIN_ROOT / "contracts" / "loop-registry-record.template.yaml"
 EVENT = PLUGIN_ROOT / "contracts" / "loop-registry-event.template.yaml"
+CONTRACT = PLUGIN_ROOT / "contracts" / "loop-contract.template.yaml"
 STATE_MACHINE = PLUGIN_ROOT / "contracts" / "loop-state-machine.default.yaml"
 
 SPEC = importlib.util.spec_from_file_location("validate_loop_registry_history", SCRIPT)
@@ -77,8 +83,16 @@ def make_event(
             "project_id": "project-1",
             "initial_state": "draft",
             "identity": {},
-            "contract_binding": {},
-            "state_machine_binding": {},
+            "contract_binding": {
+                "contract_id": "LOOP-CTR-<TYPE>-<NUMBER>",
+                "contract_version": 1,
+                "contract_digest": "a" * 64,
+            },
+            "state_machine_binding": {
+                "state_machine_id": "LOOP-SM-DEFAULT",
+                "state_machine_version": "0.2",
+                "state_machine_digest": "b" * 64,
+            },
             "parent_loop_id": None,
             "owner_assignment": {},
             "budget_limits": {},
@@ -112,6 +126,7 @@ class LoopRegistryHistoryTests(unittest.TestCase):
     def setUp(self) -> None:
         self.snapshot_doc = load_yaml(SNAPSHOT)
         self.event_contract_doc = load_yaml(EVENT)
+        self.contract_doc = load_yaml(CONTRACT)
         self.state_machine_doc = load_yaml(STATE_MACHINE)
 
         event1 = make_event(sequence=1, event_type="core.loop_registered")
@@ -137,6 +152,14 @@ class LoopRegistryHistoryTests(unittest.TestCase):
 
         snapshot = self.snapshot_doc["registry_snapshot"]
         snapshot["identity"]["loop_instance_id"] = "loop-1"
+        snapshot["contract_binding"].update(
+            {
+                "contract_id": self.contract_doc["loop_contract"]["contract_id"],
+                "contract_version": self.contract_doc["loop_contract"]["version"],
+                "contract_digest": "a" * 64,
+            }
+        )
+        snapshot["state_machine_binding"]["state_machine_digest"] = "b" * 64
         snapshot["runtime"].update(
             {
                 "current_state": "active",
@@ -149,16 +172,112 @@ class LoopRegistryHistoryTests(unittest.TestCase):
             }
         )
 
+    def run_cli(self, *, record_template: bool = False) -> tuple[int, str, str]:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            paths = {
+                "snapshot": root / "snapshot.yaml",
+                "history": root / "history.yaml",
+                "event": root / "event.yaml",
+                "contract": root / "contract.yaml",
+                "state_machine": root / "state-machine.yaml",
+                "record_template": root / "record-template.yaml",
+            }
+            documents = {
+                "snapshot": self.snapshot_doc,
+                "history": self.history_doc,
+                "event": self.event_contract_doc,
+                "contract": self.contract_doc,
+                "state_machine": self.state_machine_doc,
+                "record_template": load_yaml(SNAPSHOT),
+            }
+            for name, path in paths.items():
+                path.write_text(
+                    yaml.safe_dump(documents[name], allow_unicode=True, sort_keys=False),
+                    encoding="utf-8",
+                )
+            arguments = [
+                str(SCRIPT),
+                "--snapshot",
+                str(paths["snapshot"]),
+                "--history",
+                str(paths["history"]),
+                "--event",
+                str(paths["event"]),
+                "--contract",
+                str(paths["contract"]),
+                "--state-machine",
+                str(paths["state_machine"]),
+            ]
+            if record_template:
+                arguments.extend(["--record-template", str(paths["record_template"])])
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            with mock.patch.object(sys, "argv", arguments):
+                with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                    exit_code = MODULE.main()
+            return exit_code, stdout.getvalue(), stderr.getvalue()
+
     def validate(self) -> list[str]:
         return MODULE.validate_history(
             self.snapshot_doc,
             self.history_doc,
             self.state_machine_doc,
             self.event_contract_doc,
+            self.contract_doc,
         )
 
     def test_valid_history_rebuilds_snapshot_watermark(self) -> None:
         self.assertEqual([], self.validate())
+
+    def test_active_snapshot_cli_does_not_apply_six_draft_template_rules(self) -> None:
+        snapshot = self.snapshot_doc["registry_snapshot"]
+        snapshot["resources"]["inputs"] = [
+            {"input_slot_id": "INPUT-001", "artifact": {}}
+        ]
+        snapshot["resources"]["outputs"] = [
+            {"deliverable_id": "DELIVERABLE-001", "artifact": {}}
+        ]
+        self.snapshot_doc["field_examples"]["input_binding"]["input_slot_id"] = (
+            "INPUT-OTHER"
+        )
+        self.snapshot_doc["field_examples"]["output_registration"]["deliverable_id"] = (
+            "DELIVERABLE-OTHER"
+        )
+
+        self.assertEqual([], self.validate())
+        draft_errors = MODULE.validate_templates(
+            self.snapshot_doc,
+            self.event_contract_doc,
+            self.contract_doc,
+            self.state_machine_doc,
+        )
+        expected_false_positives = {
+            "Snapshot 模板初始状态必须等于状态机 initial_state",
+            "Snapshot 模板 current_iteration 必须从 0 开始",
+            "注册后的 Snapshot 模板必须位于 sequence=1、record_revision=1",
+            "draft 注册基线的 inputs 和 outputs 必须为空",
+            "Snapshot input_slot_id 必须完整对应 Contract required_inputs",
+            "Snapshot deliverable_id 必须完整对应 Contract required_deliverables",
+        }
+        self.assertEqual(expected_false_positives, set(draft_errors))
+
+        exit_code, stdout, stderr = self.run_cli()
+        self.assertEqual(0, exit_code, stderr)
+        self.assertIn("运行态", stdout)
+        for false_positive in expected_false_positives:
+            self.assertNotIn(false_positive, stderr)
+
+    def test_runtime_cli_accepts_independent_record_template(self) -> None:
+        exit_code, stdout, stderr = self.run_cli(record_template=True)
+        self.assertEqual(0, exit_code, stderr)
+        self.assertIn("运行态", stdout)
+
+    def test_runtime_cli_still_checks_static_event_contract(self) -> None:
+        del self.event_contract_doc["payload_contracts"]["core.budget_extended"]
+        exit_code, _, stderr = self.run_cli(record_template=True)
+        self.assertEqual(1, exit_code)
+        self.assertIn("Payload Contract", stderr)
 
     def test_digest_tampering_is_detected(self) -> None:
         self.history_doc["event_history"][1]["payload"]["reason"] = "被篡改"
@@ -173,6 +292,13 @@ class LoopRegistryHistoryTests(unittest.TestCase):
         errors = self.validate()
         self.assertTrue(any("sequence 必须为 3" in error for error in errors))
 
+    def test_record_revision_mismatch_is_rejected(self) -> None:
+        event3 = self.history_doc["event_history"][2]
+        event3["concurrency"]["expected_record_revision"] = 99
+        event3["integrity"]["event_digest"] = MODULE.canonical_event_digest(event3)
+        errors = self.validate()
+        self.assertTrue(any("expected_record_revision 必须为 2" in error for error in errors))
+
     def test_duplicate_mutation_is_rejected(self) -> None:
         self.history_doc["event_history"][2]["mutation_id"] = "mutation-2"
         self.history_doc["event_history"][2]["integrity"]["event_digest"] = (
@@ -185,6 +311,62 @@ class LoopRegistryHistoryTests(unittest.TestCase):
         self.snapshot_doc["registry_snapshot"]["runtime"]["current_state"] = "review"
         errors = self.validate()
         self.assertTrue(any("current_state 无法由 Event History 重建" in error for error in errors))
+
+    def test_snapshot_tail_watermark_mismatch_is_rejected(self) -> None:
+        self.snapshot_doc["registry_snapshot"]["runtime"]["last_event_sequence"] = 2
+        errors = self.validate()
+        self.assertTrue(any("last_event_sequence" in error for error in errors))
+
+    def test_unknown_snapshot_input_or_deliverable_id_is_rejected(self) -> None:
+        for collection, identifier, value in (
+            ("inputs", "input_slot_id", "INPUT-UNKNOWN"),
+            ("outputs", "deliverable_id", "DELIVERABLE-UNKNOWN"),
+        ):
+            with self.subTest(collection=collection):
+                changed = copy.deepcopy(self.snapshot_doc)
+                changed["registry_snapshot"]["resources"][collection] = [
+                    {identifier: value, "artifact": {}}
+                ]
+                errors = MODULE.validate_runtime_snapshot(
+                    changed,
+                    self.contract_doc,
+                    self.state_machine_doc,
+                    load_yaml(SNAPSHOT),
+                )
+                self.assertTrue(any(value in error for error in errors), errors)
+
+    def test_unknown_event_input_or_deliverable_id_is_rejected(self) -> None:
+        for event_type, identifier, value in (
+            ("core.input_bound", "input_slot_id", "INPUT-UNKNOWN"),
+            ("core.output_registered", "deliverable_id", "DELIVERABLE-UNKNOWN"),
+        ):
+            with self.subTest(event_type=event_type):
+                history_doc = copy.deepcopy(self.history_doc)
+                snapshot_doc = copy.deepcopy(self.snapshot_doc)
+                event3 = history_doc["event_history"][-1]
+                event4 = make_event(
+                    sequence=4,
+                    event_type=event_type,
+                    previous_digest=event3["integrity"]["event_digest"],
+                    extra_payload={identifier: value, "before": None, "after": {}},
+                )
+                history_doc["event_history"].append(event4)
+                snapshot_doc["registry_snapshot"]["runtime"].update(
+                    {
+                        "last_event_id": event4["event_id"],
+                        "last_event_digest": event4["integrity"]["event_digest"],
+                        "last_event_sequence": 4,
+                        "record_revision": 4,
+                    }
+                )
+                errors = MODULE.validate_history(
+                    snapshot_doc,
+                    history_doc,
+                    self.state_machine_doc,
+                    self.event_contract_doc,
+                    self.contract_doc,
+                )
+                self.assertTrue(any(value in error for error in errors), errors)
 
     def test_illegal_transition_event_binding_is_rejected(self) -> None:
         event3 = self.history_doc["event_history"][2]

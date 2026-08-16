@@ -84,10 +84,12 @@ Loop Registry 保存具体 Loop 实例的运行事实，与可复用规则分离
 python scripts/validate_loop_registry.py --snapshot contracts/loop-registry-record.template.yaml --event contracts/loop-registry-event.template.yaml --contract contracts/loop-contract.template.yaml --state-machine contracts/loop-state-machine.default.yaml
 ```
 
-校验实际 Snapshot 与 Event History 时追加：
+校验实际 Snapshot 与 Event History 时，`--history` 会明确切换到运行态模式；`--snapshot` 只表示当前物化视图，不再执行 draft 注册基线规则。建议用独立的 `--record-template` 同时校验官方 record template：
 
 ```powershell
-python scripts/validate_loop_registry.py --snapshot <snapshot.yaml> --history <event-history.yaml> --event contracts/loop-registry-event.template.yaml --contract <bound-contract.yaml> --state-machine <bound-state-machine.yaml>
+python scripts/validate_loop_registry.py --snapshot <snapshot.yaml> --history <event-history.yaml> --record-template contracts/loop-registry-record.template.yaml --event contracts/loop-registry-event.template.yaml --contract <bound-contract.yaml> --state-machine <bound-state-machine.yaml>
 ```
+
+运行态模式分别执行：Event/Contract/状态机静态契约检查、可选独立 Record Template 的 draft 结构检查、Snapshot 资源 ID 检查，以及 Event History 的摘要链、并发修订、水位、状态和 iteration 重放。为了兼容 alpha.2 已记录的命令，运行态仍允许省略 `--record-template`；此时不会跳过 Event、Contract、状态机、资源 ID 或历史重放检查，只是不额外校验独立 Record Template。无 `--history` 的原模板校验命令保持兼容。
 
 校验器检查模板结构、Contract 输入/交付 ID、状态集合、轮次规则和事件边界；提供 `--history` 时还会重算每个 Event 摘要、检查哈希链、`sequence`、`record_revision`、`mutation_id`，按状态机重放状态与轮次，并核对 Snapshot 水位。所选存储适配器仍必须实现原子事务和幂等写入。

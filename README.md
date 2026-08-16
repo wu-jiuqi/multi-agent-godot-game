@@ -4,7 +4,7 @@
 
 ## 当前版本
 
-当前发布候选为 `v0.4.0-alpha.2`：在 `alpha.1` 的项目经理启动模式、项目简报和 UTF-8 中文编码回归保护基础上，新增从已发行 `v0.3.0-alpha.1` 项目到 v0.4 的显式迁移器。迁移必须先 dry-run、批准精确计划摘要并建立逐字节备份，失败会自动回退；该版本仍是 Alpha，不是 Production Ready。
+当前发布候选为 `v0.4.0-alpha.3`：修复 Loop Registry 官方 CLI 把 active Snapshot 同时按 draft 模板校验的问题，将静态契约、draft 注册模板和运行态历史重放分为独立路径，并提供从 `v0.4.0-alpha.2` 到本候选版的只读规划与受控迁移器；该版本仍是 Alpha，不是 Production Ready。
 
 ## 目录
 

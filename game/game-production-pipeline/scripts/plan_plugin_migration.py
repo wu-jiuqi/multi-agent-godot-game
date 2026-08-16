@@ -187,6 +187,7 @@ def prepare_migration(
         "conflicts": conflicts,
         "errors": errors,
         "warnings": details.get("warnings", []),
+        "history_digests_before": details.get("history_digests_before", {}),
         "human_approval_required": True,
         "backup_root": "game-pipeline/.cache/migrations/<plan_digest>",
         "postconditions": details.get("postconditions", []),

@@ -23,7 +23,7 @@ class PluginPackageTests(unittest.TestCase):
     def test_manifest_and_skill_entries_match_release(self) -> None:
         manifest = json.loads((PLUGIN_ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual("game-production-pipeline", manifest["name"])
-        self.assertRegex(manifest["version"], r"^0\.4\.0-alpha\.2(?:\+codex\.[0-9A-Za-z.-]+)?$")
+        self.assertRegex(manifest["version"], r"^0\.4\.0-alpha\.3(?:\+codex\.[0-9A-Za-z.-]+)?$")
         self.assertEqual("./skills/", manifest["skills"])
         discovered = {path.name for path in (PLUGIN_ROOT / "skills").iterdir() if path.is_dir()}
         self.assertEqual(SKILLS, discovered)
@@ -45,8 +45,8 @@ class PluginPackageTests(unittest.TestCase):
     def test_installation_docs_use_the_personal_marketplace_selector(self) -> None:
         documentation = {"plugin README": PLUGIN_ROOT / "README.md"}
         repository_documentation = {
-            "release notes": REPO_ROOT / "docs" / "releases" / "v0.4.0-alpha.2.md",
-            "test guide": REPO_ROOT / "docs" / "releases" / "v0.4.0-alpha.2-test-guide.md",
+            "release notes": REPO_ROOT / "docs" / "releases" / "v0.4.0-alpha.3.md",
+            "test guide": REPO_ROOT / "docs" / "releases" / "v0.4.0-alpha.3-test-guide.md",
         }
         documentation.update({label: path for label, path in repository_documentation.items() if path.is_file()})
         install_command = "codex plugin add game-production-pipeline@personal"
@@ -62,8 +62,8 @@ class PluginPackageTests(unittest.TestCase):
     def test_windows_encoding_guidance_is_explicit_and_safe(self) -> None:
         paths = [PLUGIN_ROOT / "README.md"]
         repository_paths = (
-            REPO_ROOT / "docs" / "releases" / "v0.4.0-alpha.2.md",
-            REPO_ROOT / "docs" / "releases" / "v0.4.0-alpha.2-test-guide.md",
+            REPO_ROOT / "docs" / "releases" / "v0.4.0-alpha.3.md",
+            REPO_ROOT / "docs" / "releases" / "v0.4.0-alpha.3-test-guide.md",
         )
         paths.extend(path for path in repository_paths if path.is_file())
         required = (

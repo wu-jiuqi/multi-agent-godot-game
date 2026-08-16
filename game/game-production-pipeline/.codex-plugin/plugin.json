@@ -1,6 +1,6 @@
 {
   "name": "game-production-pipeline",
-  "version": "0.4.0-alpha.2",
+  "version": "0.4.0-alpha.3",
   "description": "Turn owner-defined game plans into approved project briefs, staffing proposals, and auditable production pipelines in Codex.",
   "author": {
     "name": "wu-jiuqi",

@@ -86,6 +86,25 @@ def build_migration(
     from_version: str,
     from_lock: dict[str, Any],
 ) -> tuple[dict[str, Any], dict[str, str]]:
+    return build_migration_to(
+        project_root=project_root,
+        source_root=source_root,
+        migration_at=migration_at,
+        from_version=from_version,
+        from_lock=from_lock,
+        expected_target_version=TO_VERSION,
+    )
+
+
+def build_migration_to(
+    *,
+    project_root: Path,
+    source_root: Path,
+    migration_at: str,
+    from_version: str,
+    from_lock: dict[str, Any],
+    expected_target_version: str,
+) -> tuple[dict[str, Any], dict[str, str]]:
     errors: list[str] = []
     conflicts: list[dict[str, str]] = []
     warnings: list[str] = []
@@ -94,8 +113,10 @@ def build_migration(
     target_version = manifest_version(source_root)
     if base_version(from_version) != FROM_VERSION:
         errors.append(f"迁移器只支持 {FROM_VERSION}，收到 {from_version}")
-    if base_version(target_version) != TO_VERSION:
-        errors.append(f"迁移器目标必须为 {TO_VERSION}，当前为 {target_version}")
+    if base_version(target_version) != expected_target_version:
+        errors.append(
+            f"迁移器目标必须为 {expected_target_version}，当前为 {target_version}"
+        )
     if from_lock.get("schema_version") != LOCK_SCHEMA:
         errors.append(f"lock schema 必须为 {LOCK_SCHEMA}")
     if from_lock.get("plugin_id") != PLUGIN_ID:

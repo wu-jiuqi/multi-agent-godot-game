@@ -267,6 +267,13 @@ def apply_migration(
         instance_result = validate_instance(project_root, source_root)
         if instance_result["state"] != "normal":
             raise ValueError(f"迁移后项目实例校验失败: {instance_result}")
+        history_digests = plan.get("history_digests_before", {})
+        if isinstance(history_digests, dict):
+            for relative_path, expected_digest in history_digests.items():
+                history_path = ensure_within(project_root, project_root / relative_path)
+                actual_digest = sha256(history_path.read_bytes()) if history_path.is_file() else None
+                if actual_digest != expected_digest:
+                    raise ValueError(f"迁移不得改写 Event History: {relative_path}")
         idempotent_plan, _ = prepare_migration(project_root, source_root, migration_at)
         if idempotent_plan["outcome"] != "no_change":
             raise ValueError(f"迁移后重复规划不是 no_change: {idempotent_plan['outcome']}")

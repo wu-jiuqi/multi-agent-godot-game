@@ -40,6 +40,7 @@ Codex Plugin
     ├── plugin-lock.yaml
     ├── agents/
     ├── approvals/
+    ├── assets/                     专业资产 Contract、预算、权利与证据
     ├── bindings/
     ├── loops/
     ├── project-definition/
@@ -131,6 +132,12 @@ python scripts/validate_project_brief.py `
 
 只有简报为 staffing-ready、当前 `subject_digest` 得到项目所有者确认，并存在摘要匹配的不可变审批记录时，才能进入 `$design-game-organization`。编制获批后，游戏设计、美术、技术和 QA 等领域 Agent 再分别深化 GDD、美术规范、技术设计和测试计划。
 
+## 专业资产公共底座
+
+项目把每项正式资产的 Contract 放入 `game-pipeline/assets/contracts/`。Contract 统一绑定批准需求、可编辑 Source、Runtime、权利链、不可变 revision、导入配方、项目预算实测、五类评审与原因码返修；详细标准见 [`contracts/specialist-asset-acceptance.md`](contracts/specialist-asset-acceptance.md)，可直接复制 [`contracts/specialist-asset-contract.template.yaml`](contracts/specialist-asset-contract.template.yaml)。
+
+`validate_project_instance.py` 会自动发现这些 Contract，并以项目根目录核对 `repo://` 文件及 SHA-256。公共资产层仅消费 UI 等领域事实源，不拥有也不回写 UI 方案；生成路径与 protected paths 重叠时直接阻断。
+
 ## 项目 Agent Preset
 
 项目 Preset 使用 [`assets/project-agent-preset.template.md`](assets/project-agent-preset.template.md)。工作顺序是：
@@ -205,6 +212,7 @@ Get-Content -LiteralPath "文件路径" -Encoding UTF8
 python -m unittest discover -s tests -p 'test_*.py' -v
 python scripts/validate_pipeline_contract.py contracts/examples/vertical-slice-greybox.yaml
 python scripts/validate_project_brief.py contracts/examples/sample-project-brief.yaml --project-id sample-game
+python scripts/validate_specialist_asset_contract.py contracts/examples/specialist-asset-static-prop.yaml
 python scripts/validate_organization_registry.py --templates --snapshot contracts/examples/organization-alpha-snapshot.yaml --change-set contracts/examples/organization-alpha-change-set.yaml
 python scripts/render_organization.py --snapshot contracts/examples/organization-alpha-snapshot.yaml --change-set contracts/examples/organization-alpha-change-set.yaml --view change --scope dept:sample-game:design --format mermaid
 python scripts/validate_text_encoding.py --plugin-root .

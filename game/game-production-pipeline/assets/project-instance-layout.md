@@ -11,6 +11,12 @@
     ├── approvals/                  # 人工审批记录
     ├── bindings/                   # Skill 与事实源绑定
     ├── .cache/migrations/          # 迁移逐字节备份（Git 忽略）
+    ├── assets/
+    │   ├── contracts/              # 专业资产每个 revision 的 Contract
+    │   ├── budgets/                # 项目批准的预算 Profile
+    │   ├── evidence/               # 导入、性能、评审与授权证据
+    │   ├── rights/                 # 许可证、合同与取得证明
+    │   └── protected-path-snapshots/ # UI 等只读事实源摘要
     ├── loops/                      # 生产循环实例
     ├── project-definition/         # 经确认的项目文档基线与编制输入
     └── organization/

@@ -14,6 +14,17 @@
 | 动画与反馈 | `AnimationPlayer`、`AnimationTree`、Tween、Audio 节点或粒子节点 |
 | 自动验证 | 无头启动、脚本检查、测试插件和目标平台导出检查 |
 
+## 专业资产 Contract 映射
+
+每项正式资产使用 `game-production-specialist-asset/v1`。输入是已批准需求、领域事实源、项目预算 Profile 和权利证据；输出是可编辑 Source、可复现的 Runtime、导入配方、实测证据、评审记录和冻结 digest。通过条件及退回路径以 [`../contracts/specialist-asset-acceptance.md`](../contracts/specialist-asset-acceptance.md) 为准，表达意图、权利例外和最终发布仍由指定人类或专业 reviewer 判断。
+
+- DCC Master 与引擎运行时资源分开登记；3D 默认显式导出 glTF/GLB，直接导入 `.blend` 时必须锁定 Blender 版本并记录非确定性风险。
+- 非 Godot 原生源文件必须把相邻 `<asset>.import` 作为 import recipe 证据提交；`.godot/imported/` 只登记为可再生 cache，不能作为 Source 或人工交付物。
+- 固定可复用对象优先用预置 `.tscn` / `.tres` 承载，动态生成仍遵守本文“预置节点优先规则”。
+- 性能结论必须来自批准的目标平台、硬件档位、可重复测试场景和具体 Build；编辑器预览或通用经验值不能代替实测。
+- `validate_project_instance.py` 自动发现 `game-pipeline/assets/contracts/*.yaml`；它校验真实 `repo://` 文件摘要、版本链和四道 Asset Gate，但不会改写导入设置、项目资源或人工审批。
+- `consumer_boundary.access` 固定为 `read_only`。UI 场景、Screen/Flow、布局和交互规格放入 `protected_paths`；资产输出只能进入不重叠的 `generated_output_paths`。需要修改 UI 时退回独立 UI 工作流。
+
 ## 预置节点优先规则
 
 以下内容能够在编辑器中稳定配置时，必须序列化到场景或资源：
@@ -82,4 +93,3 @@ res://
 - 关键路径可从入口完成；
 - 适用时完成目标平台导出检查；
 - 场景结构遵守预置节点优先和职责边界。
-

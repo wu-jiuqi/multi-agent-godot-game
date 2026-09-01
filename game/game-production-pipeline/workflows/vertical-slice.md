@@ -54,7 +54,14 @@
 
 主责：按需专业 Agent；集成：`AGT-GODOT`；意图验收：`AGT-CD`。
 
-每项资产必须消费已批准需求单，并交付源文件、运行时文件、技术规格、使用位置和许可信息。程序继续支持占位资源，不等待所有最终资产才开始。
+每项资产必须从 [`specialist-asset-contract.template.yaml`](../contracts/specialist-asset-contract.template.yaml) 建立 Contract，并按 [`specialist-asset-acceptance.md`](../contracts/specialist-asset-acceptance.md) 执行：
+
+- 正式生产前通过 `ASSET-GATE-A0`，消费已批准需求、预算 Profile 与只读领域事实源；
+- 导出或转换前通过 `ASSET-GATE-A1`，提交可编辑 Source、版本、依赖与完整权利链；
+- 集成前通过 `ASSET-GATE-A2`，提交绑定 Source/Recipe digest 的 Runtime、Godot 导入证据和目标场景性能实测；
+- 进入 `GATE-3` 前通过 `ASSET-GATE-A3`，由意图、技术、QA 和权利复核批准同一 subject digest。
+
+跨 Loop 交接必须传递 `asset_id + revision + contract_subject_digest`，不能只传路径。程序继续支持占位资源，不等待所有最终资产才开始。公共资产流程对 UI Screen/Flow、布局和交互事实源只读；若返修需要改变 UI，必须启动独立 UI 变更工作流。
 
 完成后由 `AGT-QA` 执行集成回归，进入 `GATE-3`。
 
@@ -76,6 +83,10 @@
 | 交互状态、反馈或持久化规则不完整 | P5 | `AGT-CD` |
 | 节点、代码、存档、性能或平台实现失败 | P3/P7 | `AGT-GODOT` |
 | 资产不符合表达需求 | P6 | 对应专业 Agent |
+| 资产来源、许可、合同或再分发权不成立 | P6 / `RGT` 阻塞 | 权利复核者 + 项目所有者 |
+| Source、导入配方或 Runtime 摘要不一致 | P6/P7 / `SRC` 或 `IMP` | 对应专业 Agent + `AGT-GODOT` |
+| 资产超过目标场景预算 | P6/P7 / `PERF` | 对应专业 Agent + `AGT-GODOT` |
+| 资产流程触碰 UI 等受保护事实源 | 原领域工作流 / `REG` | 原事实源 Owner + `AGT-QA` |
 | 验收条件不清楚或无法测试 | X0 与原定义阶段 | `AGT-DIR` + 原责任 Agent |
 | 新需求扩大已批准范围 | P0 | `AGT-GD` + 人类 |
 
@@ -87,4 +98,3 @@
 - 输入、输出和失败模式已经稳定；
 - 抽取后能被多个工作流或 Agent 复用；
 - 已有代表性任务可用于前向验证。
-

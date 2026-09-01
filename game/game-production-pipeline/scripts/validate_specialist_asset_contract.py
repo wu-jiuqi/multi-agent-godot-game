@@ -45,18 +45,26 @@ RESULTS = {"pending", "passed", "failed", "stale"}
 REVIEW_STATUSES = {"pending", "approved", "rejected", "stale"}
 RELEASE_STATES = {"not-ready", "candidate", "approved", "withdrawn"}
 REASON_CODES = ["REQ", "SRC", "RGT", "IMP", "PERF", "REG", "SCOPE"]
-REVIEW_FIELDS = ("producer_self_check", "intent_review", "technical_review", "qa_review", "rights_review")
+REVIEW_FIELDS = (
+    "demand_review",
+    "producer_self_check",
+    "intent_review",
+    "technical_review",
+    "qa_review",
+    "rights_review",
+)
 FROZEN_STATES = {"approved", "released", "withdrawn"}
 GATE_REQUIREMENTS = {
     "ready": ("A0",),
     "in_production": ("A0",),
     "source_submitted": ("A0", "A1"),
-    "runtime_built": ("A0", "A1"),
+    "runtime_built": ("A0", "A1", "A2"),
     "integrated": ("A0", "A1", "A2"),
     "review": ("A0", "A1", "A2"),
     "approved": ("A0", "A1", "A2", "A3"),
     "released": ("A0", "A1", "A2", "A3"),
 }
+GATE_ORDER = ("A0", "A1", "A2", "A3")
 
 
 def mapping(value: Any, label: str, errors: list[str]) -> dict[str, Any]:
@@ -308,6 +316,7 @@ def validate_specialist_asset_contract(
     previous: dict[str, Any] | None = None,
     project_root: Path | None = None,
     as_of: datetime | None = None,
+    target_gate: str | None = None,
 ) -> dict[str, Any]:
     errors: list[str] = []
     warnings: list[str] = []
@@ -358,6 +367,14 @@ def validate_specialist_asset_contract(
     lifecycle = identity.get("lifecycle_state")
     if lifecycle not in LIFECYCLE_STATES:
         errors.append("identity.lifecycle_state 非法")
+    if target_gate is not None and target_gate not in GATE_ORDER:
+        errors.append("target_gate 必须是 A0、A1、A2 或 A3")
+    required_gates = set(GATE_REQUIREMENTS.get(lifecycle, ()))
+    if target_gate in GATE_ORDER:
+        required_gates.update(GATE_ORDER[: GATE_ORDER.index(target_gate) + 1])
+    requires_a0 = "A0" in required_gates
+    requires_a1 = "A1" in required_gates
+    requires_a2 = "A2" in required_gates
 
     demand = mapping(contract.get("demand"), "demand", errors)
     request_id = require_string(demand.get("request_id"), "demand.request_id", errors)
@@ -392,20 +409,26 @@ def validate_specialist_asset_contract(
                 errors.append(f"generated_output_paths 与 protected_paths 重叠: {generated} / {protected}")
 
     source = mapping(contract.get("source_package"), "source_package", errors)
-    editable_truth = sequence(source.get("editable_truth"), "source_package.editable_truth", errors, nonempty=True)
+    editable_truth = sequence(
+        source.get("editable_truth"),
+        "source_package.editable_truth",
+        errors,
+        nonempty=requires_a1,
+    )
     for index, ref in enumerate(editable_truth):
         validate_file_ref(ref, f"source_package.editable_truth[{index}]", errors, project_root, file_checks, require_tool=True)
     for group_name in ("intermediate_files", "dependencies"):
         for index, ref in enumerate(sequence(source.get(group_name), f"source_package.{group_name}", errors)):
             validate_file_ref(ref, f"source_package.{group_name}[{index}]", errors, project_root, file_checks)
     vcs = mapping(source.get("version_control"), "source_package.version_control", errors)
-    if vcs.get("backend") not in BACKENDS:
-        errors.append("source_package.version_control.backend 非法")
-    if vcs.get("visibility") not in {"private", "public"}:
-        errors.append("source_package.version_control.visibility 非法")
-    require_string(vcs.get("immutable_revision_ref"), "source_package.version_control.immutable_revision_ref", errors)
-    if not isinstance(vcs.get("exclusive_lock_required"), bool):
-        errors.append("source_package.version_control.exclusive_lock_required 必须是布尔值")
+    if requires_a1:
+        if vcs.get("backend") not in BACKENDS:
+            errors.append("source_package.version_control.backend 非法")
+        if vcs.get("visibility") not in {"private", "public"}:
+            errors.append("source_package.version_control.visibility 非法")
+        require_string(vcs.get("immutable_revision_ref"), "source_package.version_control.immutable_revision_ref", errors)
+        if not isinstance(vcs.get("exclusive_lock_required"), bool):
+            errors.append("source_package.version_control.exclusive_lock_required 必须是布尔值")
 
     rights = mapping(contract.get("rights"), "rights", errors)
     if rights.get("provenance") not in PROVENANCE:
@@ -432,29 +455,45 @@ def validate_specialist_asset_contract(
         errors.append("rights.clearance_state 非法")
 
     recipe = mapping(contract.get("import_recipe"), "import_recipe", errors)
-    if recipe.get("engine_adapter") not in {"generic", "godot"}:
+    if requires_a2 and recipe.get("engine_adapter") not in {"generic", "godot"}:
         errors.append("import_recipe.engine_adapter 必须是 generic 或 godot")
-    require_string(recipe.get("engine_version"), "import_recipe.engine_version", errors)
+    if requires_a2:
+        require_string(recipe.get("engine_version"), "import_recipe.engine_version", errors)
     importer = mapping(recipe.get("importer"), "import_recipe.importer", errors)
-    require_string(importer.get("name"), "import_recipe.importer.name", errors)
-    require_string(importer.get("version"), "import_recipe.importer.version", errors)
-    interchange_format = require_string(recipe.get("interchange_format"), "import_recipe.interchange_format", errors).lower()
-    validate_artifact_ref(recipe.get("preset_ref"), "import_recipe.preset_ref", errors, project_root, file_checks)
+    if requires_a2:
+        require_string(importer.get("name"), "import_recipe.importer.name", errors)
+        require_string(importer.get("version"), "import_recipe.importer.version", errors)
+        interchange_format = require_string(
+            recipe.get("interchange_format"), "import_recipe.interchange_format", errors
+        ).lower()
+    else:
+        raw_format = recipe.get("interchange_format")
+        interchange_format = raw_format.lower() if isinstance(raw_format, str) else ""
+    if requires_a2:
+        validate_artifact_ref(recipe.get("preset_ref"), "import_recipe.preset_ref", errors, project_root, file_checks)
     requires_sidecar = recipe.get("requires_import_sidecar")
-    if not isinstance(requires_sidecar, bool):
+    if requires_a2 and not isinstance(requires_sidecar, bool):
         errors.append("import_recipe.requires_import_sidecar 必须是布尔值")
     sidecars = sequence(recipe.get("sidecar_refs"), "import_recipe.sidecar_refs", errors)
     for index, ref in enumerate(sidecars):
-        validate_artifact_ref(ref, f"import_recipe.sidecar_refs[{index}]", errors, project_root, file_checks)
+        if requires_a2:
+            validate_artifact_ref(ref, f"import_recipe.sidecar_refs[{index}]", errors, project_root, file_checks)
     postprocess = recipe.get("postprocess_ref")
-    if postprocess is not None:
+    if requires_a2 and postprocess is not None:
         validate_artifact_ref(postprocess, "import_recipe.postprocess_ref", errors, project_root, file_checks)
-    validate_artifact_ref(recipe.get("toolchain_lock_ref"), "import_recipe.toolchain_lock_ref", errors, project_root, file_checks)
-    if recipe.get("reproducibility") not in {"deterministic", "best-effort"}:
+    if requires_a2:
+        validate_artifact_ref(
+            recipe.get("toolchain_lock_ref"),
+            "import_recipe.toolchain_lock_ref",
+            errors,
+            project_root,
+            file_checks,
+        )
+    if requires_a2 and recipe.get("reproducibility") not in {"deterministic", "best-effort"}:
         errors.append("import_recipe.reproducibility 非法")
-    if recipe.get("reproducibility") == "best-effort":
+    if requires_a2 and recipe.get("reproducibility") == "best-effort":
         require_string(recipe.get("non_determinism_reason"), "import_recipe.non_determinism_reason", errors)
-    if recipe.get("engine_adapter") == "godot":
+    if requires_a2 and recipe.get("engine_adapter") == "godot":
         native = interchange_format in {"tscn", "scn", "tres", "res"}
         if native and requires_sidecar is True:
             errors.append("Godot 原生资源不应要求 .import sidecar")
@@ -464,25 +503,36 @@ def validate_specialist_asset_contract(
             errors.append("Godot 非原生导入资产缺少 sidecar_refs")
 
     runtime = mapping(contract.get("runtime_package"), "runtime_package", errors)
-    outputs = sequence(runtime.get("outputs"), "runtime_package.outputs", errors, nonempty=True)
+    outputs = sequence(
+        runtime.get("outputs"),
+        "runtime_package.outputs",
+        errors,
+        nonempty=requires_a2,
+    )
     for index, ref in enumerate(outputs):
         output = validate_file_ref(ref, f"runtime_package.outputs[{index}]", errors, project_root, file_checks)
         require_string(output.get("platform"), f"runtime_package.outputs[{index}].platform", errors)
         if output.get("role") not in {"primary", "lod", "collision", "material", "texture", "stream", "scene", "other"}:
             errors.append(f"runtime_package.outputs[{index}].role 非法")
     cache_paths = [repo_relative_path(item, "runtime_package.cache_paths", errors) for item in sequence(runtime.get("cache_paths"), "runtime_package.cache_paths", errors)]
-    if recipe.get("engine_adapter") == "godot" and ".godot/imported" not in cache_paths:
+    if requires_a2 and recipe.get("engine_adapter") == "godot" and ".godot/imported" not in cache_paths:
         errors.append("Godot Contract 必须把 .godot/imported 登记为 cache")
 
     performance = mapping(contract.get("performance"), "performance", errors)
     validate_artifact_ref(performance.get("budget_profile_ref"), "performance.budget_profile_ref", errors, project_root, file_checks)
     context = mapping(performance.get("measurement_context"), "performance.measurement_context", errors)
-    for key in ("platform", "hardware_profile", "scenario_ref", "build_ref"):
-        require_string(context.get(key), f"performance.measurement_context.{key}", errors)
+    if requires_a2:
+        for key in ("platform", "hardware_profile", "scenario_ref", "build_ref"):
+            require_string(context.get(key), f"performance.measurement_context.{key}", errors)
     platform_scope = rights.get("platform_scope") if isinstance(rights.get("platform_scope"), list) else []
-    if context.get("platform") and "all" not in platform_scope and context.get("platform") not in platform_scope:
+    if requires_a2 and context.get("platform") and "all" not in platform_scope and context.get("platform") not in platform_scope:
         errors.append("performance.measurement_context.platform 不在授权 platform_scope 内")
-    metrics = sequence(performance.get("metrics"), "performance.metrics", errors, nonempty=True)
+    metrics = sequence(
+        performance.get("metrics"),
+        "performance.metrics",
+        errors,
+        nonempty=requires_a2,
+    )
     metric_ids: set[str] = set()
     computed_metric_results: list[str] = []
     for index, raw_metric in enumerate(metrics):
@@ -519,7 +569,12 @@ def validate_specialist_asset_contract(
     expected_recipe_digest = recipe_digest(contract)
 
     verification = mapping(contract.get("verification"), "verification", errors)
-    automated_checks = sequence(verification.get("automated_checks"), "verification.automated_checks", errors, nonempty=True)
+    automated_checks = sequence(
+        verification.get("automated_checks"),
+        "verification.automated_checks",
+        errors,
+        nonempty=requires_a2,
+    )
     automated_statuses: list[str] = []
     check_ids: set[str] = set()
     for index, raw_check in enumerate(automated_checks):
@@ -588,12 +643,17 @@ def validate_specialist_asset_contract(
         gate_issues["A0"].append("rights.clearance_state 未达到 conditional/cleared")
     if expires_at is not None and expires_at <= now:
         gate_issues["A0"].append("rights.expires_at 已过期")
+    if reviews.get("demand_review", {}).get("status") != "approved":
+        gate_issues["A0"].append("demand_review 尚未批准")
 
     gate_issues["A1"].extend(gate_issues["A0"])
     if rights.get("clearance_state") != "cleared":
         gate_issues["A1"].append("Source Gate 要求 rights.clearance_state=cleared")
     if vcs.get("visibility") == "public" and rights.get("raw_redistribution") != "allowed":
         gate_issues["A1"].append("公开 VCS 与原始文件再分发权冲突")
+    for review_name in ("producer_self_check", "rights_review"):
+        if reviews.get(review_name, {}).get("status") != "approved":
+            gate_issues["A1"].append(f"{review_name} 尚未批准")
 
     gate_issues["A2"].extend(gate_issues["A1"])
     if runtime.get("source_subject_digest") != expected_source_digest:
@@ -604,7 +664,7 @@ def validate_specialist_asset_contract(
         gate_issues["A2"].append("性能指标尚未全部通过")
     if any(status != "passed" for status in automated_statuses):
         gate_issues["A2"].append("自动检查尚未全部通过")
-    for review_name in ("producer_self_check", "technical_review"):
+    for review_name in ("technical_review",):
         if reviews.get(review_name, {}).get("status") != "approved":
             gate_issues["A2"].append(f"{review_name} 尚未批准")
 
@@ -623,7 +683,12 @@ def validate_specialist_asset_contract(
     if rights.get("attribution_required") is True and not publication.get("attribution_manifest_ref"):
         gate_issues["A3"].append("需要署名但缺少 attribution_manifest_ref")
 
-    for gate_name in GATE_REQUIREMENTS.get(lifecycle, ()):
+    enforced_gates = set(GATE_REQUIREMENTS.get(lifecycle, ()))
+    if target_gate in GATE_ORDER:
+        enforced_gates.add(target_gate)
+    for gate_name in GATE_ORDER:
+        if gate_name not in enforced_gates:
+            continue
         errors.extend(f"{gate_name}: {message}" for message in gate_issues[gate_name])
     if lifecycle == "released":
         if not build_refs:
@@ -666,6 +731,7 @@ def main() -> int:
     parser.add_argument("contract", type=Path)
     parser.add_argument("--previous", type=Path)
     parser.add_argument("--project-root", type=Path)
+    parser.add_argument("--gate", choices=GATE_ORDER)
     args = parser.parse_args()
     try:
         document = load_yaml(args.contract)
@@ -677,6 +743,7 @@ def main() -> int:
         document,
         previous=previous,
         project_root=args.project_root,
+        target_gate=args.gate,
     )
     print(json.dumps(result, ensure_ascii=True, indent=2))
     return 0 if result["state"] == "valid" else 1

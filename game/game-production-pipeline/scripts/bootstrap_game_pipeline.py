@@ -38,6 +38,15 @@ from pipeline_common import (
 ORG_SCHEMA = "0.2-alpha"
 MANAGED_SCHEMA = "v1"
 PROJECT_DEFINITION_README = "# 项目文档基线\n\n项目经理启动工作流把项目所有者已确认的方向整理到 `project-brief.yaml`。草案不得作为正式编制依据；只有摘要匹配的人工确认后才能进入组织设计。\n"
+ASSET_AND_LOOP_READMES = {
+    "game-pipeline/assets/contracts/README.md": "# 专业资产 Contract\n\n每项正式资产每个 revision 保存一份 `game-production-specialist-asset/v1` Contract。复制插件模板后填写真实项目事实；不要把占位模板直接放入本目录。\n",
+    "game-pipeline/assets/budgets/README.md": "# 专业资产预算\n\n保存项目批准的目标平台、硬件档位与资产类型预算 Profile；公共插件不提供万能性能阈值。\n",
+    "game-pipeline/assets/evidence/README.md": "# 专业资产证据\n\n保存导入、加载、性能、评审、回归和 Gate 证据；证据必须绑定当前 asset revision 与 subject digest。\n",
+    "game-pipeline/assets/rights/README.md": "# 专业资产权利链\n\n保存许可证正文、商业合同、采购或创作证明、署名与使用范围；来源或权限不明时 fail closed。\n",
+    "game-pipeline/assets/protected-path-snapshots/README.md": "# 受保护事实源摘要\n\n保存资产流程执行前后的只读事实源摘要。UI Screen/Flow、布局和交互规则只能由独立 UI 工作流修改。\n",
+    "game-pipeline/loops/contracts/README.md": "# 项目 Loop Contracts\n\n保存项目批准或特化的 Loop Contract。专业资产生产必须保留 `asset_contract_policy`，不得删除 A0/A2/A3 绑定。\n",
+    "game-pipeline/loops/registry/README.md": "# Loop Registry\n\n每个运行实例保存 Snapshot 与不可变 Event History。Registry 只保存资产 Contract 的版本化引用、摘要和 Gate 证据，不复制资产正文。\n",
+}
 AGENTS_START_RE = re.compile(
     r"<!-- game-production-pipeline:start schema=v1 digest=([0-9a-f]{64}) -->\n"
 )
@@ -409,6 +418,8 @@ def build_managed_blocks(version: str, digest: str) -> dict[str, dict[str, Any]]
 - 项目管线状态位于 `game-pipeline/`，项目专属 Skills 位于 `.agents/skills/`。
 - 当前锁定插件：`{PLUGIN_ID}@{version}`，框架摘要：`{digest}`。
 - 初始项目简报位于 `game-pipeline/project-definition/project-brief.yaml`；未确认前不得批准正式编制。
+- 专业资产 Contract 位于 `game-pipeline/assets/contracts/`；P6 资产 Loop 必须绑定 asset_id、revision、文件 digest 与 subject digest，并通过对应 Asset Gate。
+- 公共资产流程对 UI 等领域事实源只读；任何反向修改必须进入独立上游工作流。
 - 持久部门、岗位、Agent Preset 与 Skill 绑定必须先获得项目所有者人工审批。
 - 临时 Agent Instance 只有在批准且未过期的 Temporary Grant 范围和额度内才可免逐实例审批，但必须先登记并保持可见。
 - 管线治理审批、Codex 沙箱权限与技术验收是三个独立条件。
@@ -503,6 +514,7 @@ def build_contents(
         "game-pipeline/organization/views/README.md": "# 组织视图\n\nMermaid 源文件可跟踪；生成的 SVG 仅作投影并由 `.gitignore` 忽略。\n",
         "game-pipeline/organization/validations/README.md": "# 组织校验\n\n保存可复核的校验结论与证据引用，不把自动校验结果伪装成人工审批。\n",
         ".agents/skills/README.md": "# 项目专属 Skills\n\n只保存该游戏项目特有的可执行方法；可复用框架能力仍由全局插件提供。\n",
+        **ASSET_AND_LOOP_READMES,
     }
     blocks = build_managed_blocks(version, digest)
     warnings: list[str] = []

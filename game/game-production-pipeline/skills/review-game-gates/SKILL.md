@@ -21,6 +21,17 @@ Evaluate evidence independently, distinguish machine-verifiable checks from judg
 6. For `awaiting_human`, present the decision scope, evidence index, risks, reversible options, recommendation, and approval digest. Only the designated human may record approve/reject/revise.
 7. Append the resulting event without rewriting history. An approval never changes a failed automatic check into a pass.
 
+## Specialist Asset Gates
+
+When the review target is a `game-production-specialist-asset/v1` Contract, run `../../scripts/evaluate_specialist_asset_gate.py <contract> --gate A0|A1|A2|A3 --project-root <root>` before interpreting evidence. Preserve its four outcomes: `pass`, `revise`, `blocked`, or `awaiting_human`.
+
+- A0 requires the requester-bound demand review and only allows formal production to start.
+- A1 requires current Source plus producer and rights review; it does not imply Runtime readiness.
+- A2 requires Runtime, recipe, target-scenario measurements, automated checks, and technical review.
+- A3 requires every review, zero open rework, frozen subject digest, attribution when applicable, and approval references.
+
+Store the evaluator output as evidence and bind its `approval_digest` to any subsequent decision. The evaluator is read-only: it never writes a human decision. A project-level `GATE-3` may require all scoped assets to have A3, but one asset's A3 does not itself approve project content freeze.
+
 ## Guardrails
 
 - The producing Agent cannot be the sole reviewer of its own deliverable.

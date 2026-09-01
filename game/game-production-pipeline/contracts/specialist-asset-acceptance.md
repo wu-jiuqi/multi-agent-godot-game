@@ -32,7 +32,7 @@ game-pipeline/
 | `ASSET-GATE-A0 demand-ready` | 开始投入正式制作成本 | 稳定 ID、上游需求引用、使用场景、验收意图、责任、预算 Profile、消费边界和授权可行性齐全 | requester 确认需求可生产；rights reviewer 确认权利路径可成立 | `REQ` 返回需求方；`RGT` 进入权利阻塞；`SCOPE` 回原定义阶段或 P0 |
 | `ASSET-GATE-A1 source-ready` | Source 包进入导出/转换 | 可编辑 Master、依赖、工具版本、VCS revision、URI、SHA-256、许可正文/合同和采购证明齐全 | producer 确认源文件可继续编辑；rights reviewer 将状态标为 `cleared` | `SRC` 返回专业生产者；`RGT` 阻止后续导入和发布 |
 | `ASSET-GATE-A2 runtime-ready` | 集成到目标场景、系统和构建 | Source digest、recipe digest、Runtime 输出、Godot sidecar、自动检查、预算阈值与实测均匹配 | producer self-check 与 technical review 绑定当前 subject digest | `IMP` 返回技术集成/工具管线；`PERF` 返回生产者与技术集成者；`REG` 返回变更责任方 |
-| `ASSET-GATE-A3 release-ready` | 标记 `approved` 并进入发布候选 | A0～A2 全部通过、无开放返修、冻结摘要与审批引用匹配、署名清单齐全 | intent、technical、QA、rights 四类复核全部批准；自动结果不能代替人类表达判断 | 按 `REQ/SRC/RGT/IMP/PERF/REG/SCOPE` 定向返修；不允许统一退给程序 |
+| `ASSET-GATE-A3 release-ready` | 标记 `approved` 并进入发布候选 | A0～A2 全部通过、无开放返修、冻结摘要与审批引用匹配、署名清单齐全 | demand、producer、intent、technical、QA、rights 六类记录全部批准；自动结果不能代替人类表达判断 | 按 `REQ/SRC/RGT/IMP/PERF/REG/SCOPE` 定向返修；不允许统一退给程序 |
 
 `released` 还必须提供实际 Build 引用和发布时间。`withdrawn` 必须保留撤回原因，不能删除历史版本。
 
@@ -91,7 +91,7 @@ game-pipeline/
 ### 评审与返修
 
 - 自动检查至少覆盖结构、导入/加载和项目定义的性能检查。
-- producer、intent、technical、QA、rights 五份记录分别绑定当前 subject digest。
+- demand、producer、intent、technical、QA、rights 六份记录分别绑定当前 subject digest；A0/A1/A2 分别前置要求 demand、producer+rights、technical 记录。
 - 小团队允许同一人兼任，但仍必须保留不同评审对象、问题和证据。
 - `rework_required` 或 `blocked` 必须至少有一个开放 issue，包含原因码、责任人、修复目标和所需复检。
 - 返修原因码固定为：`REQ` 需求、`SRC` 源资产、`RGT` 权利、`IMP` 导入、`PERF` 性能、`REG` 回归、`SCOPE` 范围。
@@ -125,6 +125,24 @@ python scripts/validate_specialist_asset_contract.py `
 
 校验器是只读工具：它报告预期的 Source、Recipe 和 Subject digest，不自动改写 Contract，也不代替人工审批。
 
+独立评估某一道 Gate，并区分 `pass / revise / blocked / awaiting_human`：
+
+```powershell
+python scripts/evaluate_specialist_asset_gate.py `
+  game-pipeline/assets/contracts/<asset>.r0001.yaml `
+  --gate A0 `
+  --project-root <project-root>
+```
+
+专业资产 Loop 必须使用 `specialist-asset-production.loop-contract.yaml` 的最小策略，并在状态转换前交叉检查 Registry 引用：
+
+```powershell
+python scripts/validate_specialist_asset_loop.py `
+  --loop-contract game-pipeline/loops/contracts/<contract>.yaml `
+  --snapshot game-pipeline/loops/registry/<loop-id>/snapshot.yaml `
+  --project-root <project-root>
+```
+
 ## 最小端到端回放
 
 P0 完成必须能重放：
@@ -153,4 +171,3 @@ P0 完成必须能重放：
 - Unity Asset Manager 将资产建模为文件加元数据，区分 Source/Game Ready/Preview，并用不可变 Frozen version 承载版本状态。
 - SPDX 提供标准许可证表达式和项目自定义 `LicenseRef-*`。
 - B 站技术美术资源规范、资产审计、纹理导入与 LOD 资料显示，规范应前置并同时覆盖内容、导入与性能；具体阈值仍须由项目实测决定。
-

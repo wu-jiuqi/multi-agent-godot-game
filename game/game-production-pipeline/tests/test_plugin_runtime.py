@@ -69,6 +69,8 @@ class PluginRuntimeTests(unittest.TestCase):
         result = bootstrap.apply_plan(plan, desired, self.project_root, plan["approval_digest"])
         self.assertIn("game-pipeline/project.yaml", result["applied"])
         self.assertIn("game-pipeline/project-definition/project-brief.yaml", result["applied"])
+        for relative_path in bootstrap.ASSET_AND_LOOP_READMES:
+            self.assertTrue((self.project_root / relative_path).is_file(), relative_path)
 
         second_plan, second_desired = self.make_plan()
         self.assertTrue(second_plan["can_apply"])
@@ -114,7 +116,7 @@ class PluginRuntimeTests(unittest.TestCase):
     def test_project_validator_discovers_specialist_asset_contracts(self) -> None:
         self.apply_bootstrap()
         contract_path = self.project_root / "game-pipeline" / "assets" / "contracts" / "invalid.yaml"
-        contract_path.parent.mkdir(parents=True)
+        contract_path.parent.mkdir(parents=True, exist_ok=True)
         contract_path.write_text("specialist_asset_contract: {}\n", encoding="utf-8", newline="\n")
         result = project_validator.validate_instance(self.project_root, PLUGIN_ROOT)
         self.assertEqual("blocked", result["state"], result)

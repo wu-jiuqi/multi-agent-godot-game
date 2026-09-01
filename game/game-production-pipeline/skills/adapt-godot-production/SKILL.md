@@ -18,6 +18,8 @@ Bridge the engine-agnostic production contract to Godot without changing the app
 7. Verify with the appropriate combination of parser/import checks, automated tests, editor execution, playable build, screenshots, profiler data, and manual play evidence required by the contract.
 8. Return produced artifacts and evidence to the owning production loop. Route qualitative milestones through `$review-game-gates`.
 
+For a Specialist Asset Loop, preserve the Contract's `asset_id + revision + file digest + subject digest` in the handoff, commit required `.import` sidecars, treat `.godot/imported/` only as cache, and provide actual target-scene profiler evidence before A2. Run `validate_specialist_asset_loop.py` before returning the Registry snapshot. Do not edit UI protected paths; an asset-driven UI change is a separate upstream workflow.
+
 ## Failure Routing
 
 - Missing or contradictory game-design input returns to the design owner.

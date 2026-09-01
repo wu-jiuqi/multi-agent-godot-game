@@ -131,7 +131,7 @@ payload_contracts:
     snapshot_effect: "登记、换版或废弃一个 Contract 交付项引用。"
   core.acceptance_recorded:
     required_fields: ["acceptance_kind", "record_id", "subject_digest", "record"]
-    snapshot_effect: "更新自动检查、专业审查或人工 Gate 的当前验收视图。"
+    snapshot_effect: "更新自动检查、专业审查、Asset Gate 或人工 Gate 的当前验收视图；Asset Gate 记录只能引用 Contract，不能复制资产正文。"
   core.interruption_entered:
     required_fields: ["transition_id", "from_state", "to_state", "iteration", "interruption"]
     snapshot_effect: "首次创建中断上下文并保存 resume_state 与 entry_snapshot。"

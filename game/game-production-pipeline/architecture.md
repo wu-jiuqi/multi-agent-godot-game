@@ -227,8 +227,11 @@ Loop Coordinator 禁止自行批准状态转换、修改项目范围、改变长
 
 - 只消费已批准的资产需求和技术规格；
 - 不自行改变游戏机制、关卡目标或叙事事实；
-- 产出源文件、运行时文件、导入结果和使用许可信息；
-- 由内容设计检查表达是否符合意图，由实现 Agent 检查引擎与性能规格，由测试 Agent检查集成结果。
+- 以 Specialist Asset Contract 绑定需求、可编辑 Source、Runtime、权利、版本、导入配方、项目预算实测与返修原因；
+- 在 `specialist-asset-production` Loop 内依次通过 A0 需求、A1 Source、A2 Runtime、A3 集成冻结门禁；
+- Loop Registry 只保存资产 ID、revision、URI、文件摘要、Contract subject digest 和 Gate 证据，不复制资产正文；
+- 由内容设计检查表达是否符合意图，由实现 Agent 检查引擎与性能规格，由测试 Agent 检查集成结果；
+- UI Screen/Flow、布局与交互等领域事实源保持只读，资产循环若需改变它们必须另开上游工作流。
 
 ## 阶段与角色映射
 

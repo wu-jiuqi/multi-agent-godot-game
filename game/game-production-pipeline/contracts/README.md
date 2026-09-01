@@ -12,6 +12,8 @@
 
 项目 Contract 放入 `game-pipeline/assets/contracts/` 后，`validate_project_instance.py` 会自动发现并检查。公共资产管线对 UI 与其他领域事实源固定为只读；只有声明的 generated outputs 可写，任何受保护路径重叠、摘要漂移或反向回写都会阻断验收。
 
+专业资产生产 Loop 使用 [`specialist-asset-production.loop-contract.yaml`](specialist-asset-production.loop-contract.yaml)。进入 `ready/active/review/completed` 时，Registry 必须分别绑定 A0/A0/A2/A3 证据；只保存 `asset_id + revision + URI + file digest + subject digest`，不得复制资产正文。
+
 ## Project Brief
 
 [`project-brief.template.yaml`](project-brief.template.yaml) 定义项目经理启动工作流整理的项目文档基线。它保存事实源、`confirmed / preference / hypothesis / unknown` 结论、开放问题、风险和责任需求；只有 staffing-ready、摘要匹配且有人类审批记录的简报才能进入组织设计。

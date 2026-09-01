@@ -71,6 +71,7 @@ registry_snapshot:
     subject_digest: null
     automated_checks: []
     professional_reviews: []
+    asset_gates: []
     human_gates: []
     final_handoff_ref: null
 
@@ -131,6 +132,7 @@ field_examples:
       digest:
         algorithm: "sha256"
         value: "<64 位小写 SHA-256>"
+      subject_digest: "<专业资产等内容寻址产物的 subject digest；不适用时为 null>"
     source_loop_id: null
     bound_by_event_id: "<core.input_bound 事件 UUID>"
     bound_at: "<ISO 8601 时间>"
@@ -145,6 +147,7 @@ field_examples:
       digest:
         algorithm: "sha256"
         value: "<64 位小写 SHA-256>"
+      subject_digest: "<专业资产等内容寻址产物的 subject digest；不适用时为 null>"
     produced_in_iteration: 1
     lifecycle_status: "draft|submitted|accepted|superseded"
     registered_by_event_id: "<core.output_registered 事件 UUID>"
@@ -161,6 +164,15 @@ field_examples:
     verdict: "approved|revision_required|rejected"
     evidence_ref: "<带版本和摘要的 Evidence Reference>"
     subject_digest: "<审查对象集合的 SHA-256>"
+
+  asset_gate:
+    gate_id: "A0|A1|A2|A3"
+    asset_id: "asset:<project>:<domain>:<name>"
+    revision: 1
+    result: "passed|blocked|awaiting_human|revise"
+    contract_subject_digest: "<64 位小写 SHA-256>"
+    evidence_ref: "<evaluate_specialist_asset_gate.py 输出的版本化引用>"
+    evaluated_at: "<ISO 8601 时间>"
 
   human_gate:
     gate_id: "<Contract gate_id>"

@@ -75,6 +75,10 @@ acceptance:
   success_conditions:
     - "<允许循环完成的可观察条件>"
 
+# 当 loop_contract.loop_type=specialist-asset-production 时，本区块必须存在并通过
+# validate_specialist_asset_loop.py；普通 Loop 保持 null。
+asset_contract_policy: null
+
 state_machine:
   state_machine_id: "LOOP-SM-DEFAULT"
   version: "0.2"

@@ -59,7 +59,7 @@
 - 正式生产前通过 `ASSET-GATE-A0`，消费已批准需求、预算 Profile 与只读领域事实源；
 - 导出或转换前通过 `ASSET-GATE-A1`，提交可编辑 Source、版本、依赖与完整权利链；
 - 集成前通过 `ASSET-GATE-A2`，提交绑定 Source/Recipe digest 的 Runtime、Godot 导入证据和目标场景性能实测；
-- 进入 `GATE-3` 前通过 `ASSET-GATE-A3`，由意图、技术、QA 和权利复核批准同一 subject digest。
+- 进入 `GATE-3` 前通过 `ASSET-GATE-A3`，由 demand、producer、intent、technical、QA 和 rights 六类记录批准同一 subject digest。
 
 跨 Loop 交接必须传递 `asset_id + revision + contract_subject_digest`，不能只传路径。程序继续支持占位资源，不等待所有最终资产才开始。公共资产流程对 UI Screen/Flow、布局和交互事实源只读；若返修需要改变 UI，必须启动独立 UI 变更工作流。
 

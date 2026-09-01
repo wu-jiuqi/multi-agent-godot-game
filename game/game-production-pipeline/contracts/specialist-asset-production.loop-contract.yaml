@@ -1,0 +1,144 @@
+loop_contract:
+  schema_version: "0.2"
+  contract_id: "LOOP-CTR-SPECIALIST-ASSET-PRODUCTION"
+  loop_type: "specialist-asset-production"
+  title: "专业资产生产与集成"
+  version: 1
+  status: "approved"
+
+purpose:
+  objective: "把一项已通过 A0 的资产需求推进为通过 A3、可进入发布候选的冻结资产 revision。"
+  required_deliverables:
+    - deliverable_id: "DELIVERABLE-ASSET-CONTRACT-A3"
+      artifact_type: "specialist-asset-contract"
+      description: "通过 A3 且绑定实际 Source、Runtime、授权、性能和评审证据的冻结 Contract。"
+  out_of_scope:
+    - "修改上游玩法、内容、UI Screen/Flow、布局或交互事实源。"
+    - "替代项目级 GATE-3 内容冻结或 GATE-4 发布批准。"
+
+responsibility:
+  owner_role: "asset-producer"
+  reviewer_roles: [asset-requester, technical-integrator, qa-reviewer, rights-reviewer]
+  required_authority_scope: [produce-specialist-asset, write-declared-generated-output]
+  escalation_to: "pipeline-director"
+
+start:
+  triggers:
+    - trigger_id: "TRIGGER-ASSET-DEMAND-APPROVED"
+      description: "一项 Specialist Asset Contract 的 A0 已通过。"
+  entry_conditions:
+    - condition_id: "ENTRY-ASSET-A0"
+      description: "需求、责任、预算 Profile、只读消费边界和授权可行性已通过 A0。"
+      required_evidence: "evaluate_specialist_asset_gate.py --gate A0 的 pass 结果。"
+  required_inputs:
+    - input_slot_id: "INPUT-ASSET-CONTRACT-A0"
+      artifact_type: "specialist-asset-contract"
+      version_requirement: "同一 asset_id/revision，A0 pass，绑定文件 digest 与 subject digest。"
+      required: true
+
+iteration:
+  task_sequence:
+    - task_id: "TASK-ASSET-SOURCE"
+      responsible_role: "asset-producer"
+      action: "生产并提交可编辑 Source、依赖、版本与权利证据，通过 A1。"
+      expected_output: "A1 gate evidence"
+    - task_id: "TASK-ASSET-RUNTIME"
+      responsible_role: "technical-integrator"
+      action: "按冻结 recipe 构建 Runtime，并在目标场景完成导入、加载和性能实测，通过 A2。"
+      expected_output: "A2 gate evidence"
+    - task_id: "TASK-ASSET-REVIEW"
+      responsible_role: "qa-reviewer"
+      action: "汇总需求、意图、技术、QA 与权利复核，形成 A3 候选。"
+      expected_output: "A3 gate evidence and frozen contract revision"
+  carry_forward:
+    - "asset_id、revision、previous_revision_digest、上游需求和 protected paths。"
+  change_summary_required: true
+  review_rejection:
+    action: "revise_same_loop"
+    increment_iteration: true
+    create_new_loop: false
+
+budget:
+  iteration_limit: 5
+  time_limit: null
+  cost_limit: null
+  on_exhausted: "pause_and_review"
+
+acceptance:
+  automated_checks:
+    - check_id: "CHECK-ASSET-CONTRACT"
+      description: "当前 Contract、repo:// 文件摘要、版本链和目标 Asset Gate 均通过只读校验。"
+      required: true
+    - check_id: "CHECK-ASSET-UI-BOUNDARY"
+      description: "generated outputs 不与 protected paths 重叠，执行前后 UI 等事实源摘要不变。"
+      required: true
+  professional_review:
+    required: true
+    reviewer_role: "qa-reviewer"
+    criteria:
+      - "A3 所需六类评审记录全部绑定当前 contract_subject_digest。"
+      - "无开放返修 issue，权利链与目标平台性能证据完整。"
+  human_gate:
+    required: true
+    gate_id: "ASSET-GATE-A3"
+    question: "指定的需求、意图、技术、QA 和权利责任人是否批准当前冻结摘要？"
+  success_conditions:
+    - "A3 gate evaluation 为 pass。"
+    - "Registry 输出引用的 asset_id、revision、文件 digest 与 subject digest 全部匹配。"
+
+asset_contract_policy:
+  schema_version: "game-production-specialist-asset-loop-binding/v1"
+  required: true
+  input_slot_id: "INPUT-ASSET-CONTRACT-A0"
+  output_deliverable_id: "DELIVERABLE-ASSET-CONTRACT-A3"
+  artifact_type: "specialist-asset-contract"
+  registry_reference_required_fields:
+    - "artifact_id"
+    - "artifact_type"
+    - "version"
+    - "uri"
+    - "digest.algorithm"
+    - "digest.value"
+    - "subject_digest"
+  gate_requirements:
+    ready: "A0"
+    active: "A0"
+    review: "A2"
+    completed: "A3"
+  acceptance_record_kind: "asset-gate"
+  reverse_write_policy: "forbidden; use a separate upstream workflow"
+
+state_machine:
+  state_machine_id: "LOOP-SM-DEFAULT"
+  version: "0.2"
+  allowed_overrides: []
+
+failure_and_exit:
+  blocking_conditions:
+    - "Asset Contract 缺失、文件/subject digest 不匹配或所需 Gate 未通过。"
+    - "权利链 unknown/blocked/expired，或 generated outputs 触碰 protected paths。"
+  rollback:
+    return_to: "A0/A1/A2 对应责任阶段"
+    preserve:
+      - "旧 revision、Event History、失败证据、受影响 Build 和 protected-path snapshot。"
+  cancellation_conditions:
+    - "上游需求撤销、授权永久不可用或项目所有者取消该资产。"
+  final_handoff:
+    receiver_role: "technical-integrator"
+    required_contents:
+      - "asset_id + revision + contract URI + file digest + contract_subject_digest。"
+      - "A3 证据、开放风险、署名要求与需要在项目 GATE-3/GATE-4 重检的事项。"
+
+coordination:
+  allowed_parent_loop_types: [vertical-slice, content-production, release-preparation]
+  dependency_rules:
+    - "上游需求或预算 Profile 变化时，当前 gate evidence 立即 stale 并按原因码返回。"
+  child_loop_creation:
+    allowed: true
+    conditions:
+      - "Source、导入工具或性能修复需要独立、可验收的短循环。"
+    required_authority_scope: [create-specialist-subloop]
+  registry_binding:
+    store_runtime_relationships_in_registry: true
+    store_asset_body_in_registry: false
+    store_only_versioned_references_and_gate_evidence: true

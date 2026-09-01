@@ -16,6 +16,8 @@ Create the project-owned control plane without inventing project direction or si
 5. Do not apply until the user explicitly confirms that exact digest. Then rerun with `--apply --approval-digest <digest>`.
 6. Run `../../scripts/validate_project_instance.py --project-root <root>` and report every warning or blocker.
 
+The initialized control plane must include `game-pipeline/assets/{contracts,budgets,evidence,rights,protected-path-snapshots}/` and `game-pipeline/loops/{contracts,registry}/` README baselines. Do not place the placeholder Asset Contract template in the scanned contracts directory; copy it only when a real asset demand exists and replace every placeholder with project facts.
+
 ## Boundaries
 
 - Initialization may create an empty organization baseline, a blocked project-brief draft, and an initial pending Change Set. It must not activate departments, positions, project Agent Presets, or runtime agents.
@@ -26,4 +28,4 @@ Create the project-owned control plane without inventing project direction or si
 
 ## Outputs
 
-Return the project path, installed plugin identity/version, lock validation result, created or unchanged files, pending human decisions, and the next recommended skill. For first-time setup, route to `$prepare-game-project-brief`; only a confirmed staffing-ready brief may continue to `$design-game-organization`.
+Return the project path, installed plugin identity/version, lock validation result, created or unchanged files, asset/loop control-plane paths, pending human decisions, and the next recommended skill. For first-time setup, route to `$prepare-game-project-brief`; only a confirmed staffing-ready brief may continue to `$design-game-organization`.

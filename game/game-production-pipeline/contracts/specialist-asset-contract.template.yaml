@@ -140,6 +140,12 @@ specialist_asset_contract:
         expected_result: exit-code-0
         status: pending
         evidence_ref: null
+    demand_review:
+      reviewer: null
+      status: pending
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
     producer_self_check:
       reviewer: null
       status: pending

@@ -30,6 +30,7 @@ status: draft
 - 已批准的系统、关卡、交互和资产技术规格；
 - Godot 版本、目标平台、性能预算和仓库规则；
 - 测试报告、变更影响清单和专业资产交付物。
+- 当前 `game-production-specialist-asset/v1` revision、import recipe digest、目标 Gate 与 protected paths。
 
 ## 输出
 
@@ -65,4 +66,3 @@ status: draft
 - 自动测试、无头检查和适用的平台构建通过；
 - 预置节点原则、文件所有权和系统边界得到遵守；
 - 交接列出实现决定、变更文件、风险和重检范围。
-

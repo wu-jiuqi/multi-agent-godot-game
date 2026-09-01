@@ -13,6 +13,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 import validate_specialist_asset_contract as asset_validator  # noqa: E402
+from evaluate_specialist_asset_gate import evaluate_specialist_asset_gate  # noqa: E402
 from pipeline_common import file_digest, load_yaml  # noqa: E402
 
 
@@ -27,15 +28,85 @@ class SpecialistAssetContractTests(unittest.TestCase):
     def contract(self):
         return self.document["specialist_asset_contract"]
 
-    def refresh_digests(self) -> None:
+    def refresh_digests(self, *, bind_runtime: bool = True) -> None:
         contract = self.contract
-        contract["runtime_package"]["source_subject_digest"] = asset_validator.source_subject_digest(contract)
-        contract["runtime_package"]["recipe_digest"] = asset_validator.recipe_digest(contract)
+        if bind_runtime:
+            contract["runtime_package"]["source_subject_digest"] = asset_validator.source_subject_digest(contract)
+            contract["runtime_package"]["recipe_digest"] = asset_validator.recipe_digest(contract)
         subject_digest = asset_validator.asset_subject_digest(self.document)
         for review_name in asset_validator.REVIEW_FIELDS:
             contract["verification"][review_name]["subject_digest"] = subject_digest
         contract["publication"]["frozen_revision_digest"] = subject_digest
         contract["integrity"]["contract_subject_digest"] = subject_digest
+
+    def make_ready_contract(self) -> None:
+        contract = self.contract
+        contract["identity"]["lifecycle_state"] = "ready"
+        contract["source_package"].update(
+            {
+                "editable_truth": [],
+                "intermediate_files": [],
+                "dependencies": [],
+                "version_control": {
+                    "backend": None,
+                    "visibility": None,
+                    "immutable_revision_ref": None,
+                    "exclusive_lock_required": None,
+                },
+            }
+        )
+        contract["import_recipe"] = {
+            "engine_adapter": None,
+            "engine_version": None,
+            "importer": {"name": None, "version": None},
+            "interchange_format": None,
+            "preset_ref": None,
+            "requires_import_sidecar": None,
+            "sidecar_refs": [],
+            "postprocess_ref": None,
+            "toolchain_lock_ref": None,
+            "reproducibility": None,
+            "non_determinism_reason": None,
+        }
+        contract["runtime_package"] = {
+            "source_subject_digest": None,
+            "recipe_digest": None,
+            "outputs": [],
+            "cache_paths": [],
+        }
+        contract["performance"]["measurement_context"] = {
+            "platform": None,
+            "hardware_profile": None,
+            "scenario_ref": None,
+            "build_ref": None,
+        }
+        contract["performance"]["metrics"] = []
+        contract["verification"]["automated_checks"] = []
+        for review_name in asset_validator.REVIEW_FIELDS:
+            contract["verification"][review_name] = {
+                "reviewer": None,
+                "status": "pending",
+                "subject_digest": None,
+                "reviewed_at": None,
+                "evidence_refs": [],
+            }
+        contract["verification"]["demand_review"].update(
+            {
+                "reviewer": contract["responsibility"]["requester"],
+                "status": "approved",
+                "reviewed_at": "2026-09-02T01:00:00Z",
+                "evidence_refs": ["evidence:review:crate-a:demand"],
+            }
+        )
+        contract["publication"].update(
+            {
+                "release_state": "not-ready",
+                "approval_refs": [],
+                "build_refs": [],
+                "released_at": None,
+            }
+        )
+        self.refresh_digests(bind_runtime=False)
 
     def validate(self, **kwargs):
         return asset_validator.validate_specialist_asset_contract(self.document, **kwargs)
@@ -51,6 +122,33 @@ class SpecialistAssetContractTests(unittest.TestCase):
             {"A0": "passed", "A1": "passed", "A2": "passed", "A3": "passed"},
             {name: value["state"] for name, value in result["gate_results"].items()},
         )
+
+    def test_a0_passes_before_source_runtime_and_performance_evidence_exist(self) -> None:
+        self.make_ready_contract()
+        result = self.validate(target_gate="A0")
+        self.assertEqual("valid", result["state"], result)
+        self.assertEqual("passed", result["gate_results"]["A0"]["state"])
+        self.assertEqual([], self.contract["runtime_package"]["outputs"])
+
+    def test_gate_evaluator_separates_pending_human_review_from_blocked(self) -> None:
+        self.make_ready_contract()
+        demand_review = self.contract["verification"]["demand_review"]
+        demand_review.update(
+            {
+                "reviewer": None,
+                "status": "pending",
+                "reviewed_at": None,
+                "evidence_refs": [],
+            }
+        )
+        result = evaluate_specialist_asset_gate(self.document, "A0")
+        self.assertEqual("awaiting_human", result["state"], result)
+        self.assertFalse(result["writes_performed"])
+
+    def test_gate_evaluator_passes_current_approved_example(self) -> None:
+        result = evaluate_specialist_asset_gate(self.document, "A3")
+        self.assertEqual("pass", result["state"], result)
+        self.assertEqual(self.contract["identity"]["asset_id"], result["asset_id"])
 
     def test_unknown_rights_fail_closed(self) -> None:
         self.contract["rights"]["commercial_use"] = "unknown"

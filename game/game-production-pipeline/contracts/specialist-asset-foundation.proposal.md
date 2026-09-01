@@ -158,6 +158,7 @@ specialist_asset_contract:
 
   verification:
     automated_checks: []
+    demand_review: {status: pending, subject_digest: null, evidence_refs: []}
     producer_self_check: {status: pending, subject_digest: null, evidence_refs: []}
     intent_review: {status: pending, subject_digest: null, evidence_refs: []}
     technical_review: {status: pending, subject_digest: null, evidence_refs: []}

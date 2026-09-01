@@ -22,6 +22,12 @@ from validate_organization_registry import validate_change_set, validate_history
 from validate_plugin_lock import evaluate_lock
 from validate_project_brief import validate_project_brief
 from validate_specialist_asset_contract import validate_specialist_asset_contract
+from validate_specialist_asset_loop import (
+    ARTIFACT_TYPE,
+    is_specialist_asset_loop,
+    validate_asset_loop_policy,
+    validate_specialist_asset_loop,
+)
 
 
 BASE_REQUIRED_FILES = (
@@ -32,7 +38,36 @@ BASE_REQUIRED_FILES = (
     "game-pipeline/organization/snapshot.yaml",
     "game-pipeline/organization/event-history.yaml",
 )
-CURRENT_REQUIRED_FILES = BASE_REQUIRED_FILES + ("game-pipeline/project-definition/project-brief.yaml",)
+CURRENT_REQUIRED_FILES = BASE_REQUIRED_FILES + (
+    "game-pipeline/project-definition/project-brief.yaml",
+    "game-pipeline/assets/contracts/README.md",
+    "game-pipeline/assets/budgets/README.md",
+    "game-pipeline/assets/evidence/README.md",
+    "game-pipeline/assets/rights/README.md",
+    "game-pipeline/assets/protected-path-snapshots/README.md",
+    "game-pipeline/loops/contracts/README.md",
+    "game-pipeline/loops/registry/README.md",
+)
+
+
+def snapshot_references_specialist_asset(snapshot_document: object) -> bool:
+    if not isinstance(snapshot_document, dict):
+        return False
+    snapshot = snapshot_document.get("registry_snapshot")
+    if not isinstance(snapshot, dict):
+        return False
+    resources = snapshot.get("resources")
+    if not isinstance(resources, dict):
+        return False
+    for resource_kind in ("inputs", "outputs"):
+        values = resources.get(resource_kind)
+        if not isinstance(values, list):
+            continue
+        for value in values:
+            artifact = value.get("artifact") if isinstance(value, dict) else None
+            if isinstance(artifact, dict) and artifact.get("artifact_type") == ARTIFACT_TYPE:
+                return True
+    return False
 
 
 def nested_mapping(document: dict[str, Any], key: str, path: str, errors: list[str]) -> dict[str, Any]:
@@ -220,6 +255,64 @@ def validate_instance(project_root: Path, source_root: Path | None = None) -> di
         result = validate_specialist_asset_contract(document, previous=previous, project_root=project_root)
         errors.extend(f"Specialist Asset {path.name}: {message}" for message in result["errors"])
         warnings.extend(f"Specialist Asset {path.name}: {message}" for message in result["warnings"])
+        checked.append(path.relative_to(project_root).as_posix())
+
+    loop_contract_dir = project_root / "game-pipeline" / "loops" / "contracts"
+    loop_contracts: dict[str, tuple[Path, dict[str, Any]]] = {}
+    for path in sorted(loop_contract_dir.glob("*.yaml")) if loop_contract_dir.is_dir() else []:
+        try:
+            document = load_yaml(path)
+        except (OSError, ValueError) as exc:
+            errors.append(f"Loop Contract {path.name}: {exc}")
+            continue
+        contract = document.get("loop_contract", {})
+        contract_id = contract.get("contract_id") if isinstance(contract, dict) else None
+        if not isinstance(contract_id, str) or not contract_id:
+            errors.append(f"Loop Contract {path.name}: 缺少 contract_id")
+        elif contract_id in loop_contracts:
+            errors.append(f"Loop Contract: 重复 contract_id: {contract_id}")
+        else:
+            loop_contracts[contract_id] = (path, document)
+        if is_specialist_asset_loop(document):
+            errors.extend(
+                f"Loop Contract {path.name}: {message}"
+                for message in validate_asset_loop_policy(document)
+            )
+        checked.append(path.relative_to(project_root).as_posix())
+
+    loop_registry_dir = project_root / "game-pipeline" / "loops" / "registry"
+    for path in sorted(loop_registry_dir.glob("*/snapshot.yaml")) if loop_registry_dir.is_dir() else []:
+        try:
+            snapshot_document = load_yaml(path)
+        except (OSError, ValueError) as exc:
+            errors.append(f"Loop Registry {path.parent.name}: {exc}")
+            continue
+        binding = snapshot_document.get("registry_snapshot", {}).get("contract_binding", {})
+        contract_id = binding.get("contract_id") if isinstance(binding, dict) else None
+        contract_record = loop_contracts.get(contract_id)
+        has_asset_reference = snapshot_references_specialist_asset(snapshot_document)
+        if has_asset_reference and contract_record is None:
+            errors.append(
+                f"Specialist Asset Loop {path.parent.name}: Registry 引用了专业资产，但找不到绑定的 Loop Contract"
+            )
+        elif has_asset_reference and not is_specialist_asset_loop(contract_record[1]):
+            errors.append(
+                f"Specialist Asset Loop {path.parent.name}: 专业资产引用必须绑定 loop_type=specialist-asset-production"
+            )
+        elif contract_record is not None and is_specialist_asset_loop(contract_record[1]):
+            result = validate_specialist_asset_loop(
+                contract_record[1],
+                snapshot_document,
+                project_root=project_root,
+            )
+            errors.extend(
+                f"Specialist Asset Loop {path.parent.name}: {message}"
+                for message in result["errors"]
+            )
+            warnings.extend(
+                f"Specialist Asset Loop {path.parent.name}: {message}"
+                for message in result["warnings"]
+            )
         checked.append(path.relative_to(project_root).as_posix())
 
     state = "blocked" if errors else lock["state"]

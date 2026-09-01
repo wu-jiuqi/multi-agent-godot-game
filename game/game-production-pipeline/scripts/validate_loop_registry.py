@@ -12,6 +12,15 @@ import sys
 from pathlib import Path
 from typing import Any
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+from validate_specialist_asset_loop import (
+    validate_asset_loop_policy,
+    validate_specialist_asset_loop,
+)
+
 try:
     import yaml
 except ImportError as exc:  # pragma: no cover - environment failure
@@ -462,6 +471,7 @@ def validate_static_contracts(
         errors.append("loop_contract.version 不能为空")
     if machine.get("version") != "0.2":
         errors.append("state_machine.version 必须为 0.2")
+    errors.extend(validate_asset_loop_policy(contract_doc))
 
     required_inputs = contract_root.get("start", {}).get("required_inputs")
     if not isinstance(required_inputs, list):
@@ -695,6 +705,7 @@ def validate_runtime_snapshot(
     contract_doc: Any,
     state_machine_doc: Any,
     record_template_doc: Any | None = None,
+    project_root: Path | None = None,
 ) -> list[str]:
     """Validate an active/materialized Snapshot without draft-only invariants."""
     errors = validate_snapshot_structure(snapshot_doc, state_machine_doc)
@@ -756,6 +767,12 @@ def validate_runtime_snapshot(
             errors.append(f"Snapshot 引用了未知 deliverable_id: {deliverable_id}")
     if len(snapshot_output_ids) != len(set(snapshot_output_ids)):
         errors.append("Snapshot resources.outputs 的 deliverable_id 不得重复")
+    asset_result = validate_specialist_asset_loop(
+        contract_doc,
+        snapshot_doc,
+        project_root=project_root,
+    )
+    errors.extend(f"Specialist Asset Loop: {message}" for message in asset_result["errors"])
     return errors
 
 
@@ -987,6 +1004,11 @@ def main() -> int:
         type=Path,
         help="运行态模式可选的独立 draft Record Template；不得替代 --snapshot",
     )
+    parser.add_argument(
+        "--project-root",
+        type=Path,
+        help="专业资产 Loop 运行态必须提供，用于核对 Contract 文件、摘要和 Gate",
+    )
     args = parser.parse_args()
 
     if args.record_template is not None and args.history is None:
@@ -1022,7 +1044,11 @@ def main() -> int:
             errors.extend(validate_record_template(record_template_doc, documents[3]))
         errors.extend(
             validate_runtime_snapshot(
-                documents[0], documents[2], documents[3], record_template_doc
+                documents[0],
+                documents[2],
+                documents[3],
+                record_template_doc,
+                args.project_root,
             )
         )
         errors.extend(

@@ -17,7 +17,9 @@
     │   ├── evidence/               # 导入、性能、评审与授权证据
     │   ├── rights/                 # 许可证、合同与取得证明
     │   └── protected-path-snapshots/ # UI 等只读事实源摘要
-    ├── loops/                      # 生产循环实例
+    ├── loops/
+    │   ├── contracts/              # 项目采用的版本化 Loop Contract
+    │   └── registry/               # 循环 Snapshot/Event；资产只存引用与 Gate 证据
     ├── project-definition/         # 经确认的项目文档基线与编制输入
     └── organization/
         ├── snapshot.yaml

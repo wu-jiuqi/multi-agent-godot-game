@@ -1,5 +1,9 @@
 # Registry 契约
 
+## P0 专业资产公共底座提案
+
+[`specialist-asset-foundation.proposal.md`](specialist-asset-foundation.proposal.md) 提出统一专业资产需求、Source、Runtime、权利、版本、导入配方、性能证据和返修路由的横向 Contract。当前状态是 `draft-proposal`，尚未成为生效模板或机器门禁；其中明确规定公共资产管线对 UI 事实源只读，不得替代或反向覆盖 UI 回写工作流。
+
 ## Project Brief
 
 [`project-brief.template.yaml`](project-brief.template.yaml) 定义项目经理启动工作流整理的项目文档基线。它保存事实源、`confirmed / preference / hypothesis / unknown` 结论、开放问题、风险和责任需求；只有 staffing-ready、摘要匹配且有人类审批记录的简报才能进入组织设计。

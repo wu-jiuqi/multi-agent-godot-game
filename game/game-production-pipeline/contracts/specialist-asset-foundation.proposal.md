@@ -1,6 +1,8 @@
 # P0 专业资产公共底座 Contract 提案
 
-状态：`draft-proposal`
+状态：`p0-executable-baseline`
+
+本研究提案已落地为 [`specialist-asset-acceptance.md`](specialist-asset-acceptance.md)、[`specialist-asset-contract.template.yaml`](specialist-asset-contract.template.yaml)、[`examples/specialist-asset-static-prop.yaml`](examples/specialist-asset-static-prop.yaml) 和只读校验器 [`../scripts/validate_specialist_asset_contract.py`](../scripts/validate_specialist_asset_contract.py)。本文保留问题背景、取舍与外部资料；以上验收标准和机器契约是当前执行基线。
 
 适用阶段：P2/P4/P5 需求定义、P6 专业资产生产、P7 集成、P8 验收、P9 发布
 
@@ -230,15 +232,15 @@ draft
 - 如果资产返修需要改变 UI 布局、组件状态或交互意图，必须新开 UI 变更工作流，不能由资产返修直接反向覆盖。
 - 首个回放测试必须在执行前后比较 UI protected paths 的摘要，证明零写入。
 
-## P0 落地顺序
+## P0 落地结果
 
-1. 固化 Schema、状态机、原因码和摘要规范，生成 `specialist-asset-contract.template.yaml`。
-2. 实现只读校验器，先检查稳定 ID、路径、SHA-256、Source/Runtime 分层、授权 fail-closed、版本失效、预算证据和角色分离。
-3. 增加一份非 UI 的 3D 静态道具合法样例，以及缺授权、配方漂移、性能超预算、覆盖冻结版本等失败夹具。
-4. 在 Godot 适配层登记 `.import`/`.godot`、glTF/GLB、预置场景、导入脚本和目标平台测量规则。
-5. 将垂直切片 P6 改为消费 Asset Contract 的 ID、版本和 digest；不改 P0～P5 领域事实源。
-6. 完成端到端回放：需求 → Source → Runtime → 导入 → 测量 → 四方复核 → 批准 → 修改 Source → 自动 stale → 返修 → 再批准。
-7. 最后增加一个 UI 只读消费夹具，验证资产流程不会改动 UI protected paths；它不是 UI 回写方案的替代实现。
+1. 已固化 Schema、状态、原因码、摘要规范和 Contract 模板。
+2. 已实现只读校验器，覆盖稳定 ID、真实文件 SHA-256、Source/Runtime 分层、授权 fail-closed、版本失效、预算证据和评审分离。
+3. 已增加非 UI 的 Godot 3D 静态道具合法样例，以及缺授权、配方漂移、性能超预算、冻结版本覆盖和 UI 路径冲突等自动测试。
+4. 已在 Godot 适配层登记 `.import`/`.godot`、glTF/GLB、预置场景、导入脚本和目标平台测量规则。
+5. 已将垂直切片 P6 接到 Asset Contract 的 ID、revision 和 digest，不修改 P0～P5 领域事实源。
+6. 已由摘要失效、上一 revision 绑定和原因码返修规则覆盖端到端版本回放。
+7. 已通过只读文件测试和 protected path 冲突测试证明资产校验不改 UI 源文件；它不实现、替代或改变 UI 回写方案。
 
 ## P0 验收标准
 
@@ -262,13 +264,19 @@ draft
 
 - [Godot Import process](https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/import_process.html)
 - [Godot Import configuration](https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_3d_scenes/import_configuration.html)
+- [Godot Profiler](https://docs.godotengine.org/en/stable/tutorials/scripting/debug/the_profiler.html)
 - [Godot Visibility ranges (HLOD)](https://docs.godotengine.org/en/stable/tutorials/3d/visibility_ranges.html)
-- [Open 3D Engine Asset Pipeline](https://docs.o3de.org/docs/user-guide/assets/pipeline/)
+- [Open 3D Engine Source Assets](https://www.docs.o3de.org/docs/user-guide/assets/pipeline/source-assets/)
+- [Open 3D Engine Product Assets 与确定性要求](https://www.docs.o3de.org/docs/user-guide/assets/pipeline/product-assets/)
 - [Unity Asset Manager Basic concepts](https://docs.unity.com/en-us/cloud/asset-manager/basic-concepts)
 - [Unity Asset Versioning](https://docs.unity.com/en-us/cloud/asset-manager/asset-versioning)
+- [Unity Asset Manager 3D metadata extraction](https://docs.unity.com/en-us/cloud/asset-manager/metadata-extraction)
 - [SPDX License Expressions 3.0.1](https://spdx.github.io/spdx-spec/v3.0.1/annexes/spdx-license-expressions/)
+- [SPDX Lite 文件校验和](https://spdx.github.io/spdx-spec/v3.0.1/annexes/spdx-lite/)
 - [Khronos glTF Runtime 3D Asset Delivery](https://www.khronos.org/gltf/)
 - [Git Large File Storage](https://git-lfs.com/)
+- [B 站：技术美术百人计划——资源规范](https://www.bilibili.com/video/BV13Q4y1Y78C/)
+- [B 站：UE 美术资产审计与整理](https://www.bilibili.com/video/BV1R24y1P7Nv/)
 - [B 站：Blender 到 Godot 完整工作流](https://www.bilibili.com/video/BV1XKNAePEnX/)
 - [B 站：纹理导入设置检查与优化](https://www.bilibili.com/video/BV1gT4y1C7yS/)
-- [B 站：Blender 到 Godot 游戏就绪资产与 LOD](https://www.bilibili.com/video/BV1Jqxpz2E89/)
+- [B 站：美术资源规范——面数、骨骼、贴图与 LOD](https://www.bilibili.com/video/BV17N4y117Uw/)

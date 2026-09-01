@@ -1,8 +1,16 @@
 # Registry 契约
 
-## P0 专业资产公共底座提案
+## P0 专业资产公共底座
 
-[`specialist-asset-foundation.proposal.md`](specialist-asset-foundation.proposal.md) 提出统一专业资产需求、Source、Runtime、权利、版本、导入配方、性能证据和返修路由的横向 Contract。当前状态是 `draft-proposal`，尚未成为生效模板或机器门禁；其中明确规定公共资产管线对 UI 事实源只读，不得替代或反向覆盖 UI 回写工作流。
+`game-production-specialist-asset/v1` 已形成可执行基线，用统一 Contract 串起需求、Source、Runtime、权利、版本、导入配方、性能证据与返修路由：
+
+- [`specialist-asset-acceptance.md`](specialist-asset-acceptance.md)：四级门禁、P0 验收标准、失败返回与回放路径；
+- [`specialist-asset-contract.template.yaml`](specialist-asset-contract.template.yaml)：项目可直接复制的 Contract 模板；
+- [`examples/specialist-asset-static-prop.yaml`](examples/specialist-asset-static-prop.yaml)：已通过四道门的 Godot 3D 静态道具样例；
+- [`../scripts/validate_specialist_asset_contract.py`](../scripts/validate_specialist_asset_contract.py)：只读机器校验器；
+- [`specialist-asset-foundation.proposal.md`](specialist-asset-foundation.proposal.md)：问题研究、外部依据和方案决策记录。
+
+项目 Contract 放入 `game-pipeline/assets/contracts/` 后，`validate_project_instance.py` 会自动发现并检查。公共资产管线对 UI 与其他领域事实源固定为只读；只有声明的 generated outputs 可写，任何受保护路径重叠、摘要漂移或反向回写都会阻断验收。
 
 ## Project Brief
 

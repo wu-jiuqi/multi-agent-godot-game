@@ -1,0 +1,230 @@
+specialist_asset_contract:
+  schema_version: game-production-specialist-asset/v1
+  identity:
+    asset_id: asset:sample-game:environment:crate-a
+    project_id: sample-game
+    asset_kind: 3d-model
+    display_name: 仓储木箱 A
+    revision: 1
+    previous_revision_digest: null
+    lifecycle_state: approved
+
+  demand:
+    request_id: request:sample-game:crate-a
+    upstream_refs:
+      - artifact_id: design:sample-game:environment-props
+        version: 3
+        uri: repo://game-pipeline/project-definition/environment-props.yaml
+        sha256: "1111111111111111111111111111111111111111111111111111111111111111"
+    use_contexts: [level:sample-game:warehouse]
+    player_facing_outcome: 玩家能识别、绕行并利用木箱作为仓库环境中的掩体。
+    acceptance_intent:
+      - 与批准的低饱和工业风格一致。
+      - 从主要玩法镜头可清楚辨认轮廓，碰撞不阻断批准路线。
+    target_milestone: vertical-slice-gate-3
+    priority: p0
+
+  responsibility:
+    requester: position:sample-game:content-lead
+    producer: position:sample-game:environment-artist
+    intent_reviewer: position:sample-game:content-lead
+    technical_integrator: position:sample-game:godot-implementer
+    qa_reviewer: position:sample-game:qa-release
+    rights_reviewer: human:sample-game-owner
+
+  consumer_boundary:
+    authoritative_source_refs: [design:sample-game:environment-props]
+    access: read_only
+    generated_output_paths: [game/assets/runtime/environment/crate-a]
+    protected_paths: [game/scenes/ui, game-pipeline/project-definition]
+    protected_path_snapshot_ref:
+      artifact_id: evidence:sample-game:protected-paths:crate-a-r1
+      version: 1
+      uri: repo://game-pipeline/assets/protected-path-snapshots/crate-a-r1.yaml
+      sha256: "2222222222222222222222222222222222222222222222222222222222222222"
+    reverse_write_requires_separate_workflow: true
+
+  source_package:
+    editable_truth:
+      - file_id: source:crate-a:master
+        uri: repo://assets-source/environment/crate-a/crate-a.blend
+        sha256: "3333333333333333333333333333333333333333333333333333333333333333"
+        format: blend
+        tool:
+          name: Blender
+          version: 4.5.3-lts
+    intermediate_files:
+      - file_id: intermediate:crate-a:gltf
+        uri: repo://game/assets/source/environment/crate-a/crate-a.glb
+        sha256: "4444444444444444444444444444444444444444444444444444444444444444"
+        format: glb
+    dependencies: []
+    version_control:
+      backend: git-lfs
+      visibility: private
+      immutable_revision_ref: commit:0123456789abcdef
+      exclusive_lock_required: true
+
+  rights:
+    provenance: original
+    creator_or_supplier: studio:sample-game
+    source_uri: repo://game-pipeline/assets/rights/crate-a-provenance.yaml
+    license_expression: LicenseRef-Project-Owned
+    license_text_or_contract_ref: rights:sample-game:project-owned-content
+    acquisition_proof_ref: evidence:sample-game:crate-a-authorship
+    commercial_use: allowed
+    modification: allowed
+    compiled_distribution: allowed
+    raw_redistribution: forbidden
+    attribution_required: false
+    attribution_text: null
+    platform_scope: [windows, linux]
+    territory_scope: [worldwide]
+    expires_at: null
+    ai_use_restrictions: [not-approved-for-model-training]
+    clearance_state: cleared
+
+  import_recipe:
+    engine_adapter: godot
+    engine_version: 4.5.1
+    importer:
+      name: Godot glTF scene importer
+      version: 4.5.1
+    interchange_format: glb
+    preset_ref:
+      artifact_id: import-preset:sample-game:static-prop
+      version: 2
+      uri: repo://game-pipeline/assets/evidence/import-presets/static-prop-v2.yaml
+      sha256: "5555555555555555555555555555555555555555555555555555555555555555"
+    requires_import_sidecar: true
+    sidecar_refs:
+      - artifact_id: import-sidecar:sample-game:crate-a
+        version: 1
+        uri: repo://game/assets/source/environment/crate-a/crate-a.glb.import
+        sha256: "6666666666666666666666666666666666666666666666666666666666666666"
+    postprocess_ref: null
+    toolchain_lock_ref:
+      artifact_id: toolchain-lock:sample-game:asset-pipeline
+      version: 4
+      uri: repo://game-pipeline/assets/evidence/toolchain-lock.yaml
+      sha256: "7777777777777777777777777777777777777777777777777777777777777777"
+    reproducibility: deterministic
+    non_determinism_reason: null
+
+  runtime_package:
+    source_subject_digest: "252deef9d6a9c7ac2f0ec55de376d32e9ae910a05b833c08cfaa7ad01f37b378"
+    recipe_digest: "5d0abd683bcbc4a093af3ccb5c6555ef08fed829a94acc5d07c1b6884fee10c6"
+    outputs:
+      - file_id: runtime:crate-a:desktop:scene
+        uri: repo://game/assets/runtime/environment/crate-a/crate-a.tscn
+        platform: desktop
+        role: scene
+        format: tscn
+        sha256: "8888888888888888888888888888888888888888888888888888888888888888"
+    cache_paths: [.godot/imported]
+
+  performance:
+    budget_profile_ref:
+      artifact_id: budget:sample-game:desktop-static-prop
+      version: 2
+      uri: repo://game-pipeline/assets/budgets/desktop-static-prop-v2.yaml
+      sha256: "9999999999999999999999999999999999999999999999999999999999999999"
+    measurement_context:
+      platform: windows
+      hardware_profile: min-spec-gpu
+      scenario_ref: perf-scene:sample-game:warehouse-20-crates
+      build_ref: build:sample-game:vertical-slice-42
+    metrics:
+      - metric_id: triangles-lod0
+        comparison: lte
+        limit: 5000
+        unit: count
+        measured: 3214
+        result: passed
+        evidence_ref: evidence:perf:crate-a:triangles
+      - metric_id: material-slots
+        comparison: lte
+        limit: 2
+        unit: count
+        measured: 2
+        result: passed
+        evidence_ref: evidence:perf:crate-a:materials
+      - metric_id: scene-load-p95
+        comparison: lte
+        limit: 8
+        unit: ms
+        measured: 4.6
+        result: passed
+        evidence_ref: evidence:perf:crate-a:load-p95
+
+  verification:
+    automated_checks:
+      - check_id: asset-contract
+        command: python scripts/validate_specialist_asset_contract.py game-pipeline/assets/contracts/crate-a.r0001.yaml --project-root .
+        expected_result: exit-code-0
+        status: passed
+        evidence_ref: evidence:check:crate-a:contract
+      - check_id: godot-import
+        command: godot --headless --editor --path game --quit
+        expected_result: exit-code-0-and-no-import-error
+        status: passed
+        evidence_ref: evidence:check:crate-a:godot-import
+      - check_id: scene-load
+        command: godot --headless --path game --path-to-scene res://assets/runtime/environment/crate-a/crate-a.tscn
+        expected_result: exit-code-0
+        status: passed
+        evidence_ref: evidence:check:crate-a:scene-load
+    producer_self_check: &approved_review
+      reviewer: position:sample-game:environment-artist
+      status: approved
+      subject_digest: "2d3a6031ba76d3934455ed5f511583225635f0ea2c4d6b250007da27f15035eb"
+      reviewed_at: "2026-09-02T03:00:00Z"
+      evidence_refs: [evidence:review:crate-a:producer]
+    intent_review:
+      <<: *approved_review
+      reviewer: position:sample-game:content-lead
+      evidence_refs: [evidence:review:crate-a:intent]
+    technical_review:
+      <<: *approved_review
+      reviewer: position:sample-game:godot-implementer
+      evidence_refs: [evidence:review:crate-a:technical]
+    qa_review:
+      <<: *approved_review
+      reviewer: position:sample-game:qa-release
+      evidence_refs: [evidence:review:crate-a:qa]
+    rights_review:
+      <<: *approved_review
+      reviewer: human:sample-game-owner
+      evidence_refs: [evidence:review:crate-a:rights]
+
+  rework:
+    allowed_reason_codes: [REQ, SRC, RGT, IMP, PERF, REG, SCOPE]
+    current_issues: []
+    history:
+      - issue_id: issue:sample-game:crate-a:001
+        reason_code: PERF
+        found_on_revision: 1
+        resolution: 合并重复材质槽并重新测量仓库场景。
+        resolved_by: position:sample-game:environment-artist
+        resolved_at: "2026-09-02T02:30:00Z"
+        evidence_refs: [evidence:rework:crate-a:001]
+
+  publication:
+    release_state: approved
+    frozen_revision_digest: "2d3a6031ba76d3934455ed5f511583225635f0ea2c4d6b250007da27f15035eb"
+    approval_refs: [approval:sample-game:asset:crate-a-r1]
+    attribution_manifest_ref: null
+    build_refs: []
+    released_at: null
+    withdrawal_reason: null
+
+  domain_extension:
+    static_3d:
+      unit_scale: 1-meter
+      origin_policy: bottom-center
+      collision_policy: simplified-convex
+      lod_policy: automatic-plus-visual-review
+      material_policy: shared-standard-material
+
+  integrity:
+    contract_subject_digest: "2d3a6031ba76d3934455ed5f511583225635f0ea2c4d6b250007da27f15035eb"

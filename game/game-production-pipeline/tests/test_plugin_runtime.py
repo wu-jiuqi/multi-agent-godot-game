@@ -111,6 +111,16 @@ class PluginRuntimeTests(unittest.TestCase):
         self.assertEqual("normal", result["state"], result)
         self.assertEqual([], result["errors"])
 
+    def test_project_validator_discovers_specialist_asset_contracts(self) -> None:
+        self.apply_bootstrap()
+        contract_path = self.project_root / "game-pipeline" / "assets" / "contracts" / "invalid.yaml"
+        contract_path.parent.mkdir(parents=True)
+        contract_path.write_text("specialist_asset_contract: {}\n", encoding="utf-8", newline="\n")
+        result = project_validator.validate_instance(self.project_root, PLUGIN_ROOT)
+        self.assertEqual("blocked", result["state"], result)
+        self.assertIn("game-pipeline/assets/contracts/invalid.yaml", result["checked"])
+        self.assertIn("Specialist Asset invalid.yaml", "\n".join(result["errors"]))
+
     def test_version_mismatch_is_read_only_and_migration_is_blocked_without_migrator(self) -> None:
         self.apply_bootstrap()
         lock_path = self.project_root / "game-pipeline" / "plugin-lock.yaml"

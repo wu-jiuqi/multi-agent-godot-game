@@ -1,0 +1,191 @@
+specialist_asset_contract:
+  schema_version: game-production-specialist-asset/v1
+  identity:
+    asset_id: asset:<project>:<domain>:<name>
+    project_id: <project>
+    asset_kind: ui|2d-art|3d-model|animation|vfx|audio|font|video|other
+    display_name: <display-name>
+    revision: 1
+    previous_revision_digest: null
+    lifecycle_state: draft
+
+  demand:
+    request_id: request:<project>:<id>
+    upstream_refs:
+      - artifact_id: <approved-upstream-artifact-id>
+        version: 1
+        uri: repo://<path>
+        sha256: <64-lowercase-hex>
+    use_contexts: [<scene-or-system>]
+    player_facing_outcome: <observable-player-facing-result>
+    acceptance_intent: [<observable-qualitative-condition>]
+    target_milestone: <milestone>
+    priority: p0|p1|p2
+
+  responsibility:
+    requester: <position-or-human-id>
+    producer: <position-or-human-id>
+    intent_reviewer: <position-or-human-id>
+    technical_integrator: <position-or-human-id>
+    qa_reviewer: <position-or-human-id>
+    rights_reviewer: <position-or-human-id>
+
+  consumer_boundary:
+    authoritative_source_refs: [<upstream-artifact-id>]
+    access: read_only
+    generated_output_paths: [<repo-relative-generated-directory>]
+    protected_paths: [<repo-relative-authoritative-source-directory>]
+    protected_path_snapshot_ref:
+      artifact_id: <protected-path-snapshot-id>
+      version: 1
+      uri: repo://game-pipeline/assets/protected-path-snapshots/<snapshot>.yaml
+      sha256: <64-lowercase-hex>
+    reverse_write_requires_separate_workflow: true
+
+  source_package:
+    editable_truth:
+      - file_id: source:<asset-id>:master
+        uri: repo://<source-path>
+        sha256: <64-lowercase-hex>
+        format: <dcc-format>
+        tool:
+          name: <dcc-name>
+          version: <pinned-version>
+    intermediate_files: []
+    dependencies: []
+    version_control:
+      backend: git|git-lfs|perforce|external-dam
+      visibility: private|public
+      immutable_revision_ref: <commit-or-dam-version>
+      exclusive_lock_required: false
+
+  rights:
+    provenance: original|commissioned|marketplace|open-license|generated|mixed
+    creator_or_supplier: <identity>
+    source_uri: <controlled-uri>
+    license_expression: <SPDX-expression-or-LicenseRef-id>
+    license_text_or_contract_ref: <evidence-id>
+    acquisition_proof_ref: <evidence-id>
+    commercial_use: allowed|conditional|forbidden|unknown
+    modification: allowed|conditional|forbidden|unknown
+    compiled_distribution: allowed|conditional|forbidden|unknown
+    raw_redistribution: allowed|conditional|forbidden|unknown
+    attribution_required: false
+    attribution_text: null
+    platform_scope: [all]
+    territory_scope: [worldwide]
+    expires_at: null
+    ai_use_restrictions: []
+    clearance_state: unknown
+
+  import_recipe:
+    engine_adapter: generic|godot
+    engine_version: <pinned-engine-version>
+    importer:
+      name: <importer-name>
+      version: <importer-version>
+    interchange_format: <format>
+    preset_ref:
+      artifact_id: <import-preset-id>
+      version: 1
+      uri: repo://<preset-path>
+      sha256: <64-lowercase-hex>
+    requires_import_sidecar: true
+    sidecar_refs: []
+    postprocess_ref: null
+    toolchain_lock_ref:
+      artifact_id: <toolchain-lock-id>
+      version: 1
+      uri: repo://<toolchain-lock-path>
+      sha256: <64-lowercase-hex>
+    reproducibility: deterministic|best-effort
+    non_determinism_reason: null
+
+  runtime_package:
+    source_subject_digest: null
+    recipe_digest: null
+    outputs:
+      - file_id: runtime:<asset-id>:<platform>:primary
+        uri: repo://<runtime-path>
+        platform: <platform-profile>
+        role: primary|lod|collision|material|texture|stream|scene|other
+        format: <runtime-format>
+        sha256: <64-lowercase-hex>
+    cache_paths: [.godot/imported]
+
+  performance:
+    budget_profile_ref:
+      artifact_id: <budget-profile-id>
+      version: 1
+      uri: repo://game-pipeline/assets/budgets/<profile>.yaml
+      sha256: <64-lowercase-hex>
+    measurement_context:
+      platform: <platform-profile>
+      hardware_profile: <hardware-profile>
+      scenario_ref: <repeatable-scenario-id>
+      build_ref: <build-id>
+    metrics:
+      - metric_id: <metric-id>
+        comparison: lte|gte|eq
+        limit: 0
+        unit: bytes|ms|count|db_lufs|kbps|percent|other
+        measured: null
+        result: pending
+        evidence_ref: null
+
+  verification:
+    automated_checks:
+      - check_id: asset-structure
+        command: <repeatable-command>
+        expected_result: exit-code-0
+        status: pending
+        evidence_ref: null
+    producer_self_check:
+      reviewer: null
+      status: pending
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
+    intent_review:
+      reviewer: null
+      status: pending
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
+    technical_review:
+      reviewer: null
+      status: pending
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
+    qa_review:
+      reviewer: null
+      status: pending
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
+    rights_review:
+      reviewer: null
+      status: pending
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
+
+  rework:
+    allowed_reason_codes: [REQ, SRC, RGT, IMP, PERF, REG, SCOPE]
+    current_issues: []
+    history: []
+
+  publication:
+    release_state: not-ready
+    frozen_revision_digest: null
+    approval_refs: []
+    attribution_manifest_ref: null
+    build_refs: []
+    released_at: null
+    withdrawal_reason: null
+
+  domain_extension: {}
+
+  integrity:
+    contract_subject_digest: null

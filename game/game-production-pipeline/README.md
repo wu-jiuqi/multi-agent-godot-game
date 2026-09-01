@@ -2,7 +2,7 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.4.0-alpha.3`。它修复 Loop Registry 运行态 CLI 的 draft 模板误报，新增独立 record template 输入、静态契约检查与 active Snapshot/Event History 重放路径；仍需通过更多真实游戏项目验证，不是 Production Ready。
+当前版本：`v0.4.0-alpha.4`。它把专业资产公共底座接入 Bootstrap、P6 生产 Loop、Asset Gate Review、Loop Registry、Godot 适配与项目总校验，并提供从已发行版本受控迁移的完整路径；仍需通过真实项目资产与目标平台预算回放验证，不是 Production Ready。
 
 ## 层级
 
@@ -78,9 +78,9 @@ python scripts/validate_project_instance.py --project-root D:\Game\MyProject
 
 脚本拒绝覆盖现有非托管文件。版本不一致进入 `read_only`，相同版本但框架摘要不一致进入 `blocked`；不得手工改写 `plugin-lock.yaml` 绕过迁移。
 
-## 迁移到 v0.4.0-alpha.3
+## 迁移到 v0.4.0-alpha.4
 
-`v0.4.0-alpha.3` 支持从已发行且框架摘要位于白名单内的 `v0.3.0-alpha.1` 或 `v0.4.0-alpha.2` 显式迁移。`alpha.2→alpha.3` 只更新 `AGENTS.md` managed block、审批记录和 `plugin-lock.yaml`，并把迁移前 Event History 摘要纳入计划与迁移后检查；不会修改 Snapshot、Event History、Contract、游戏内容、组织快照、Change Set、Agent Preset 或 Skill Binding。未知摘要、损坏 managed block 或计划后文件漂移都会 fail closed。
+`v0.4.0-alpha.4` 支持从白名单内的 `v0.3.0-alpha.1`、`v0.4.0-alpha.2` 或 `v0.4.0-alpha.3` 显式迁移。迁移只补充专业资产与 Loop Registry 控制面 README、更新 `AGENTS.md` managed block、写审批记录并最后更新 `plugin-lock.yaml`；已有 README 逐字节保留，不修改现有 Asset Contract、Snapshot、Event History、游戏内容、UI 事实源、组织快照、Change Set、Agent Preset 或 Skill Binding。未知摘要、损坏 managed block 或计划后文件漂移都会 fail closed。
 
 先在项目 Git 工作区干净且已有额外备份的前提下执行 dry-run。保存输出中的 `migration_at` 和 `plan_digest`：
 
@@ -134,9 +134,11 @@ python scripts/validate_project_brief.py `
 
 ## 专业资产公共底座
 
-项目把每项正式资产的 Contract 放入 `game-pipeline/assets/contracts/`。Contract 统一绑定批准需求、可编辑 Source、Runtime、权利链、不可变 revision、导入配方、项目预算实测、五类评审与原因码返修；详细标准见 [`contracts/specialist-asset-acceptance.md`](contracts/specialist-asset-acceptance.md)，可直接复制 [`contracts/specialist-asset-contract.template.yaml`](contracts/specialist-asset-contract.template.yaml)。
+项目把每项正式资产的 Contract 放入 `game-pipeline/assets/contracts/`。Contract 统一绑定批准需求、可编辑 Source、Runtime、权利链、不可变 revision、导入配方、项目预算实测、六类评审与原因码返修；详细标准见 [`contracts/specialist-asset-acceptance.md`](contracts/specialist-asset-acceptance.md)，可直接复制 [`contracts/specialist-asset-contract.template.yaml`](contracts/specialist-asset-contract.template.yaml)。
 
 `validate_project_instance.py` 会自动发现这些 Contract，并以项目根目录核对 `repo://` 文件及 SHA-256。公共资产层仅消费 UI 等领域事实源，不拥有也不回写 UI 方案；生成路径与 protected paths 重叠时直接阻断。
+
+P6 专业资产使用 [`contracts/specialist-asset-production.loop-contract.yaml`](contracts/specialist-asset-production.loop-contract.yaml)。Loop Registry 只保存资产 Contract 的稳定 ID、revision、URI、文件 SHA-256、subject digest 与 Asset Gate 证据；`ready/active/review/completed` 分别要求 A0/A0/A2/A3。`evaluate_specialist_asset_gate.py` 只生成证据和审批摘要，不写人工决定。
 
 ## 项目 Agent Preset
 
@@ -213,6 +215,8 @@ python -m unittest discover -s tests -p 'test_*.py' -v
 python scripts/validate_pipeline_contract.py contracts/examples/vertical-slice-greybox.yaml
 python scripts/validate_project_brief.py contracts/examples/sample-project-brief.yaml --project-id sample-game
 python scripts/validate_specialist_asset_contract.py contracts/examples/specialist-asset-static-prop.yaml
+python scripts/evaluate_specialist_asset_gate.py contracts/examples/specialist-asset-static-prop.yaml --gate A3
+python -c "import sys,yaml; from pathlib import Path; sys.path.insert(0,'scripts'); import validate_loop_registry as v; docs=[yaml.safe_load(Path(p).read_text(encoding='utf-8')) for p in ['contracts/loop-registry-event.template.yaml','contracts/specialist-asset-production.loop-contract.yaml','contracts/loop-state-machine.default.yaml']]; assert not v.validate_static_contracts(*docs)"
 python scripts/validate_organization_registry.py --templates --snapshot contracts/examples/organization-alpha-snapshot.yaml --change-set contracts/examples/organization-alpha-change-set.yaml
 python scripts/render_organization.py --snapshot contracts/examples/organization-alpha-snapshot.yaml --change-set contracts/examples/organization-alpha-change-set.yaml --view change --scope dept:sample-game:design --format mermaid
 python scripts/validate_text_encoding.py --plugin-root .
@@ -223,6 +227,7 @@ python scripts/build_release.py --plugin-root . --output-dir ..\..\dist
 
 - 治理层仍是文件契约与确定性校验器，没有强制拦截所有手工文件修改的 MCP 或 Hook。
 - Registry 没有数据库事务适配器；脚本会预检和原子写单文件，但不能提供跨文件数据库级事务。
-- v0.3→v0.4.0-alpha.3 迁移只覆盖已发行 `v0.3.0-alpha.1` 的三个已知框架摘要；alpha.2→alpha.3 只接受框架摘要 `3589bce5cf4388f91a08f12acb5d90679256191d5085e65687d06a635bbdcd32`。其他开发快照和更早版本会 fail closed。
+- 迁移仅覆盖白名单内的 v0.3、alpha.2 和 alpha.3 摘要；其他开发快照和更早版本会 fail closed。alpha.3 同时接受已发布候选版与首次 P0 资产基线进入主分支时的已知摘要。
 - 目前只有 Godot 适配层，Unity 和其他引擎尚未验证。
+- 专业资产公共底座已形成机器闭环，但仍需要首个真实项目提供目标平台预算 Profile、真实 DCC/导入链和发布资产回放证据。
 - 迁移器不会自动操作任何现有游戏项目；每个项目都必须单独在隔离副本验证、审阅计划摘要，再决定是否迁移原项目。

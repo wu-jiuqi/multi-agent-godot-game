@@ -1,0 +1,132 @@
+loop_contract:
+  schema_version: "0.2"
+  contract_id: "LOOP-CTR-ART-DIRECTION-PRODUCTION"
+  loop_type: "art-direction-production"
+  title: "主美方向探索、基准与生产冻结"
+  version: 1
+  status: "approved"
+
+purpose:
+  objective: "把已确认的项目体验与约束推进为通过 D4、可指导多域资产生产的美术方向 revision。"
+  required_deliverables:
+    - deliverable_id: "DELIVERABLE-ART-DIRECTION-D4"
+      artifact_type: "art-direction-contract"
+      description: "通过 D4、绑定风格圣经、跨域翻译、技术预算、权利和引擎基准的冻结 Contract。"
+  out_of_scope:
+    - "修改游戏规则、故事事实、UI Screen/Flow、布局行为、交互逻辑或 Godot 架构。"
+    - "代替项目内容冻结、发行批准或法律意见。"
+
+responsibility:
+  owner_role: "art-director"
+  reviewer_roles: [game-director, game-designer, technical-integrator, qa-reviewer, rights-reviewer]
+  required_authority_scope: [direct-game-art, write-art-direction-output]
+  escalation_to: "pipeline-director"
+
+start:
+  triggers:
+    - trigger_id: "TRIGGER-ART-DIRECTION-NEEDED"
+      description: "项目需要建立或重大修订跨域美术方向。"
+  entry_conditions:
+    - condition_id: "ENTRY-APPROVED-BRIEF"
+      description: "项目简报、设计支柱、平台、范围和人工方向责任人已确认。"
+      required_evidence: "project-brief approval 与有效 Art Director Position/authority。"
+  required_inputs:
+    - input_slot_id: "INPUT-PROJECT-BRIEF"
+      artifact_type: "project-brief"
+      version_requirement: "approved and digest-bound"
+      required: true
+
+iteration:
+  task_sequence:
+    - task_id: "TASK-ART-D0"
+      responsible_role: "art-director"
+      action: "把体验、可读性、范围、平台和权利约束整理为 D0 简报。"
+      expected_output: "D0 evaluation and brief review"
+    - task_id: "TASK-ART-D1"
+      responsible_role: "art-director"
+      action: "联网研究并给出至少三条实质不同的方向、推荐和代价。"
+      expected_output: "D1 evaluation and exploration review"
+    - task_id: "TASK-ART-D2"
+      responsible_role: "game-director"
+      action: "对当前 direction_subject_digest 选择、拒绝或要求修订。"
+      expected_output: "D2 human direction approval"
+    - task_id: "TASK-ART-D3"
+      responsible_role: "art-director"
+      action: "完成风格语言、跨域翻译和代表性引擎基准，与技术集成者实测。"
+      expected_output: "D3 benchmark evidence"
+    - task_id: "TASK-ART-D4"
+      responsible_role: "qa-reviewer"
+      action: "复核风格、可读性、技术预算、权利、返工和生产冻结证据。"
+      expected_output: "D4 candidate and owner approval package"
+  carry_forward:
+    - "art_direction_id、revision、阶段摘要、已批准选向、研究来源和返工历史。"
+  change_summary_required: true
+  review_rejection:
+    action: "revise_same_loop"
+    increment_iteration: true
+    create_new_loop: false
+
+budget:
+  iteration_limit: 6
+  time_limit: null
+  cost_limit: null
+  on_exhausted: "pause_and_review"
+
+acceptance:
+  automated_checks:
+    - check_id: "CHECK-ART-DIRECTION-CONTRACT"
+      description: "结构、阶段摘要、来源、跨域覆盖、Profile、预算、权利和评审记录通过只读校验。"
+      required: true
+    - check_id: "CHECK-ART-BENCHMARK"
+      description: "代表性引擎基准在目标构建覆盖所有 required_domains 并绑定实测证据。"
+      required: true
+  professional_review:
+    required: true
+    reviewer_role: "qa-reviewer"
+    criteria:
+      - "方向具有一致的不变量和足够的受控变化。"
+      - "玩法层级、关键状态、UI 视觉和性能预算均有目标构建证据。"
+      - "生产者、主美、技术、QA 与权利评审没有被同一自审替代。"
+  human_gate:
+    required: true
+    gate_id: "ART-DIRECTION-D2-D4"
+    question: "项目所有者是否批准核心画风选择及其最终生产冻结摘要？"
+  success_conditions:
+    - "D4 gate evaluation 为 pass。"
+    - "风格圣经、基准、技术 Profile、权利记录和所有开放返工均与冻结摘要一致。"
+
+state_machine:
+  state_machine_id: "LOOP-SM-DEFAULT"
+  version: "0.2"
+  allowed_overrides: []
+
+failure_and_exit:
+  blocking_conditions:
+    - "项目简报、Art Director 权限、研究来源、人工选向、目标构建、权利或预算证据缺失。"
+    - "主美方案要求越权修改玩法、UI 结构或工程事实源。"
+  rollback:
+    return_to: "D0/D1/D2/D3 对应责任阶段"
+    preserve:
+      - "旧 revision、阶段摘要、研究、被拒方案、评审、返工和目标构建证据。"
+  cancellation_conditions:
+    - "项目方向撤销、范围取消或项目所有者终止本次方向工作。"
+  final_handoff:
+    receiver_role: "pipeline-director"
+    required_contents:
+      - "art_direction_id + revision + Contract URI + file digest + contract_subject_digest。"
+      - "风格圣经、翻译矩阵、技术 Profile、D4 证据、权利限制和下游影响。"
+
+coordination:
+  allowed_parent_loop_types: [project-definition, vertical-slice, content-production, release-preparation]
+  dependency_rules:
+    - "项目简报或已批准选向变化时，对应阶段及下游证据立即 stale。"
+    - "D3 前不得启动大规模最终资产生产；UI 结构变化必须创建独立 UI workflow。"
+  child_loop_creation:
+    allowed: true
+    conditions:
+      - "style frame、技术验证或代表性资产需要独立、短期、可验收的执行循环。"
+    required_authority_scope: [create-specialist-subloop]
+  registry_binding:
+    store_runtime_relationships_in_registry: true
+    store_artifact_body_in_registry: false
+    store_only_versioned_references_and_gate_evidence: true

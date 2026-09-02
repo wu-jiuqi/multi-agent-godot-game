@@ -1,0 +1,223 @@
+art_direction_contract:
+  schema_version: game-production-art-direction/v1
+  identity:
+    art_direction_id: artdir:clockwork-garden:verdant-precision
+    project_id: clockwork-garden
+    display_name: Verdant Precision
+    revision: 1
+    previous_revision_digest: null
+    lifecycle_state: production_ready
+  responsibility:
+    owner: position:clockwork-garden:art-director
+    game_director: human:owner
+    game_designer: position:clockwork-garden:game-designer
+    technical_integrator: position:clockwork-garden:technical-art
+    qa_reviewer: position:clockwork-garden:qa
+    rights_reviewer: human:rights-reviewer
+  scope:
+    required_domains: [character, environment, props, vfx, animation, ui]
+    asset_modes: [2d, 3d]
+    target_platforms: [windows-mid]
+    camera_and_gameplay_contexts: [isometric-combat, inventory-overlay, dusk-boss-arena]
+    out_of_scope: [UI Screen/Flow and interaction logic, marketing key art]
+  brief:
+    project_brief_ref:
+      artifact_id: brief:clockwork-garden
+      version: 3
+      uri: repo://game-pipeline/project-definition/project-brief.yaml
+      sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+    player_experience_goal: Feel like a careful gardener restoring a dangerous living machine.
+    gameplay_readability_goals: [read hazards before beauty, distinguish growth from corruption, preserve interactable silhouettes]
+    game_pillars: [deliberate restoration, readable systemic combat, tender machinery]
+    visual_problem: Join botanical warmth and mechanical precision without losing isometric combat clarity.
+    creative_constraints: [small team, fixed isometric camera, 60 fps on mid-tier PC, one-year production]
+    anti_goals: [generic steampunk clutter, photoreal grime, color-only state communication]
+  research:
+    researched_at: "2026-09-02T03:00:00Z"
+    source_refs:
+      - source_id: source:gdc:unique-art-direction
+        title: Building a Unique Art Direction Without Breaking the Game
+        uri: https://www.gdcvault.com/play/1028954/Art-Direction-Summit-Building-a
+        source_kind: primary
+        rights_use: reference-only
+        extracted_principles: [derive art pillars from experience and constraints, document wanted and avoided examples]
+        avoid_copying: [do not reproduce presentation images or another game's visual identity]
+      - source_id: source:gdc:aaa-ui-video
+        title: Art Direction for AAA UI
+        uri: https://www.youtube.com/watch?v=kjbxxbmJCh0
+        source_kind: video
+        rights_use: reference-only
+        extracted_principles: [carry shape language and signature elements from concept through motion and interaction]
+        avoid_copying: [do not reuse UI layouts, icons, type treatments, or textures]
+      - source_id: source:godot:import
+        title: Godot Import Process
+        uri: https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/import_process.html
+        source_kind: secondary
+        rights_use: reference-only
+        extracted_principles: [version authored import settings while treating generated cache as disposable]
+        avoid_copying: [do not treat documentation samples as project art direction]
+    outside_game_influences: [Victorian botanical diagrams, escapement mechanisms, greenhouse ironwork]
+    audience_and_genre_findings: [isometric hazards need coarse value grouping, cozy cues must not soften threat telegraphs]
+  style_exploration:
+    minimum_option_count: 3
+    options:
+      - option_id: option:verdant-precision
+        title: Verdant Precision
+        thesis: Clean brass mechanisms held in tension by broad living growth.
+        signature: paired leaf arcs locked against ratcheted geometric frames
+        differentiation_axes: [broad organic silhouette versus precise inner detail, warm life versus cool hazard]
+        experience_fit: Makes restoration gentle while keeping machine states legible.
+        production_cost: medium; modular hard-surface kit plus controlled foliage cards
+        technical_risk: transparent foliage overdraw needs strict coverage budgets
+        ui_translation: leaf arcs become selection brackets and ratchet teeth become progress divisions
+        evidence_refs: [evidence:style-frame:verdant-precision]
+      - option_id: option:inked-herbarium
+        title: Inked Herbarium
+        thesis: Flattened scientific plates animate into a tactile stage.
+        signature: offset ink contours over compressed paper-like depth
+        differentiation_axes: [graphic line dominance, low material variation, theatrical depth]
+        experience_fit: Strong authorship and readable shapes, but less mechanical tactility.
+        production_cost: high; bespoke line cleanup across animation and 3D
+        technical_risk: temporal line stability and aliasing
+        ui_translation: annotation marks and specimen labels form the visual hierarchy
+        evidence_refs: [evidence:style-frame:inked-herbarium]
+      - option_id: option:nocturne-glasshouse
+        title: Nocturne Glasshouse
+        thesis: Dark glass volumes reveal luminous biological machinery inside.
+        signature: translucent black masses cut by pulsing seed-like cores
+        differentiation_axes: [deep value compression, emissive focal points, refractive surfaces]
+        experience_fit: Mysterious and memorable, but risks hiding navigation detail.
+        production_cost: high; transparency, lighting, and VFX tuning dominate
+        technical_risk: fill rate, sorting, and accessibility in dark scenes
+        ui_translation: dark panes and pulsing cores become panels and alerts
+        evidence_refs: [evidence:style-frame:nocturne-glasshouse]
+    selected_option_id: option:verdant-precision
+    recommendation: Select Verdant Precision for the best balance of signature, readability, modular production, and UI transfer.
+  style_bible:
+    art_pillars:
+      - {pillar_id: art:living-tension, statement: life pushes against measured frames, player_effect: hopeful pressure}
+      - {pillar_id: art:readable-causality, statement: state changes alter silhouette before detail, player_effect: confident prediction}
+      - {pillar_id: art:tender-craft, statement: wear shows care and repair rather than neglect, player_effect: attachment}
+    invariants: [broad silhouette before surface detail, warm life and cool danger use redundant shape cues, one dominant focal contrast per gameplay cluster]
+    controlled_variations: [biome changes plant geometry, faction changes fastener rhythm, rarity changes inner glow frequency]
+    language:
+      shape: {rule: pair swelling organic arcs with restrained toothed frames, avoid: evenly mixed random curves and gears}
+      silhouette: {rule: state and role read from the outer contour at gameplay distance, avoid: relying on texture motifs}
+      proportion: {rule: mechanisms are compact and plants occupy the larger readable mass, avoid: spindly equal-weight parts}
+      line_edge: {rule: life uses soft broken edges while machines use deliberate stepped edges, avoid: uniform outlines}
+      value: {rule: group actors into three coarse value bands with one focal break, avoid: full-range noise on every asset}
+      color: {rule: warm living neutrals oppose cool cyan-violet hazards with shape redundancy, avoid: color-only state coding}
+      material_surface: {rule: brushed brass, chalky ceramic, waxed leaf, and clean repair seams, avoid: generic rusty grunge}
+      lighting: {rule: broad greenhouse light plus local state-emitting cores, avoid: decorative point lights that compete with targets}
+      composition_camera: {rule: diagonal growth guides the eye toward objective clearings, avoid: foliage closing navigation lanes}
+      detail_density: {rule: concentrate fine detail inside safe inspection zones, avoid: uniform microdetail at play distance}
+      graphic_design: {rule: botanical arcs frame measured ticks and labels, avoid: unrelated ornate Victorian borders}
+      motion: {rule: growth anticipates softly then releases with precise mechanical stops, avoid: identical easing for life and machine}
+      vfx: {rule: converging leaf particles predict activation before a clean radial snap, avoid: opaque full-screen bloom}
+      ui_visual: {rule: leaf brackets identify selection while ratchet divisions quantify progress, avoid: skeuomorphic gear panels}
+    semantic_cues:
+      - {meaning: hazard, primary_channel: inward-pointing angular silhouette, redundant_channel: cool pulsing core}
+      - {meaning: interactable, primary_channel: paired leaf bracket, redundant_channel: short breathing motion}
+    accessibility_constraints: [critical state never uses color alone, text contrast follows the project accessibility target, repeated flashes remain below platform limits]
+    positive_example_refs: [evidence:bible:positive-board]
+    negative_example_refs: [evidence:bible:avoid-board]
+  translation_matrix:
+    mappings:
+      - element_id: art:living-tension
+        source_rule: broad organic arc held by precise measured frame
+        domains:
+          - {domain: character, rule: leaf-like outer limbs around compact joint blocks, evidence_ref: evidence:benchmark:character}
+          - {domain: environment, rule: vine diagonals terminate in iron grid clearings, evidence_ref: evidence:benchmark:environment}
+          - {domain: props, rule: organic handle silhouette encloses indexed mechanical state, evidence_ref: evidence:benchmark:props}
+          - {domain: vfx, rule: soft converging growth resolves into a hard radial stop, evidence_ref: evidence:benchmark:vfx}
+          - {domain: animation, rule: soft anticipation ends on a precise held key, evidence_ref: evidence:benchmark:animation}
+          - {domain: ui, rule: leaf brackets contain measured tick groups without changing screen structure, evidence_ref: evidence:benchmark:ui}
+  technical_profiles:
+    two_d:
+      enabled: true
+      source_formats: [kra, svg]
+      runtime_formats: [png, webp]
+      color_space: sRGB color with linear data exceptions documented
+      alpha_policy: straight alpha with edge dilation
+      filtering: linear for illustration; nearest only for declared pixel assets
+      mipmap_policy: enabled for world textures; disabled for fixed-resolution UI icons
+      compression_policy: lossless for UI and masks; GPU texture compression for world color
+      max_texture_dimension: 4096
+      atlas_policy: group by lifecycle and material; preserve padding across mip levels
+    three_d:
+      enabled: true
+      units: 1 unit equals 1 meter
+      axis_convention: Godot Y-up with authored forward axis recorded per exporter
+      source_formats: [blend]
+      runtime_format: glTF 2.0 via Godot scene import
+      mesh_budget_ref: budget:clockwork-garden:mesh-role-v2
+      material_budget_ref: budget:clockwork-garden:materials-v2
+      lod_policy: three LODs for large repeated actors; visibility range evidence required
+      skeleton_policy: shared rigs by role; deformation bones and attachments counted separately
+      texture_policy: trim sheets for frames and tileable foliage sets with fixed texel tiers
+    ui:
+      enabled: true
+      reference_viewports: [1920x1080, 1280x800, 1080x1920]
+      scale_policy: container-driven responsive layout with visual tokens independent of pixel size
+      safe_area_policy: platform safe-area inset is a UI workflow fact
+      typography_ref: style:clockwork-garden:type-v1
+      token_ref: style:clockwork-garden:theme-v1
+      contrast_policy: project WCAG-derived contrast targets plus in-engine capture review
+      localization_policy: visual frames allow expansion and RTL mirroring; layout remains UI-owned
+      structural_workflow_boundary: read-only; UI structure changes require a separate UI workflow
+  performance:
+    budget_profile_ref: budget:clockwork-garden:vertical-slice-v2
+    measurement_context:
+      platform: windows-mid
+      hardware_profile: gpu-gtx1660-cpu-6core
+      scenario_ref: scenario:dusk-boss-arena:stress-v3
+      build_ref: build:clockwork-garden:0.3.17
+    metrics:
+      - {metric_id: frame-time-gpu, unit: ms, comparator: '<=', limit: 16.6, measured: 13.8, result: passed, evidence_ref: evidence:profile:gpu-v3}
+      - {metric_id: transparent-overdraw-coverage, unit: percent, comparator: '<=', limit: 35, measured: 27, result: passed, evidence_ref: evidence:profile:overdraw-v3}
+      - {metric_id: ui-draw-calls, unit: count, comparator: '<=', limit: 120, measured: 84, result: passed, evidence_ref: evidence:profile:ui-v3}
+  benchmark:
+    in_engine: true
+    benchmark_id: benchmark:clockwork-garden:dusk-arena-v3
+    scene_ref: game/scenes/benchmarks/art_direction_dusk_arena.tscn
+    target_platform: windows-mid
+    build_ref: build:clockwork-garden:0.3.17
+    covered_domains: [character, environment, props, vfx, animation, ui]
+    style_frame_refs: [evidence:style-frame:verdant-precision, evidence:style-frame:ui-overlay]
+    capture_refs: [evidence:capture:dusk-arena-still, evidence:capture:dusk-arena-motion]
+    readability_evidence_refs: [evidence:test:hazard-recognition, evidence:test:interactable-recognition]
+  rights:
+    clearance_state: cleared
+    reference_register_ref: rights:clockwork-garden:art-references-v3
+    release_clearance_ref: rights:clockwork-garden:direction-clearance-v1
+    generative_ai_policy: concept-only
+    ai_use_records: []
+    attribution_required: false
+    attribution_manifest_ref: null
+  verification:
+    automated_checks:
+      - {check_id: check:art-contract, command: validate_art_direction_contract.py, status: passed, evidence_ref: evidence:check:art-contract}
+      - {check_id: check:target-benchmark, command: godot --headless benchmark validation, status: passed, evidence_ref: evidence:check:benchmark}
+    brief_review: {reviewer: position:clockwork-garden:game-designer, status: approved, subject_digest: 1ac600d0c229f4315c537f721125a6f21210cb5eb6706d498cb8a3961ee6c2b9, reviewed_at: "2026-09-02T04:00:00Z", evidence_refs: [evidence:review:brief]}
+    exploration_review: {reviewer: position:clockwork-garden:game-designer, status: approved, subject_digest: a822e487736ef53ae2af8d84de5641edcb5f8cf139021c997efe42c33742f52f, reviewed_at: "2026-09-02T05:00:00Z", evidence_refs: [evidence:review:exploration]}
+    direction_approval: {reviewer: human:owner, status: approved, subject_digest: 085d82bd55dda1db5f7e772b3aecca6e41f1c21081b4997773b5cb3475e06fd3, reviewed_at: "2026-09-02T06:00:00Z", evidence_refs: [approval:clockwork-garden:art-direction-v1]}
+    benchmark_art_review: {reviewer: position:clockwork-garden:art-director, status: approved, subject_digest: bac19458e8efa0e75449461ea35f5f2fc45bb0efd7632cf1c72a37a7e88be11f, reviewed_at: "2026-09-02T08:00:00Z", evidence_refs: [evidence:review:benchmark-art]}
+    benchmark_technical_review: {reviewer: position:clockwork-garden:technical-art, status: approved, subject_digest: bac19458e8efa0e75449461ea35f5f2fc45bb0efd7632cf1c72a37a7e88be11f, reviewed_at: "2026-09-02T08:30:00Z", evidence_refs: [evidence:review:benchmark-tech]}
+    qa_review: {reviewer: position:clockwork-garden:qa, status: approved, subject_digest: ec635eb0689e883d25f9c528f3bd78e91b21f4d04e28143770df54e98612c8c9, reviewed_at: "2026-09-02T09:00:00Z", evidence_refs: [evidence:review:qa]}
+    rights_review: {reviewer: human:rights-reviewer, status: approved, subject_digest: ec635eb0689e883d25f9c528f3bd78e91b21f4d04e28143770df54e98612c8c9, reviewed_at: "2026-09-02T09:15:00Z", evidence_refs: [evidence:review:rights]}
+  rework:
+    allowed_reason_codes: [BRIEF, RESEARCH, DIRECTION, STYLE, READABILITY, TECH, PERF, RIGHTS, UI_BOUNDARY, REGRESSION]
+    current_issues: []
+    history: []
+  publication:
+    release_state: approved
+    frozen_revision_digest: ec635eb0689e883d25f9c528f3bd78e91b21f4d04e28143770df54e98612c8c9
+    approval_refs: [approval:clockwork-garden:art-direction-production-ready]
+    released_at: "2026-09-02T09:30:00Z"
+    withdrawal_reason: null
+  integrity:
+    brief_subject_digest: 1ac600d0c229f4315c537f721125a6f21210cb5eb6706d498cb8a3961ee6c2b9
+    exploration_subject_digest: a822e487736ef53ae2af8d84de5641edcb5f8cf139021c997efe42c33742f52f
+    direction_subject_digest: 085d82bd55dda1db5f7e772b3aecca6e41f1c21081b4997773b5cb3475e06fd3
+    benchmark_subject_digest: bac19458e8efa0e75449461ea35f5f2fc45bb0efd7632cf1c72a37a7e88be11f
+    contract_subject_digest: ec635eb0689e883d25f9c528f3bd78e91b21f4d04e28143770df54e98612c8c9

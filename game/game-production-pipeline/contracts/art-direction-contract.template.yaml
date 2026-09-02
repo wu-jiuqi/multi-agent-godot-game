@@ -1,0 +1,173 @@
+art_direction_contract:
+  schema_version: "game-production-art-direction/v1"
+  identity:
+    art_direction_id: "artdir:<project-id>:<direction-slug>"
+    project_id: "<project-id>"
+    display_name: "<方向名称>"
+    revision: 1
+    previous_revision_digest: null
+    lifecycle_state: "draft"
+
+  responsibility:
+    owner: "position:<project-id>:art-director"
+    game_director: "human:<owner>"
+    game_designer: "position:<project-id>:game-designer"
+    technical_integrator: "position:<project-id>:technical-art"
+    qa_reviewer: "position:<project-id>:qa"
+    rights_reviewer: "human:<rights-reviewer>"
+
+  scope:
+    required_domains: [character, environment, props, vfx, animation, ui]
+    asset_modes: [2d, 3d]
+    target_platforms: ["<platform>"]
+    camera_and_gameplay_contexts: ["<代表性镜头与玩法场景>"]
+    out_of_scope: ["UI Screen/Flow、布局行为与交互逻辑"]
+
+  brief:
+    project_brief_ref:
+      artifact_id: "brief:<project-id>"
+      version: 1
+      uri: "repo://game-pipeline/project-definition/project-brief.yaml"
+      sha256: "<64位小写 SHA-256>"
+    player_experience_goal: "<玩家应感受、识别与记住什么>"
+    gameplay_readability_goals: ["<必须被可靠识别的信息>"]
+    game_pillars: ["<已批准游戏支柱>"]
+    visual_problem: "<主美需要解决的视觉问题>"
+    creative_constraints: ["<范围、文化、平台、团队、预算或时间约束>"]
+    anti_goals: ["<明确不要的结果>"]
+
+  research:
+    researched_at: null
+    source_refs: []
+    outside_game_influences: []
+    audience_and_genre_findings: []
+
+  style_exploration:
+    minimum_option_count: 3
+    options: []
+    selected_option_id: null
+    recommendation: null
+
+  style_bible:
+    art_pillars: []
+    invariants: []
+    controlled_variations: []
+    language:
+      shape: {rule: null, avoid: null}
+      silhouette: {rule: null, avoid: null}
+      proportion: {rule: null, avoid: null}
+      line_edge: {rule: null, avoid: null}
+      value: {rule: null, avoid: null}
+      color: {rule: null, avoid: null}
+      material_surface: {rule: null, avoid: null}
+      lighting: {rule: null, avoid: null}
+      composition_camera: {rule: null, avoid: null}
+      detail_density: {rule: null, avoid: null}
+      graphic_design: {rule: null, avoid: null}
+      motion: {rule: null, avoid: null}
+      vfx: {rule: null, avoid: null}
+      ui_visual: {rule: null, avoid: null}
+    semantic_cues: []
+    accessibility_constraints: []
+    positive_example_refs: []
+    negative_example_refs: []
+
+  translation_matrix:
+    mappings: []
+
+  technical_profiles:
+    two_d:
+      enabled: true
+      source_formats: []
+      runtime_formats: []
+      color_space: null
+      alpha_policy: null
+      filtering: null
+      mipmap_policy: null
+      compression_policy: null
+      max_texture_dimension: null
+      atlas_policy: null
+    three_d:
+      enabled: true
+      units: null
+      axis_convention: null
+      source_formats: []
+      runtime_format: null
+      mesh_budget_ref: null
+      material_budget_ref: null
+      lod_policy: null
+      skeleton_policy: null
+      texture_policy: null
+    ui:
+      enabled: true
+      reference_viewports: []
+      scale_policy: null
+      safe_area_policy: null
+      typography_ref: null
+      token_ref: null
+      contrast_policy: null
+      localization_policy: null
+      structural_workflow_boundary: "read-only; UI structure changes require a separate UI workflow"
+
+  performance:
+    budget_profile_ref: "<预算事实源引用>"
+    measurement_context:
+      platform: null
+      hardware_profile: null
+      scenario_ref: null
+      build_ref: null
+    metrics: []
+
+  benchmark:
+    in_engine: false
+    benchmark_id: null
+    scene_ref: null
+    target_platform: null
+    build_ref: null
+    covered_domains: []
+    style_frame_refs: []
+    capture_refs: []
+    readability_evidence_refs: []
+
+  rights:
+    clearance_state: "unknown"
+    reference_register_ref: null
+    release_clearance_ref: null
+    generative_ai_policy: "forbidden"
+    ai_use_records: []
+    attribution_required: null
+    attribution_manifest_ref: null
+
+  verification:
+    automated_checks: []
+    brief_review: &pending_review
+      reviewer: null
+      status: "pending"
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
+    exploration_review: *pending_review
+    direction_approval: *pending_review
+    benchmark_art_review: *pending_review
+    benchmark_technical_review: *pending_review
+    qa_review: *pending_review
+    rights_review: *pending_review
+
+  rework:
+    allowed_reason_codes: [BRIEF, RESEARCH, DIRECTION, STYLE, READABILITY, TECH, PERF, RIGHTS, UI_BOUNDARY, REGRESSION]
+    current_issues: []
+    history: []
+
+  publication:
+    release_state: "not-ready"
+    frozen_revision_digest: null
+    approval_refs: []
+    released_at: null
+    withdrawal_reason: null
+
+  integrity:
+    brief_subject_digest: null
+    exploration_subject_digest: null
+    direction_subject_digest: null
+    benchmark_subject_digest: null
+    contract_subject_digest: null

@@ -14,6 +14,8 @@
 
 专业资产生产 Loop 使用 [`specialist-asset-production.loop-contract.yaml`](specialist-asset-production.loop-contract.yaml)。进入 `ready/active/review/completed` 时，Registry 必须分别绑定 A0/A0/A2/A3 证据；只保存 `asset_id + revision + URI + file digest + subject digest`，不得复制资产正文。
 
+主美方向使用 [`art-direction-contract.template.yaml`](art-direction-contract.template.yaml)、[`art-direction-acceptance.md`](art-direction-acceptance.md) 与 [`art-direction-production.loop-contract.yaml`](art-direction-production.loop-contract.yaml)。D0–D4 分别约束方向简报、研究探索、人工选向、引擎基准和生产冻结；阶段摘要彼此隔离，Registry 只保存版本化引用和 Gate 证据，不复制风格圣经或研究正文。
+
 ## Project Brief
 
 [`project-brief.template.yaml`](project-brief.template.yaml) 定义项目经理启动工作流整理的项目文档基线。它保存事实源、`confirmed / preference / hypothesis / unknown` 结论、开放问题、风险和责任需求；只有 staffing-ready、摘要匹配且有人类审批记录的简报才能进入组织设计。

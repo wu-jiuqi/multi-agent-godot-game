@@ -1,0 +1,4 @@
+interface:
+  display_name: "主美方向与验收"
+  short_description: "建立并验收可扩展到 UI 的游戏美术方向与生产规范"
+  default_prompt: "Use $direct-game-art to research, propose, benchmark, and govern a production-ready game art direction."

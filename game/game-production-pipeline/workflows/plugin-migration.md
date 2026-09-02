@@ -22,17 +22,20 @@
 - 当前插件根目录；
 - 迁移时间 `migration_at`；
 - apply 阶段的人类批准摘要与批准者；
+- Skill Binding 发生变化时，其独立批准摘要与批准者；
 - rollback 阶段的计划摘要和重复确认摘要。
 
 ## dry-run 输出
 
-`game-production-plugin-migration-plan/v2` 至少包含：
+`game-production-plugin-migration-plan/v3` 至少包含：
 
 - 项目路径和项目 ID；
 - 源/目标插件版本；
 - 源/目标 framework digest；
 - 显式 migrator 路径；
 - 每个目标文件的动作、写入前摘要和写入后摘要；
+- 每个插件 Skill 的旧/新摘要、Skill Binding 新 subject digest 与独立审批记录路径；
+- 全部受影响 `.codex/agents/*.toml` 的重建动作；
 - 冲突、错误、警告与后置验证；
 - `migration_at`、`plan_digest` 和备份位置。
 
@@ -42,17 +45,18 @@ dry-run 不创建目录、备份、审批或项目文件。
 
 1. 以相同 `migration_at` 重新生成计划；
 2. 比较人工提供的 `approval_digest` 与当前 `plan_digest`；
-3. 复核所有目标文件的当前字节摘要；
-4. 在 `game-pipeline/.cache/migrations/<plan_digest>/` 保存逐字节备份和清单；
-5. 写入新增控制面文件与安全的结构化更新；
-6. 更新摘要验证通过的 managed block；
-7. 写入不可变人工审批记录；
-8. 最后更新 plugin lock；
-9. 要求 plugin lock 和项目实例校验均为 `normal`；
-10. 再次规划必须返回 `no_change`；
-11. 把备份清单标记为 `applied`。
+3. 若 Skill Binding 改变，独立比较 `binding_approval_digest` 与新的绑定 subject digest；
+4. 复核所有目标文件的当前字节摘要；
+5. 在 `game-pipeline/.cache/migrations/<plan_digest>/` 保存逐字节备份和清单；
+6. 写入控制面、Skill Binding 与全部受影响的托管 Agent Adapter；
+7. 更新摘要验证通过的 managed block；
+8. 分别写入迁移计划和 Skill Binding 的不可变人工审批记录；
+9. 最后更新 plugin lock；
+10. 要求 plugin lock 和项目实例校验均为 `normal`；
+11. 再次规划必须返回 `no_change`；
+12. 把备份清单标记为 `applied`。
 
-步骤 5～10 任一失败时，执行器自动从备份按字节恢复，并把清单标记为 `auto_rolled_back`。
+步骤 6～11 任一失败时，执行器自动从备份按字节恢复，并把清单标记为 `auto_rolled_back`。
 
 ## 人工判断
 
@@ -62,6 +66,7 @@ dry-run 不创建目录、备份、审批或项目文件。
 - 计划列出的文件影响是否可接受；
 - 当前 Git 状态和项目外部备份是否足够；
 - 项目所有者身份是否正确；
+- Skill Binding 的新摘要是否应获得独立批准；
 - 迁移后 blocked 项目简报应如何补全；
 - 是否保留迁移，还是在继续编辑前回退。
 

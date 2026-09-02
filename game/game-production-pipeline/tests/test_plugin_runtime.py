@@ -24,10 +24,13 @@ import validate_text_encoding as encoding_validator  # noqa: E402
 from pipeline_common import (  # noqa: E402
     AGENT_PRESET_SCHEMA,
     APPROVAL_SCHEMA,
+    SKILL_BINDING_CANONICALIZATION,
+    SKILL_BINDING_PROPOSAL_SCHEMA,
     SKILL_BINDINGS_SCHEMA,
     directory_digest,
     dump_yaml,
     load_yaml,
+    skill_binding_subject_digest,
 )
 
 
@@ -203,7 +206,38 @@ class PluginRuntimeTests(unittest.TestCase):
                     ],
                 }
             ]
+            binding_digest = skill_binding_subject_digest(bindings["skill_bindings"])
+            binding_approval_id = f"approval:test-game:skill-binding:{binding_digest[:12]}"
+            bindings["skill_binding_proposal"] = {
+                "schema_version": SKILL_BINDING_PROPOSAL_SCHEMA,
+                "proposal_id": "binding:test-game:approved-agent-skills",
+                "status": "approved",
+                "canonicalization": SKILL_BINDING_CANONICALIZATION,
+                "digest_scope": "skill_bindings 中递归排除 approval_id 的全部字段",
+                "subject_digest": binding_digest,
+                "approval_id": binding_approval_id,
+                "preset_count": 1,
+                "binding_count": 1,
+                "unique_skill_count": 1,
+            }
             bindings_path.write_text(dump_yaml(bindings), encoding="utf-8")
+            binding_approval = {
+                "approval": {
+                    "schema_version": APPROVAL_SCHEMA,
+                    "approval_id": binding_approval_id,
+                    "subject_kind": "skill-binding",
+                    "subject_id": "binding:test-game:approved-agent-skills",
+                    "subject_digest": binding_digest,
+                    "decision": "approved",
+                    "decided_by": "human:owner",
+                    "decided_at": CREATED_AT,
+                    "evidence": {"change_set_id": "chg:test-game:approved-bindings"},
+                }
+            }
+            self.write_yaml(
+                f"game-pipeline/approvals/skill-binding-{binding_digest[:12]}.yaml",
+                binding_approval,
+            )
 
         if approved and create_approval:
             approval = {
@@ -258,6 +292,18 @@ class PluginRuntimeTests(unittest.TestCase):
         plan, _ = generator.build_generation_plan(self.project_root, PLUGIN_ROOT)
         self.assertFalse(plan["can_apply"])
         self.assertTrue(any("审批" in error for error in plan["errors"]))
+
+    def test_missing_independent_skill_binding_approval_blocks_generation(self) -> None:
+        self.apply_bootstrap()
+        self.create_agent_preset()
+        bindings = load_yaml(self.project_root / "game-pipeline" / "bindings" / "skill-bindings.yaml")
+        approval_id = bindings["skill_binding_proposal"]["approval_id"]
+        for path in (self.project_root / "game-pipeline" / "approvals").glob("skill-binding-*.yaml"):
+            if load_yaml(path)["approval"]["approval_id"] == approval_id:
+                path.unlink()
+        plan, _ = generator.build_generation_plan(self.project_root, PLUGIN_ROOT)
+        self.assertFalse(plan["can_apply"])
+        self.assertIn("独立人工审批记录", "\n".join(plan["errors"]))
 
     def test_non_managed_codex_agent_is_never_overwritten(self) -> None:
         self.apply_bootstrap()

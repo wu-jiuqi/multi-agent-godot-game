@@ -12,9 +12,11 @@ Create the project-owned control plane without inventing project direction or si
 1. Read the target repository's `AGENTS.md`, Git status, engine metadata, and existing `.agents/`, `.codex/`, and `game-pipeline/` directories. Preserve unrelated work.
 2. Resolve the plugin root as two directories above this `SKILL.md`. Treat that plugin directory as read-only source material; project facts belong in the target repository.
 3. Collect only verifiable bootstrap facts: project ID, display name, engine, repository root, and requested plugin version. Ask for any direction-changing value that cannot be discovered.
-4. Run `../../scripts/bootstrap_game_pipeline.py` without `--apply`. Present the complete file-impact plan, conflicts, and `approval_digest` to the user.
-5. Do not apply until the user explicitly confirms that exact digest. Then rerun with `--apply --approval-digest <digest>`.
-6. Run `../../scripts/validate_project_instance.py --project-root <root>` and report every warning or blocker.
+4. If no plugin lock exists, run `../../scripts/bootstrap_game_pipeline.py` without `--apply`. Present the complete file-impact plan, conflicts, and `approval_digest` to the user.
+5. If a plugin lock exists but does not match the installed plugin, run `../../scripts/migrate_plugin.py` without `--apply`. Present all actions, plugin Skill digest changes, Skill Binding approval details, Agent Adapter actions, conflicts, and `plan_digest`.
+6. Do not apply bootstrap until the user explicitly confirms its exact digest. Do not apply migration until the user explicitly confirms the exact `plan_digest`; when `skill_binding_approval.required` is true, also require a separate explicit confirmation of its exact `subject_digest`. Never infer one approval from the other.
+7. Apply with the matching bootstrap arguments, or migrate with `--approval-digest <plan_digest> --approved-by <human>` plus `--binding-approval-digest <subject_digest> --binding-approved-by <human>` when required.
+8. Run `../../scripts/validate_project_instance.py --project-root <root>` and report every warning or blocker. Migration must also return `idempotent_outcome=no_change`.
 
 The initialized control plane must include `game-pipeline/assets/{contracts,budgets,evidence,rights,protected-path-snapshots}/` and `game-pipeline/loops/{contracts,registry}/` README baselines. Do not place the placeholder Asset Contract template in the scanned contracts directory; copy it only when a real asset demand exists and replace every placeholder with project facts.
 
@@ -25,6 +27,7 @@ The initialized control plane must include `game-pipeline/assets/{contracts,budg
 - Keep `game-pipeline/` tracked by the target repository. Ignore only `.runtime/`, `.cache/`, `tmp/`, raw temporary evidence, and generated SVG views.
 - Treat plugin governance approval and Codex filesystem/sandbox permission as separate checks; neither substitutes for the other.
 - A version mismatch fails closed. Use migration planning rather than editing `plugin-lock.yaml` by hand.
+- Plugin Skill digests, the independently approved Skill Binding subject, managed `.codex/agents/*.toml`, migration approvals, managed blocks, and the plugin lock form one migration transaction. Any postcondition failure must restore all of them from the byte backup.
 
 ## Outputs
 

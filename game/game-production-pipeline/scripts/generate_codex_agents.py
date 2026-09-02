@@ -14,6 +14,8 @@ from pipeline_common import (
     AGENT_PRESET_SCHEMA,
     APPROVAL_SCHEMA,
     MANAGED_MARKER,
+    SKILL_BINDING_CANONICALIZATION,
+    SKILL_BINDING_PROPOSAL_SCHEMA,
     SKILL_BINDINGS_SCHEMA,
     canonical_digest,
     directory_digest,
@@ -22,6 +24,7 @@ from pipeline_common import (
     load_yaml,
     manifest_version,
     plugin_root,
+    skill_binding_subject_digest,
     text_digest,
     write_new_text,
 )
@@ -78,21 +81,18 @@ def load_approvals(project_root: Path) -> dict[str, dict[str, Any]]:
     return approvals
 
 
-def load_bindings(project_root: Path) -> tuple[dict[str, dict[str, Any]], list[str]]:
+def parse_bindings_document(
+    document: dict[str, Any],
+) -> tuple[dict[str, dict[str, Any]], dict[str, Any], dict[str, Any] | None, list[str]]:
     errors: list[str] = []
-    path = project_root / "game-pipeline" / "bindings" / "skill-bindings.yaml"
-    try:
-        document = load_yaml(path)
-    except (OSError, ValueError) as exc:
-        return {}, [str(exc)]
     root = document.get("skill_bindings")
     if not isinstance(root, dict):
-        return {}, ["skill-bindings.yaml 缺少 skill_bindings 映射"]
+        return {}, {}, None, ["skill-bindings.yaml 缺少 skill_bindings 映射"]
     if root.get("schema_version") != SKILL_BINDINGS_SCHEMA:
         errors.append(f"不支持的 Skill Binding schema: {root.get('schema_version')}")
     entries = root.get("bindings")
     if not isinstance(entries, list):
-        return {}, errors + ["skill_bindings.bindings 必须是数组"]
+        return {}, root, None, errors + ["skill_bindings.bindings 必须是数组"]
     bindings: dict[str, dict[str, Any]] = {}
     for index, entry in enumerate(entries):
         if not isinstance(entry, dict) or not isinstance(entry.get("preset_id"), str):
@@ -102,7 +102,76 @@ def load_bindings(project_root: Path) -> tuple[dict[str, dict[str, Any]], list[s
         if preset_id in bindings:
             errors.append(f"重复 Skill Binding: {preset_id}")
         bindings[preset_id] = entry
-    return bindings, errors
+    proposal = document.get("skill_binding_proposal")
+    if proposal is not None and not isinstance(proposal, dict):
+        errors.append("skill_binding_proposal 必须是映射")
+        proposal = None
+    return bindings, root, proposal, errors
+
+
+def load_bindings(
+    project_root: Path,
+) -> tuple[dict[str, dict[str, Any]], dict[str, Any], dict[str, Any] | None, list[str]]:
+    path = project_root / "game-pipeline" / "bindings" / "skill-bindings.yaml"
+    try:
+        document = load_yaml(path)
+    except (OSError, ValueError) as exc:
+        return {}, {}, None, [str(exc)]
+    return parse_bindings_document(document)
+
+
+def validate_skill_binding_proposal(
+    root: dict[str, Any],
+    proposal: dict[str, Any] | None,
+    approvals: dict[str, dict[str, Any]],
+) -> list[str]:
+    entries = root.get("bindings")
+    if not isinstance(entries, list) or not entries:
+        return []
+    if proposal is None:
+        return ["非空 Skill Binding 缺少独立人工审批提案"]
+
+    errors: list[str] = []
+    project_id = root.get("project_id")
+    supported_schemas = {SKILL_BINDING_PROPOSAL_SCHEMA}
+    if isinstance(project_id, str) and project_id:
+        supported_schemas.add(f"{project_id}-skill-binding-proposal/v1")
+    if proposal.get("schema_version") not in supported_schemas:
+        errors.append("Skill Binding 提案 schema 不受支持")
+    if proposal.get("status") != "approved":
+        errors.append("Skill Binding 提案尚未批准")
+    if proposal.get("canonicalization") != SKILL_BINDING_CANONICALIZATION:
+        errors.append("Skill Binding 提案 canonicalization 不匹配")
+
+    expected_digest = skill_binding_subject_digest(root)
+    if proposal.get("subject_digest") != expected_digest:
+        errors.append("Skill Binding 提案 subject_digest 不匹配")
+    proposal_id = proposal.get("proposal_id")
+    if not isinstance(proposal_id, str) or not proposal_id:
+        errors.append("Skill Binding 提案缺少 proposal_id")
+    approval_id = proposal.get("approval_id")
+    if not isinstance(approval_id, str) or not approval_id:
+        errors.append("Skill Binding 提案缺少 approval_id")
+        return errors
+
+    approval = approvals.get(approval_id)
+    if approval is None:
+        errors.append("找不到 Skill Binding 的独立人工审批记录")
+        return errors
+    expected = {
+        "schema_version": APPROVAL_SCHEMA,
+        "subject_kind": "skill-binding",
+        "subject_id": proposal_id,
+        "subject_digest": expected_digest,
+        "decision": "approved",
+    }
+    for key, value in expected.items():
+        if approval.get(key) != value:
+            errors.append(f"Skill Binding 审批记录 {key} 不匹配")
+    for key in ("decided_by", "decided_at"):
+        if not isinstance(approval.get(key), str) or not approval.get(key):
+            errors.append(f"Skill Binding 审批记录缺少 {key}")
+    return errors
 
 
 def validate_skill_binding(
@@ -241,17 +310,29 @@ def validate_metadata(metadata: dict[str, Any], path: Path) -> list[str]:
     return errors
 
 
-def build_generation_plan(project_root: Path, source_root: Path) -> tuple[dict[str, Any], dict[str, str]]:
+def build_generation_plan(
+    project_root: Path,
+    source_root: Path,
+    *,
+    bindings_document: dict[str, Any] | None = None,
+    approvals_override: dict[str, dict[str, Any]] | None = None,
+    lock_state_override: str | None = None,
+    plugin_version_override: str | None = None,
+) -> tuple[dict[str, Any], dict[str, str]]:
     project_root = project_root.resolve()
     source_root = source_root.resolve()
     errors: list[str] = []
     warnings: list[str] = []
-    lock = evaluate_lock(project_root, source_root)
+    lock = evaluate_lock(project_root, source_root) if lock_state_override is None else {"state": lock_state_override}
     if lock["state"] != "normal":
         errors.append(f"plugin lock 状态为 {lock['state']}，禁止生成 Agent 适配器")
-    bindings, binding_errors = load_bindings(project_root)
+    if bindings_document is None:
+        bindings, binding_root, binding_proposal, binding_errors = load_bindings(project_root)
+    else:
+        bindings, binding_root, binding_proposal, binding_errors = parse_bindings_document(bindings_document)
     errors.extend(binding_errors)
-    approvals = load_approvals(project_root)
+    approvals = approvals_override if approvals_override is not None else load_approvals(project_root)
+    errors.extend(validate_skill_binding_proposal(binding_root, binding_proposal, approvals))
     desired: dict[str, str] = {}
     presets: list[dict[str, Any]] = []
     seen_slugs: set[str] = set()
@@ -305,7 +386,7 @@ def build_generation_plan(project_root: Path, source_root: Path) -> tuple[dict[s
                 body,
                 path.relative_to(project_root).as_posix(),
                 digest,
-                manifest_version(source_root),
+                plugin_version_override or manifest_version(source_root),
             )
         except ValueError as exc:
             errors.append(f"{path.name}: {exc}")
@@ -330,7 +411,12 @@ def build_generation_plan(project_root: Path, source_root: Path) -> tuple[dict[s
     subject = {
         "schema_version": "game-production-agent-generation-plan/v1",
         "project_root": str(project_root),
-        "plugin_version": manifest_version(source_root),
+        "plugin_version": plugin_version_override or manifest_version(source_root),
+        "skill_binding_subject_digest": (
+            skill_binding_subject_digest(binding_root)
+            if isinstance(binding_root.get("bindings"), list) and binding_root["bindings"]
+            else None
+        ),
         "presets": presets,
         "actions": actions,
     }

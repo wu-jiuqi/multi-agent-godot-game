@@ -17,6 +17,8 @@ PLUGIN_ID = "game-production-pipeline"
 LOCK_SCHEMA = "game-production-pipeline-lock/v1"
 PROJECT_SCHEMA = "game-production-project/v1"
 SKILL_BINDINGS_SCHEMA = "game-production-skill-bindings/v1"
+SKILL_BINDING_PROPOSAL_SCHEMA = "game-production-skill-binding-proposal/v1"
+SKILL_BINDING_CANONICALIZATION = "skill-binding-subject-canonical-json-v1"
 FACT_SOURCES_SCHEMA = "game-production-fact-sources/v1"
 PROJECT_BRIEF_SCHEMA = "game-production-project-brief/v1"
 AGENT_PRESET_SCHEMA = "game-production-agent-preset/v1"
@@ -41,6 +43,28 @@ def canonical_json(value: Any) -> bytes:
 
 def canonical_digest(value: Any) -> str:
     return hashlib.sha256(canonical_json(value)).hexdigest()
+
+
+def without_approval_ids(value: Any) -> Any:
+    """Return a deep copy with approval references removed from an approval subject."""
+    if isinstance(value, dict):
+        return {
+            key: without_approval_ids(item)
+            for key, item in value.items()
+            if key != "approval_id"
+        }
+    if isinstance(value, list):
+        return [without_approval_ids(item) for item in value]
+    return value
+
+
+def skill_binding_subject(skill_bindings: dict[str, Any]) -> dict[str, Any]:
+    """Return the immutable Skill Binding subject approved by a human."""
+    return without_approval_ids(skill_bindings)
+
+
+def skill_binding_subject_digest(skill_bindings: dict[str, Any]) -> str:
+    return canonical_digest(skill_binding_subject(skill_bindings))
 
 
 def project_brief_subject(document: dict[str, Any]) -> dict[str, Any]:

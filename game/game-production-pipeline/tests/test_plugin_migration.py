@@ -109,7 +109,7 @@ class PluginMigrationTests(unittest.TestCase):
         self.assertEqual(before, after)
         self.assertEqual("migration_ready", plan["outcome"], plan)
         self.assertTrue(plan["can_apply"])
-        self.assertEqual("0.5.0-alpha.2", plan["to_version"])
+        self.assertEqual("0.5.0-alpha.3", plan["to_version"])
         self.assertEqual(
             [
                 "game-pipeline/project-definition/project-brief.yaml",
@@ -150,7 +150,7 @@ class PluginMigrationTests(unittest.TestCase):
             any(item["fact_id"] == "fact:test-game:project-brief" for item in facts["fact_sources"]["sources"])
         )
         agents = (self.project_root / "AGENTS.md").read_text(encoding="utf-8")
-        self.assertIn("0.5.0-alpha.2", agents)
+        self.assertIn("0.5.0-alpha.3", agents)
         self.assertIn("初始项目简报位于", agents)
         self.assertEqual("normal", lock_validator.evaluate_lock(self.project_root, PLUGIN_ROOT)["state"])
         self.assertEqual("normal", project_validator.validate_instance(self.project_root, PLUGIN_ROOT)["state"])
@@ -302,7 +302,7 @@ class Alpha2ToAlpha4MigrationTests(unittest.TestCase):
         plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
         self.assertEqual("migration_ready", plan["outcome"], plan)
         self.assertEqual("0.4.0-alpha.2", plan["from_version"])
-        self.assertEqual("0.5.0-alpha.2", plan["to_version"])
+        self.assertEqual("0.5.0-alpha.3", plan["to_version"])
         self.assertEqual(
             [*bootstrap.ASSET_AND_LOOP_READMES, *bootstrap.ART_DIRECTION_READMES, "AGENTS.md", "game-pipeline/plugin-lock.yaml"],
             [item["path"] for item in plan["actions"]],
@@ -388,7 +388,7 @@ class Alpha3ToAlpha4MigrationTests(unittest.TestCase):
                 self.set_alpha3_lock(digest)
                 plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
                 self.assertEqual("migration_ready", plan["outcome"], plan)
-                self.assertEqual("0.5.0-alpha.2", plan["to_version"])
+                self.assertEqual("0.5.0-alpha.3", plan["to_version"])
 
     def test_apply_creates_asset_control_plane_and_preserves_history(self) -> None:
         self.set_alpha3_lock("16c8b7ec74a098f9382fb1aff1af95d9557f1e4c2dbbfe4dd8caa0033a544621")
@@ -511,7 +511,7 @@ class Alpha1ToAlpha2MigrationTests(unittest.TestCase):
                 plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
                 self.assertEqual("migration_ready", plan["outcome"], plan)
                 self.assertEqual("0.5.0-alpha.1", plan["from_version"])
-                self.assertEqual("0.5.0-alpha.2", plan["to_version"])
+                self.assertEqual("0.5.0-alpha.3", plan["to_version"])
                 self.assertEqual(
                     ["AGENTS.md", "game-pipeline/plugin-lock.yaml"],
                     [item["path"] for item in plan["actions"]],
@@ -588,7 +588,7 @@ class Alpha4ToAlpha5MigrationTests(unittest.TestCase):
         plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
         self.assertEqual("migration_ready", plan["outcome"], plan)
         self.assertEqual("0.4.0-alpha.4", plan["from_version"])
-        self.assertEqual("0.5.0-alpha.2", plan["to_version"])
+        self.assertEqual("0.5.0-alpha.3", plan["to_version"])
         self.assertEqual(
             [*bootstrap.ASSET_AND_LOOP_READMES, *bootstrap.ART_DIRECTION_READMES, "AGENTS.md", "game-pipeline/plugin-lock.yaml"],
             [item["path"] for item in plan["actions"]],

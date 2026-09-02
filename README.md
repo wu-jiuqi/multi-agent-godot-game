@@ -4,7 +4,7 @@
 
 ## 当前版本
 
-当前发布候选为 `v0.5.0-alpha.2`：保留 `alpha.1` 的可选主美 Agent、多方向探索、跨 2D/3D/VFX/UI 风格圣经、D0–D4 Gate、Godot 基准、技术预算和权利溯源，并修复 Git 换行策略导致的跨环境发布摘要漂移；该版本仍是 Alpha，不是 Production Ready。
+当前发布候选为 `v0.5.0-alpha.3`：保留可选主美 Agent、多方向探索、跨 2D/3D/VFX/UI 风格圣经、D0–D4 Gate、Godot 基准、技术预算、权利溯源和可复现发布，并补齐 Skill Binding 独立审批与 Agent Adapter 同事务迁移；该版本仍是 Alpha，不是 Production Ready。
 
 ## 目录
 

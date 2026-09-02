@@ -17,7 +17,7 @@ from pipeline_common import base_version, canonical_digest, load_yaml, manifest_
 from validate_plugin_lock import evaluate_lock
 
 
-PLAN_SCHEMA = "game-production-plugin-migration-plan/v2"
+PLAN_SCHEMA = "game-production-plugin-migration-plan/v3"
 
 
 def utc_now() -> str:
@@ -188,6 +188,9 @@ def prepare_migration(
         "errors": errors,
         "warnings": details.get("warnings", []),
         "history_digests_before": details.get("history_digests_before", {}),
+        "skill_binding_changes": details.get("skill_binding_changes", []),
+        "skill_binding_approval": details.get("skill_binding_approval", {"required": False}),
+        "agent_adapter_actions": details.get("agent_adapter_actions", []),
         "human_approval_required": True,
         "backup_root": "game-pipeline/.cache/migrations/<plan_digest>",
         "postconditions": details.get("postconditions", []),

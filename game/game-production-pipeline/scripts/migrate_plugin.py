@@ -84,6 +84,44 @@ def approval_content(plan: dict[str, Any], approved_by: str) -> bytes:
     return dump_yaml(document).encode("utf-8")
 
 
+def binding_approval_content(
+    plan: dict[str, Any],
+    approval_digest: str | None,
+    approved_by: str | None,
+) -> tuple[str, bytes] | None:
+    binding = plan.get("skill_binding_approval")
+    if not isinstance(binding, dict) or not binding.get("required"):
+        return None
+    expected_digest = binding.get("subject_digest")
+    if approval_digest != expected_digest:
+        raise ValueError(
+            "binding_approval_digest 与 Skill Binding 新摘要不匹配；必须独立查看并确认"
+        )
+    if not isinstance(approved_by, str) or not approved_by.strip():
+        raise ValueError("binding_approved_by 不能为空")
+    record_path = binding.get("approval_record")
+    if not isinstance(record_path, str) or not record_path:
+        raise ValueError("迁移计划缺少 Skill Binding 审批记录路径")
+    document = {
+        "approval": {
+            "schema_version": APPROVAL_SCHEMA,
+            "approval_id": binding["approval_id"],
+            "subject_kind": "skill-binding",
+            "subject_id": binding["subject_id"],
+            "subject_digest": expected_digest,
+            "decision": "approved",
+            "decided_by": approved_by,
+            "decided_at": plan["migration_at"],
+            "evidence": {
+                "migration_plan": f"sha256:{plan['plan_digest']}",
+                "plugin_version": plan["to_version"],
+                "framework_digest": plan["to_framework_digest"],
+            },
+        }
+    }
+    return record_path, dump_yaml(document).encode("utf-8")
+
+
 def backup_directory(project_root: Path, plan_digest: str) -> Path:
     if not DIGEST_RE.fullmatch(plan_digest):
         raise ValueError("plan_digest 必须是 64 位小写 SHA-256")
@@ -112,25 +150,25 @@ def preflight_actions(project_root: Path, plan: dict[str, Any], desired: dict[st
 def create_backup(
     project_root: Path,
     plan: dict[str, Any],
-    approval_bytes: bytes,
+    approval_files: dict[str, bytes],
 ) -> tuple[Path, dict[str, Any]]:
     root = backup_directory(project_root, plan["plan_digest"])
     if root.exists():
         raise FileExistsError(f"迁移备份已存在，拒绝复用: {root}")
 
     targets = [dict(action) for action in plan["actions"]]
-    approval_path = plan["approval_record"]
-    approval_target = ensure_within(project_root, project_root / approval_path)
-    if approval_target.exists():
-        raise FileExistsError(f"迁移审批记录已存在，拒绝覆盖: {approval_path}")
-    targets.append(
-        {
-            "path": approval_path,
-            "action": "create",
-            "before_sha256": None,
-            "after_sha256": sha256(approval_bytes),
-        }
-    )
+    for approval_path, approval_bytes in approval_files.items():
+        approval_target = ensure_within(project_root, project_root / approval_path)
+        if approval_target.exists():
+            raise FileExistsError(f"迁移审批记录已存在，拒绝覆盖: {approval_path}")
+        targets.append(
+            {
+                "path": approval_path,
+                "action": "create",
+                "before_sha256": None,
+                "after_sha256": sha256(approval_bytes),
+            }
+        )
 
     created_parent_dirs: set[str] = set()
     for target_info in targets:
@@ -218,6 +256,8 @@ def apply_migration(
     migration_at: str,
     approval_digest: str,
     approved_by: str,
+    binding_approval_digest: str | None = None,
+    binding_approved_by: str | None = None,
 ) -> dict[str, Any]:
     project_root = project_root.resolve()
     source_root = source_root.resolve()
@@ -226,7 +266,16 @@ def apply_migration(
         raise ValueError("approval_digest 与当前迁移计划不匹配；必须重新查看并确认")
     preflight_actions(project_root, plan, desired)
     approval_bytes = approval_content(plan, approved_by)
-    backup_root, backup_manifest = create_backup(project_root, plan, approval_bytes)
+    approval_files = {plan["approval_record"]: approval_bytes}
+    binding_approval = binding_approval_content(
+        plan, binding_approval_digest, binding_approved_by
+    )
+    if binding_approval is not None:
+        binding_path, binding_bytes = binding_approval
+        if binding_path in approval_files:
+            raise ValueError("Skill Binding 与迁移审批记录路径冲突")
+        approval_files[binding_path] = binding_bytes
+    backup_root, backup_manifest = create_backup(project_root, plan, approval_files)
 
     applied: list[str] = []
     unchanged: list[str] = []
@@ -255,10 +304,11 @@ def apply_migration(
             if action["path"] != "game-pipeline/plugin-lock.yaml":
                 apply_action(action)
 
-        approval_target = ensure_within(project_root, project_root / plan["approval_record"])
-        # The approval is written before the lock; the lock remains the final migration commit point.
-        write_new_bytes(approval_target, approval_bytes)
-        applied.append(plan["approval_record"])
+        # Approvals are written before the lock; the lock remains the final migration commit point.
+        for approval_path, content in approval_files.items():
+            approval_target = ensure_within(project_root, project_root / approval_path)
+            write_new_bytes(approval_target, content)
+            applied.append(approval_path)
         apply_action(lock_actions[0])
 
         lock_result = evaluate_lock(project_root, source_root)
@@ -347,6 +397,8 @@ def main() -> int:
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--approval-digest")
     parser.add_argument("--approved-by")
+    parser.add_argument("--binding-approval-digest")
+    parser.add_argument("--binding-approved-by")
     parser.add_argument("--rollback", action="store_true")
     parser.add_argument("--plan-digest")
     parser.add_argument("--confirm-rollback")
@@ -368,6 +420,8 @@ def main() -> int:
                 args.migration_at,
                 args.approval_digest,
                 args.approved_by,
+                args.binding_approval_digest,
+                args.binding_approved_by,
             )
         else:
             result, _ = prepare_migration(args.project_root, args.plugin_root, args.migration_at)

@@ -10,3 +10,17 @@ skill_bindings:
           source: "plugin | project"
           path: "<相对于插件或项目根目录的 Skill 路径>"
           digest: "<文件或目录摘要>"
+skill_binding_proposal:
+  schema_version: game-production-skill-binding-proposal/v1
+  proposal_id: "binding:<project-id>:approved-agent-skills"
+  status: approved
+  canonicalization: skill-binding-subject-canonical-json-v1
+  digest_scope: "skill_bindings 中递归排除 approval_id 的全部字段"
+  subject_digest: "<Skill Binding subject SHA-256>"
+  approval_id: "approval:<project-id>:skill-binding:<摘要前 12 位>"
+  preset_count: 1
+  binding_count: 1
+  unique_skill_count: 1
+  approval_requirement:
+    human_approval_required: true
+    required_approver_role: project-owner

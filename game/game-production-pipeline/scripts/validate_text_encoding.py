@@ -17,7 +17,7 @@ from validate_plugin_lock import evaluate_lock
 
 SCHEMA_VERSION = "game-production-text-encoding-validation/v1"
 TEXT_SUFFIXES = {".json", ".md", ".py", ".toml", ".txt", ".yaml", ".yml"}
-TEXT_FILENAMES = {".gitignore"}
+TEXT_FILENAMES = {".gitattributes", ".gitignore"}
 SKIPPED_PARTS = {".git", "__pycache__"}
 UTF8_BOM = b"\xef\xbb\xbf"
 REPLACEMENT_CHARACTER = "\ufffd"
@@ -33,6 +33,7 @@ PLUGIN_MARKERS = {
         "UTF-8 无 BOM",
         "Get-Content -LiteralPath \"文件路径\" -Encoding UTF8",
     ),
+    ".gitattributes": ("* text=auto eol=lf",),
 }
 PROJECT_MARKERS = {
     "game-pipeline/agents/README.md": ("项目 Agent Presets",),
@@ -61,7 +62,12 @@ def error(code: str, path: str, message: str) -> dict[str, str]:
     return {"code": code, "path": path, "message": message}
 
 
-def decode_utf8(data: bytes, label: str) -> tuple[str | None, list[dict[str, str]]]:
+def decode_utf8(
+    data: bytes,
+    label: str,
+    *,
+    require_lf: bool = False,
+) -> tuple[str | None, list[dict[str, str]]]:
     errors: list[dict[str, str]] = []
     try:
         text = data.decode("utf-8", errors="strict")
@@ -72,6 +78,8 @@ def decode_utf8(data: bytes, label: str) -> tuple[str | None, list[dict[str, str
         errors.append(error("unexpected-bom", label, "文本必须保持 UTF-8 无 BOM"))
     if REPLACEMENT_CHARACTER in text:
         errors.append(error("replacement-character", label, "文本包含 U+FFFD 替换字符"))
+    if require_lf and b"\r" in data:
+        errors.append(error("non-lf-line-ending", label, "发布源文本必须统一使用 LF 换行"))
     return text, errors
 
 
@@ -124,12 +132,20 @@ def validate_plugin_tree(root: Path) -> dict[str, Any]:
         except OSError as exc:
             errors.append(error("read-error", relative, str(exc)))
             continue
-        text, file_errors = decode_utf8(data, relative)
+        text, file_errors = decode_utf8(data, relative, require_lf=True)
         errors.extend(file_errors)
         if text is not None:
             texts[relative] = text
     errors.extend(validate_markers(texts, PLUGIN_MARKERS))
-    return result("plugin-tree", str(root), checked, errors, encoding="UTF-8", bom="forbidden")
+    return result(
+        "plugin-tree",
+        str(root),
+        checked,
+        errors,
+        encoding="UTF-8",
+        bom="forbidden",
+        line_endings="LF",
+    )
 
 
 def iter_project_text_files(root: Path) -> Iterable[Path]:
@@ -252,7 +268,11 @@ def validate_release_zip(path: Path) -> dict[str, Any]:
                 if any(part in SKIPPED_PARTS for part in relative.parts) or not is_target_text(relative):
                     continue
                 checked += 1
-                text, file_errors = decode_utf8(archive.read(member), name)
+                text, file_errors = decode_utf8(
+                    archive.read(member),
+                    name,
+                    require_lf=True,
+                )
                 errors.extend(file_errors)
                 if text is not None:
                     texts[relative.as_posix()] = text
@@ -267,6 +287,7 @@ def validate_release_zip(path: Path) -> dict[str, Any]:
         errors,
         encoding="UTF-8",
         bom="forbidden",
+        line_endings="LF",
         zip_members=member_count,
     )
 

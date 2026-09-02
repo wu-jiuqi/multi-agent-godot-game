@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a deterministic plugin ZIP and SHA-256 sidecar without transcoding sources."""
+"""Build a byte-reproducible plugin ZIP from canonical LF source files."""
 
 from __future__ import annotations
 
@@ -11,11 +11,11 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
-from pipeline_common import PLUGIN_ID, manifest_version, plugin_root
+from pipeline_common import PLUGIN_ID, framework_digest, manifest_version, plugin_root
 from validate_text_encoding import validate_plugin_tree, validate_release_zip
 
 
-SCHEMA_VERSION = "game-production-release-build/v1"
+SCHEMA_VERSION = "game-production-release-build/v2"
 SKIPPED_PARTS = {".git", "__pycache__"}
 SKIPPED_SUFFIXES = {".pyc", ".pyo"}
 ZIP_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
@@ -39,11 +39,14 @@ def write_deterministic_zip(target: Path, source_root: Path, files: list[Path]) 
     if temporary.exists():
         raise FileExistsError(f"发布临时文件已存在，拒绝覆盖: {temporary}")
     try:
-        with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        # Stored members avoid zlib-version-dependent compressed byte streams. The
+        # plugin is text-heavy and small enough that byte reproducibility is more
+        # valuable than transport compression at this layer.
+        with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_STORED) as archive:
             for path in files:
                 relative = path.relative_to(source_root).as_posix()
                 info = zipfile.ZipInfo(f"{PLUGIN_ID}/{relative}", date_time=ZIP_TIMESTAMP)
-                info.compress_type = zipfile.ZIP_DEFLATED
+                info.compress_type = zipfile.ZIP_STORED
                 info.create_system = 3
                 info.external_attr = (0o100644 & 0xFFFF) << 16
                 archive.writestr(info, path.read_bytes())
@@ -109,11 +112,13 @@ def build_release(source_root: Path, output_dir: Path) -> dict[str, Any]:
         "schema_version": SCHEMA_VERSION,
         "state": "built",
         "version": version,
+        "framework_digest": framework_digest(source_root),
         "zip_path": str(zip_path),
         "sha256_path": str(sha_path),
         "sha256": digest,
         "packaged_files": len(files),
         "source_encoding": source_validation["state"],
+        "source_line_endings": source_validation["line_endings"],
         "zip_encoding": zip_validation["state"],
         "errors": [],
     }

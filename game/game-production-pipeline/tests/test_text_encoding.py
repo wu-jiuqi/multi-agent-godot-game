@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -18,7 +19,7 @@ if str(SCRIPTS) not in sys.path:
 import bootstrap_game_pipeline as bootstrap  # noqa: E402
 import build_release as release_builder  # noqa: E402
 import validate_text_encoding as encoding_validator  # noqa: E402
-from pipeline_common import manifest_version  # noqa: E402
+from pipeline_common import framework_digest, manifest_version  # noqa: E402
 
 
 CREATED_AT = "2026-08-15T10:00:00Z"
@@ -104,6 +105,16 @@ class TextEncodingTests(unittest.TestCase):
                 self.assertEqual(before, path.read_bytes())
         self.assertEqual(expected_codes, observed)
 
+    def test_release_source_rejects_non_lf_line_endings_without_writing(self) -> None:
+        data = b"first\r\nsecond\r\n"
+        text, errors = encoding_validator.decode_utf8(
+            data,
+            "crlf.md",
+            require_lf=True,
+        )
+        self.assertEqual("first\r\nsecond\r\n", text)
+        self.assertEqual(["non-lf-line-ending"], [item["code"] for item in errors])
+
     def test_cli_failure_is_structured_and_nonzero(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             invalid_root = Path(temporary)
@@ -129,6 +140,8 @@ class TextEncodingTests(unittest.TestCase):
             sha_path = Path(report["sha256_path"])
             first_zip_bytes = zip_path.read_bytes()
             self.assertEqual(report["sha256"], hashlib.sha256(zip_path.read_bytes()).hexdigest())
+            self.assertEqual(framework_digest(PLUGIN_ROOT), report["framework_digest"])
+            self.assertEqual("LF", report["source_line_endings"])
             self.assertEqual(
                 f"{report['sha256']}  {zip_path.name}",
                 sha_path.read_text(encoding="utf-8").strip(),
@@ -137,6 +150,9 @@ class TextEncodingTests(unittest.TestCase):
             validation = encoding_validator.validate_release_zip(zip_path)
             self.assertEqual("valid", validation["state"], validation)
             with zipfile.ZipFile(zip_path) as archive:
+                self.assertTrue(
+                    all(member.compress_type == zipfile.ZIP_STORED for member in archive.infolist())
+                )
                 bootstrap_source = archive.read(
                     "game-production-pipeline/scripts/bootstrap_game_pipeline.py"
                 ).decode("utf-8", errors="strict")
@@ -147,6 +163,55 @@ class TextEncodingTests(unittest.TestCase):
             self.assertEqual("built", second["state"], second)
             self.assertEqual(report["sha256"], second["sha256"])
             self.assertEqual(first_zip_bytes, zip_path.read_bytes())
+
+    @unittest.skipUnless(shutil.which("git"), "Git is required for archive reproducibility")
+    def test_git_archives_build_identically_with_autocrlf_true_and_false(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            repository = root / "repository"
+            shutil.copytree(
+                PLUGIN_ROOT,
+                repository,
+                ignore=shutil.ignore_patterns(".git", "__pycache__", "*.pyc", "*.pyo"),
+            )
+
+            def git(*args: str) -> None:
+                subprocess.run(
+                    ["git", *args],
+                    cwd=repository,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                )
+
+            git("init", "--quiet")
+            git("config", "user.name", "Release Reproducibility Test")
+            git("config", "user.email", "release-test@example.invalid")
+            git("add", "--all")
+            git("commit", "--quiet", "-m", "test fixture")
+
+            reports: list[dict] = []
+            for setting in ("true", "false"):
+                archive_path = root / f"source-{setting}.zip"
+                extracted = root / f"source-{setting}"
+                output = root / f"output-{setting}"
+                git(
+                    "-c",
+                    f"core.autocrlf={setting}",
+                    "archive",
+                    "--format=zip",
+                    f"--output={archive_path}",
+                    "HEAD",
+                )
+                with zipfile.ZipFile(archive_path) as archive:
+                    archive.extractall(extracted)
+                reports.append(release_builder.build_release(extracted, output))
+
+            for report in reports:
+                self.assertEqual("built", report["state"], report)
+            self.assertEqual(reports[0]["framework_digest"], reports[1]["framework_digest"])
+            self.assertEqual(reports[0]["sha256"], reports[1]["sha256"])
 
 
 if __name__ == "__main__":

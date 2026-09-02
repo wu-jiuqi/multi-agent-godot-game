@@ -697,7 +697,7 @@ def main() -> int:
         )
     except (OSError, ValueError) as exc:
         result = {"state": "invalid", "errors": [str(exc)]}
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(json.dumps(result, ensure_ascii=True, indent=2))
     return 0 if result.get("state") == "valid" else 1
 
 

@@ -140,18 +140,48 @@ art_direction_contract:
 
   verification:
     automated_checks: []
-    brief_review: &pending_review
+    brief_review:
       reviewer: null
       status: "pending"
       subject_digest: null
       reviewed_at: null
       evidence_refs: []
-    exploration_review: *pending_review
-    direction_approval: *pending_review
-    benchmark_art_review: *pending_review
-    benchmark_technical_review: *pending_review
-    qa_review: *pending_review
-    rights_review: *pending_review
+    exploration_review:
+      reviewer: null
+      status: "pending"
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
+    direction_approval:
+      reviewer: null
+      status: "pending"
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
+    benchmark_art_review:
+      reviewer: null
+      status: "pending"
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
+    benchmark_technical_review:
+      reviewer: null
+      status: "pending"
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
+    qa_review:
+      reviewer: null
+      status: "pending"
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
+    rights_review:
+      reviewer: null
+      status: "pending"
+      subject_digest: null
+      reviewed_at: null
+      evidence_refs: []
 
   rework:
     allowed_reason_codes: [BRIEF, RESEARCH, DIRECTION, STYLE, READABILITY, TECH, PERF, RIGHTS, UI_BOUNDARY, REGRESSION]

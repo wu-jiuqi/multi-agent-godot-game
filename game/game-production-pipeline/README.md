@@ -2,7 +2,7 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.4.0-alpha.4`。它把专业资产公共底座接入 Bootstrap、P6 生产 Loop、Asset Gate Review、Loop Registry、Godot 适配与项目总校验，并提供从已发行版本受控迁移的完整路径；仍需通过真实项目资产与目标平台预算回放验证，不是 Production Ready。
+当前版本：`v0.5.0-alpha.1`。它新增可选主美 Agent、联网研究驱动的多方向探索、可扩展到 UI 的视觉语言、D0–D4 分阶段摘要与验收、2D/3D/UI 技术 Profile、Godot 引擎内基准和权利溯源，并接入 Bootstrap、项目总校验、生产循环与受控迁移；仍需真实项目回放，因此不是 Production Ready。
 
 ## 层级
 
@@ -18,7 +18,7 @@ Codex Plugin
 
 插件不会保存某个游戏的设计答案。把通用插件更新与项目内容演化分离，才能让同一框架被多个游戏复用。
 
-## 六个入口 Skills
+## 七个入口 Skills
 
 - `$bootstrap-game-pipeline`：先生成影响计划和摘要，经确认后初始化项目控制面。
 - `$prepare-game-project-brief`：由项目经理启动工作流把人类确定的玩法、美术方向、实现概要和约束整理为可供编制设计的项目简报。
@@ -26,6 +26,7 @@ Codex Plugin
 - `$operate-game-production-loop`：按 Contract、授权和 Registry 运行或恢复生产循环。
 - `$review-game-gates`：独立检查证据，区分自动结果与必须由人类做出的决定。
 - `$adapt-godot-production`：把通用产物映射为 Godot 场景、资源、节点、测试与构建证据。
+- `$direct-game-art`：先联网研究，再主动提出多条画风方向，建立风格圣经、跨 2D/3D/VFX/UI 翻译、引擎基准、预算、权利和表现验收。
 
 ## 项目实例
 
@@ -78,9 +79,9 @@ python scripts/validate_project_instance.py --project-root D:\Game\MyProject
 
 脚本拒绝覆盖现有非托管文件。版本不一致进入 `read_only`，相同版本但框架摘要不一致进入 `blocked`；不得手工改写 `plugin-lock.yaml` 绕过迁移。
 
-## 迁移到 v0.4.0-alpha.4
+## 迁移到 v0.5.0-alpha.1
 
-`v0.4.0-alpha.4` 支持从白名单内的 `v0.3.0-alpha.1`、`v0.4.0-alpha.2` 或 `v0.4.0-alpha.3` 显式迁移。迁移只补充专业资产与 Loop Registry 控制面 README、更新 `AGENTS.md` managed block、写审批记录并最后更新 `plugin-lock.yaml`；已有 README 逐字节保留，不修改现有 Asset Contract、Snapshot、Event History、游戏内容、UI 事实源、组织快照、Change Set、Agent Preset 或 Skill Binding。未知摘要、损坏 managed block 或计划后文件漂移都会 fail closed。
+`v0.5.0-alpha.1` 支持从白名单内的 `v0.3.0-alpha.1`、`v0.4.0-alpha.2`、`v0.4.0-alpha.3` 或 `v0.4.0-alpha.4` 显式迁移。迁移只补齐缺失的既有控制面和新的主美方向 `contracts/research/style-bibles/benchmarks/evidence` README、更新 `AGENTS.md` managed block、写审批记录并最后更新 `plugin-lock.yaml`；已有 README 逐字节保留，不修改现有美术/资产 Contract、风格圣经、图片、场景、UI、Snapshot、Event History、组织、Agent Preset 或 Skill Binding。未知摘要、损坏 managed block 或计划后文件漂移都会 fail closed。
 
 先在项目 Git 工作区干净且已有额外备份的前提下执行 dry-run。保存输出中的 `migration_at` 和 `plan_digest`：
 
@@ -131,6 +132,22 @@ python scripts/validate_project_brief.py `
 ```
 
 只有简报为 staffing-ready、当前 `subject_digest` 得到项目所有者确认，并存在摘要匹配的不可变审批记录时，才能进入 `$design-game-organization`。编制获批后，游戏设计、美术、技术和 QA 等领域 Agent 再分别深化 GDD、美术规范、技术设计和测试计划。
+
+## 主美方向闭环
+
+主美是项目按编制需要启用的正式 Position，不是框架强制存在的常驻 Agent。批准后使用 [`agents/art-director.md`](agents/art-director.md) 与 `$direct-game-art`，把项目简报转化为 [`game-production-art-direction/v1`](contracts/art-direction-contract.template.yaml)：
+
+1. D0 固定玩家效果、玩法可读性、范围、平台、约束和权利政策；
+2. D1 必须先联网研究权威资料、视频与非游戏来源，再给出至少三条有实质差异的方案和明确推荐；
+3. D2 由项目所有者批准 `direction_subject_digest`，主美不能替代核心画风选择；
+4. D3 在代表性 Godot 预置场景和目标构建中证明所有 required domains、可读性、2D/3D/UI Profile 与性能预算；
+5. D4 完成风格圣经、跨域翻译、权利/生成式 AI 溯源、QA、返工关闭和生产冻结。
+
+五个阶段各有独立摘要，后续增加基准证据不会误使早先的选向失效；真正修改选中方向会让 D2 记录过期。`evaluate_art_direction_gate.py` 只输出 `pass / revise / blocked / awaiting_human` 和审批摘要，不写人工决定。
+
+UI 在主美闭环中承担视觉语言接口：Theme/token、字体、图标、形状、材质和动效必须与世界视觉一致；Screen/Flow、布局行为、焦点、响应式规则和交互逻辑保持只读，留待独立 UI workflow 验证。
+
+方法依据包括 GDC 的 [独特美术方向框架](https://www.gdcvault.com/play/1028954/Art-Direction-Summit-Building-a)、[AAA UI 美术指导](https://gdcvault.com/play/1025498/Art-Direction-for-AAA)、[风格化 VFX 美术指导](https://www.gdcvault.com/play/1023999/Art-Directing-VFX-for-Stylized)、Riot 的 [Game Art 教学](https://www.riotgames.com/en/artedu/intro-to-game-art) 与 Godot 官方资产导入/Theme/性能文档；详细来源和使用边界保存在 `skills/direct-game-art/references/`。
 
 ## 专业资产公共底座
 
@@ -190,7 +207,7 @@ codex plugin list
 
 第二次 `plugin list` 应显示 `game-production-pipeline@personal` 为 `installed, enabled`。在首次安装前，Codex 设置页的插件搜索可能不会显示尚未安装的个人插件，因此不能把 UI 搜索结果作为 Marketplace 发现或安装状态的判据。
 
-安装后新建 Codex 任务，再检查六个 `$skill-name` 是否可发现；当前任务不会热刷新插件能力。正常使用直接描述“初始化项目”“整理项目简报”“设计团队”或“继续生产”等目标即可，只有强制路由和发现性测试才需要显式 Skill 名。Codex 能力目录可能显示带插件命名空间的长名，这是防重名标识，不要求每次输入。更新本地插件时应使用构建元数据 cache-buster，并再次执行同一个 `codex plugin add game-production-pipeline@personal` 命令，不要依赖 UI 搜索或当前任务热刷新。
+安装后新建 Codex 任务，再检查七个 `$skill-name` 是否可发现；当前任务不会热刷新插件能力。正常使用直接描述“初始化项目”“整理项目简报”“设计团队”“建立主美方向”或“继续生产”等目标即可，只有强制路由和发现性测试才需要显式 Skill 名。Codex 能力目录可能显示带插件命名空间的长名，这是防重名标识，不要求每次输入。更新本地插件时应使用构建元数据 cache-buster，并再次执行同一个 `codex plugin add game-production-pipeline@personal` 命令，不要依赖 UI 搜索或当前任务热刷新。
 
 ## 中文文本编码
 
@@ -216,6 +233,8 @@ python scripts/validate_pipeline_contract.py contracts/examples/vertical-slice-g
 python scripts/validate_project_brief.py contracts/examples/sample-project-brief.yaml --project-id sample-game
 python scripts/validate_specialist_asset_contract.py contracts/examples/specialist-asset-static-prop.yaml
 python scripts/evaluate_specialist_asset_gate.py contracts/examples/specialist-asset-static-prop.yaml --gate A3
+python scripts/validate_art_direction_contract.py contracts/examples/art-direction-clockwork-garden.yaml --gate D4
+python scripts/evaluate_art_direction_gate.py contracts/examples/art-direction-clockwork-garden.yaml --gate D4
 python -c "import sys,yaml; from pathlib import Path; sys.path.insert(0,'scripts'); import validate_loop_registry as v; docs=[yaml.safe_load(Path(p).read_text(encoding='utf-8')) for p in ['contracts/loop-registry-event.template.yaml','contracts/specialist-asset-production.loop-contract.yaml','contracts/loop-state-machine.default.yaml']]; assert not v.validate_static_contracts(*docs)"
 python scripts/validate_organization_registry.py --templates --snapshot contracts/examples/organization-alpha-snapshot.yaml --change-set contracts/examples/organization-alpha-change-set.yaml
 python scripts/render_organization.py --snapshot contracts/examples/organization-alpha-snapshot.yaml --change-set contracts/examples/organization-alpha-change-set.yaml --view change --scope dept:sample-game:design --format mermaid
@@ -227,7 +246,8 @@ python scripts/build_release.py --plugin-root . --output-dir ..\..\dist
 
 - 治理层仍是文件契约与确定性校验器，没有强制拦截所有手工文件修改的 MCP 或 Hook。
 - Registry 没有数据库事务适配器；脚本会预检和原子写单文件，但不能提供跨文件数据库级事务。
-- 迁移仅覆盖白名单内的 v0.3、alpha.2 和 alpha.3 摘要；其他开发快照和更早版本会 fail closed。alpha.3 同时接受已发布候选版与首次 P0 资产基线进入主分支时的已知摘要。
+- 迁移仅覆盖白名单内的 v0.3、alpha.2、alpha.3 和 alpha.4 摘要；其他开发快照和更早版本会 fail closed。
 - 目前只有 Godot 适配层，Unity 和其他引擎尚未验证。
 - 专业资产公共底座已形成机器闭环，但仍需要首个真实项目提供目标平台预算 Profile、真实 DCC/导入链和发布资产回放证据。
+- 主美 D0–D4 已通过代表性契约纵切片和失败注入，仍需在真实项目中验证风格探索质量、团队吞吐和目标平台 benchmark；本版本只定义 UI 视觉接口，不宣称独立 UI workflow 已完成验收。
 - 迁移器不会自动操作任何现有游戏项目；每个项目都必须单独在隔离副本验证、审阅计划摘要，再决定是否迁移原项目。

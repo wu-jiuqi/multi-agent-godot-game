@@ -4,7 +4,7 @@
 
 ## 当前版本
 
-当前发布候选为 `v0.4.0-alpha.3`：修复 Loop Registry 官方 CLI 把 active Snapshot 同时按 draft 模板校验的问题，将静态契约、draft 注册模板和运行态历史重放分为独立路径，并提供从 `v0.4.0-alpha.2` 到本候选版的只读规划与受控迁移器；该版本仍是 Alpha，不是 Production Ready。
+当前发布候选为 `v0.5.0-alpha.1`：新增可选主美 Agent、联网研究驱动的多方向探索、跨 2D/3D/VFX/UI 风格圣经、D0–D4 分阶段摘要与 Gate、Godot 引擎内基准、技术预算和权利溯源，并为已发行版本提供受控迁移；该版本仍是 Alpha，不是 Production Ready。
 
 ## 目录
 
@@ -20,6 +20,8 @@
 python -m unittest discover -s game/game-production-pipeline/tests -p 'test_*.py' -v
 python game/game-production-pipeline/scripts/validate_pipeline_contract.py game/game-production-pipeline/contracts/examples/vertical-slice-greybox.yaml
 python game/game-production-pipeline/scripts/validate_project_brief.py game/game-production-pipeline/contracts/examples/sample-project-brief.yaml --project-id sample-game
+python game/game-production-pipeline/scripts/validate_art_direction_contract.py game/game-production-pipeline/contracts/examples/art-direction-clockwork-garden.yaml --gate D4
+python game/game-production-pipeline/scripts/evaluate_art_direction_gate.py game/game-production-pipeline/contracts/examples/art-direction-clockwork-garden.yaml --gate D4
 python game/game-production-pipeline/scripts/validate_organization_registry.py --templates --snapshot game/game-production-pipeline/contracts/examples/organization-alpha-snapshot.yaml --change-set game/game-production-pipeline/contracts/examples/organization-alpha-change-set.yaml
 python game/game-production-pipeline/scripts/validate_text_encoding.py --plugin-root game/game-production-pipeline
 ```

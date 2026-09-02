@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -161,6 +163,18 @@ class ArtDirectionContractTests(unittest.TestCase):
         self.refresh_digests()
         result = self.validate(previous=previous)
         self.assert_invalid_with(result, "同一 Art Direction revision 不得原地修改")
+
+    def test_cli_json_is_ascii_safe_for_windows_powershell(self) -> None:
+        completed = subprocess.run(
+            [sys.executable, str(SCRIPTS / "evaluate_art_direction_gate.py"), str(EXAMPLE), "--gate", "D4"],
+            cwd=PLUGIN_ROOT,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        completed.stdout.decode("ascii")
+        payload = json.loads(completed.stdout)
+        self.assertEqual("pass", payload["state"])
 
 
 if __name__ == "__main__":

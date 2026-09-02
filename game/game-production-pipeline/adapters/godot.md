@@ -11,6 +11,7 @@
 | 可复用交互对象 | 独立 `.tscn` 场景、必要脚本和配置 Resource |
 | 游戏数据与规则配置 | 优先使用自定义 `.tres` Resource；跨工具交换时才用 JSON/YAML |
 | UI 结构 | `Control`、Container、Theme 等预置节点与资源 |
+| 美术方向基准 | 代表性的预置 `.tscn` benchmark、Theme/Material/Environment `.tres`、目标构建与捕获 |
 | 动画与反馈 | `AnimationPlayer`、`AnimationTree`、Tween、Audio 节点或粒子节点 |
 | 自动验证 | 无头启动、脚本检查、测试插件和目标平台导出检查 |
 
@@ -24,6 +25,17 @@
 - 性能结论必须来自批准的目标平台、硬件档位、可重复测试场景和具体 Build；编辑器预览或通用经验值不能代替实测。
 - `validate_project_instance.py` 自动发现 `game-pipeline/assets/contracts/*.yaml`；它校验真实 `repo://` 文件摘要、版本链和四道 Asset Gate，但不会改写导入设置、项目资源或人工审批。
 - `consumer_boundary.access` 固定为 `read_only`。UI 场景、Screen/Flow、布局和交互规格放入 `protected_paths`；资产输出只能进入不重叠的 `generated_output_paths`。需要修改 UI 时退回独立 UI 工作流。
+
+## 主美方向 Contract 映射
+
+`game-production-art-direction/v1` 把体验目标和视觉语言映射为 Godot 中可观察的基准，而不是把某张离线概念图当作完成：
+
+- D3 benchmark 优先保存为编辑器可打开的预置 `.tscn`；固定灯光、WorldEnvironment、相机、角色/环境/道具/VFX/UI overlay 结构序列化到场景或子场景。
+- 2D Profile 对应图像导入模式、色彩空间、alpha、过滤、mipmap、压缩、尺寸和 atlas 规则；3D Profile 对应单位/轴、glTF 导入、材质/纹理、骨骼和 LOD/visibility；UI Profile 对应 Theme、字体、图标与视觉 token。
+- 共享 UI 视觉规则放入 Theme/StyleBox/字体/图标资源；Art Director 对这些资源提出视觉标准，但 UI Screen/Flow、Container 层级、响应布局、焦点和交互仍由 UI workflow 拥有。
+- `.import` 可作为版本化导入配方证据，`.godot/imported/` 只作 cache。任何离线 DCC 结果都必须在实际导入、渲染器、相机和目标构建中复核。
+- D3 性能证据使用项目批准的硬件、场景和 Build；测量纹理内存、网格/材质、draw call、透明 overdraw、VFX、UI batch/font atlas 及帧时间中实际适用的指标。
+- `validate_project_instance.py` 会发现 `game-pipeline/art-direction/contracts/*.yaml` 并检查 revision、阶段摘要和真实 `repo://` 项目简报引用，但不修改项目场景、Theme 或审批。
 
 ## 预置节点优先规则
 

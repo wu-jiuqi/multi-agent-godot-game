@@ -11,6 +11,12 @@
     ├── approvals/                  # 人工审批记录
     ├── bindings/                   # Skill 与事实源绑定
     ├── .cache/migrations/          # 迁移逐字节备份（Git 忽略）
+    ├── art-direction/
+    │   ├── contracts/              # 主美方向每个 revision 的 D0–D4 Contract
+    │   ├── research/               # 联网研究、视频、来源、用途和 anti-copy 记录
+    │   ├── style-bibles/           # 风格圣经、翻译矩阵与视觉 token 引用
+    │   ├── benchmarks/             # style frames、引擎场景、目标构建与捕获
+    │   └── evidence/               # 评审、审批、可读性、权利与返工证据
     ├── assets/
     │   ├── contracts/              # 专业资产每个 revision 的 Contract
     │   ├── budgets/                # 项目批准的预算 Profile

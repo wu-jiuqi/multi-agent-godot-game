@@ -19,6 +19,7 @@ status: draft
 - 跨部门依赖、资源承诺、交付节奏和关键路径；
 - 管线 Contract 的完整性；
 - 专业资产 Loop 是否绑定当前 Asset Contract revision、文件摘要、subject digest 与所需 A0～A3 证据；
+- 主美方向 Loop 是否绑定当前 Art Direction Contract revision、五类阶段摘要、D2 人工选向与 D3/D4 证据；
 - 部门路由、跨部门交接记录和变更影响清单；
 - 人工闸门是否满足前置条件的证据；
 - 项目级风险、阻塞、冲突、回退和重新规划记录；

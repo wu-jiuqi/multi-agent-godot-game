@@ -71,6 +71,8 @@ class PluginRuntimeTests(unittest.TestCase):
         self.assertIn("game-pipeline/project-definition/project-brief.yaml", result["applied"])
         for relative_path in bootstrap.ASSET_AND_LOOP_READMES:
             self.assertTrue((self.project_root / relative_path).is_file(), relative_path)
+        for relative_path in bootstrap.ART_DIRECTION_READMES:
+            self.assertTrue((self.project_root / relative_path).is_file(), relative_path)
 
         second_plan, second_desired = self.make_plan()
         self.assertTrue(second_plan["can_apply"])
@@ -122,6 +124,15 @@ class PluginRuntimeTests(unittest.TestCase):
         self.assertEqual("blocked", result["state"], result)
         self.assertIn("game-pipeline/assets/contracts/invalid.yaml", result["checked"])
         self.assertIn("Specialist Asset invalid.yaml", "\n".join(result["errors"]))
+
+    def test_project_validator_discovers_art_direction_contracts(self) -> None:
+        self.apply_bootstrap()
+        contract_path = self.project_root / "game-pipeline" / "art-direction" / "contracts" / "invalid.yaml"
+        contract_path.write_text("art_direction_contract: {}\n", encoding="utf-8", newline="\n")
+        result = project_validator.validate_instance(self.project_root, PLUGIN_ROOT)
+        self.assertEqual("blocked", result["state"], result)
+        self.assertIn("game-pipeline/art-direction/contracts/invalid.yaml", result["checked"])
+        self.assertIn("Art Direction invalid.yaml", "\n".join(result["errors"]))
 
     def test_version_mismatch_is_read_only_and_migration_is_blocked_without_migrator(self) -> None:
         self.apply_bootstrap()

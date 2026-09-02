@@ -47,6 +47,13 @@ ASSET_AND_LOOP_READMES = {
     "game-pipeline/loops/contracts/README.md": "# 项目 Loop Contracts\n\n保存项目批准或特化的 Loop Contract。专业资产生产必须保留 `asset_contract_policy`，不得删除 A0/A2/A3 绑定。\n",
     "game-pipeline/loops/registry/README.md": "# Loop Registry\n\n每个运行实例保存 Snapshot 与不可变 Event History。Registry 只保存资产 Contract 的版本化引用、摘要和 Gate 证据，不复制资产正文。\n",
 }
+ART_DIRECTION_READMES = {
+    "game-pipeline/art-direction/contracts/README.md": "# 主美方向 Contract\n\n每个方向 revision 保存一份 `game-production-art-direction/v1` Contract。D2 核心画风选择与 D4 生产冻结必须绑定指定人工审批；不要把插件占位模板直接放入本目录。\n",
+    "game-pipeline/art-direction/research/README.md": "# 视觉研究与来源\n\n保存联网研究、视频时间点、非游戏影响、引用用途、权利类别和 anti-copy 说明。参考图不自动拥有生产授权。\n",
+    "game-pipeline/art-direction/style-bibles/README.md": "# 风格圣经\n\n保存当前和历史风格圣经、跨域翻译矩阵、正反例与视觉 token 引用；冻结版本必须绑定 Art Direction Contract digest。\n",
+    "game-pipeline/art-direction/benchmarks/README.md": "# 引擎内美术基准\n\n保存 style frames、代表性引擎场景、目标构建、捕获与性能基准引用。D3 通过前不得据此启动大规模最终资产生产。\n",
+    "game-pipeline/art-direction/evidence/README.md": "# 主美评审证据\n\n保存 D0–D4 自动检查、专业评审、人工选向、可读性、权利与返工证据；所有记录绑定对应阶段摘要。\n",
+}
 AGENTS_START_RE = re.compile(
     r"<!-- game-production-pipeline:start schema=v1 digest=([0-9a-f]{64}) -->\n"
 )
@@ -419,6 +426,7 @@ def build_managed_blocks(version: str, digest: str) -> dict[str, dict[str, Any]]
 - 当前锁定插件：`{PLUGIN_ID}@{version}`，框架摘要：`{digest}`。
 - 初始项目简报位于 `game-pipeline/project-definition/project-brief.yaml`；未确认前不得批准正式编制。
 - 专业资产 Contract 位于 `game-pipeline/assets/contracts/`；P6 资产 Loop 必须绑定 asset_id、revision、文件 digest 与 subject digest，并通过对应 Asset Gate。
+- 主美方向 Contract 位于 `game-pipeline/art-direction/contracts/`；方向工作必须先联网研究，经 D2 人工选向与 D3 引擎基准后才能规模化生产。
 - 公共资产流程对 UI 等领域事实源只读；任何反向修改必须进入独立上游工作流。
 - 持久部门、岗位、Agent Preset 与 Skill 绑定必须先获得项目所有者人工审批。
 - 临时 Agent Instance 只有在批准且未过期的 Temporary Grant 范围和额度内才可免逐实例审批，但必须先登记并保持可见。
@@ -515,6 +523,7 @@ def build_contents(
         "game-pipeline/organization/validations/README.md": "# 组织校验\n\n保存可复核的校验结论与证据引用，不把自动校验结果伪装成人工审批。\n",
         ".agents/skills/README.md": "# 项目专属 Skills\n\n只保存该游戏项目特有的可执行方法；可复用框架能力仍由全局插件提供。\n",
         **ASSET_AND_LOOP_READMES,
+        **ART_DIRECTION_READMES,
     }
     blocks = build_managed_blocks(version, digest)
     warnings: list[str] = []

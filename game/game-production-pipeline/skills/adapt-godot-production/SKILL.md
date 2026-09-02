@@ -20,6 +20,8 @@ Bridge the engine-agnostic production contract to Godot without changing the app
 
 For a Specialist Asset Loop, preserve the Contract's `asset_id + revision + file digest + subject digest` in the handoff, commit required `.import` sidecars, treat `.godot/imported/` only as cache, and provide actual target-scene profiler evidence before A2. Run `validate_specialist_asset_loop.py` before returning the Registry snapshot. Do not edit UI protected paths; an asset-driven UI change is a separate upstream workflow.
 
+For an Art Direction Loop, map the approved benchmark to editor-authored `.tscn` scenes and `.tres` resources where practical. Use the real renderer/import path and target camera; include representative 2D/3D/VFX/motion/UI domains declared by the Contract. Shared UI visual tokens belong in a Theme resource, but existing UI scene hierarchy, responsive behavior, focus, and interaction remain read-only until a UI workflow authorizes them. Record build, platform, scenario, profiler/capture evidence, five stage digests, and D3/D4 results in the handoff.
+
 ## Failure Routing
 
 - Missing or contradictory game-design input returns to the design owner.

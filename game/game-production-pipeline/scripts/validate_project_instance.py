@@ -21,6 +21,7 @@ from pipeline_common import (
 from validate_organization_registry import validate_change_set, validate_history
 from validate_plugin_lock import evaluate_lock
 from validate_project_brief import validate_project_brief
+from validate_art_direction_contract import validate_art_direction_contract
 from validate_specialist_asset_contract import validate_specialist_asset_contract
 from validate_specialist_asset_loop import (
     ARTIFACT_TYPE,
@@ -47,6 +48,11 @@ CURRENT_REQUIRED_FILES = BASE_REQUIRED_FILES + (
     "game-pipeline/assets/protected-path-snapshots/README.md",
     "game-pipeline/loops/contracts/README.md",
     "game-pipeline/loops/registry/README.md",
+    "game-pipeline/art-direction/contracts/README.md",
+    "game-pipeline/art-direction/research/README.md",
+    "game-pipeline/art-direction/style-bibles/README.md",
+    "game-pipeline/art-direction/benchmarks/README.md",
+    "game-pipeline/art-direction/evidence/README.md",
 )
 
 
@@ -255,6 +261,42 @@ def validate_instance(project_root: Path, source_root: Path | None = None) -> di
         result = validate_specialist_asset_contract(document, previous=previous, project_root=project_root)
         errors.extend(f"Specialist Asset {path.name}: {message}" for message in result["errors"])
         warnings.extend(f"Specialist Asset {path.name}: {message}" for message in result["warnings"])
+        checked.append(path.relative_to(project_root).as_posix())
+
+    art_direction_dir = project_root / "game-pipeline" / "art-direction" / "contracts"
+    art_documents: list[tuple[Path, dict[str, Any]]] = []
+    art_revisions: dict[tuple[str, int], tuple[Path, dict[str, Any]]] = {}
+    for path in sorted(art_direction_dir.rglob("*.yaml")) if art_direction_dir.is_dir() else []:
+        try:
+            document = load_yaml(path)
+        except (OSError, ValueError) as exc:
+            errors.append(f"Art Direction {path.name}: {exc}")
+            continue
+        art_documents.append((path, document))
+        identity = document.get("art_direction_contract", {}).get("identity", {})
+        art_direction_id = identity.get("art_direction_id")
+        revision = identity.get("revision")
+        if isinstance(art_direction_id, str) and isinstance(revision, int) and not isinstance(revision, bool):
+            key = (art_direction_id, revision)
+            if key in art_revisions:
+                errors.append(f"Art Direction: 重复 art_direction_id/revision: {art_direction_id} r{revision}")
+            else:
+                art_revisions[key] = (path, document)
+
+    for path, document in art_documents:
+        identity = document.get("art_direction_contract", {}).get("identity", {})
+        art_direction_id = identity.get("art_direction_id")
+        revision = identity.get("revision")
+        previous = None
+        if isinstance(art_direction_id, str) and isinstance(revision, int) and revision > 1:
+            previous_record = art_revisions.get((art_direction_id, revision - 1))
+            if previous_record is None:
+                errors.append(f"Art Direction {path.name}: 缺少上一 revision 的 Contract")
+            else:
+                previous = previous_record[1]
+        result = validate_art_direction_contract(document, previous=previous, project_root=project_root)
+        errors.extend(f"Art Direction {path.name}: {message}" for message in result["errors"])
+        warnings.extend(f"Art Direction {path.name}: {message}" for message in result["warnings"])
         checked.append(path.relative_to(project_root).as_posix())
 
     loop_contract_dir = project_root / "game-pipeline" / "loops" / "contracts"

@@ -31,6 +31,7 @@ status: draft
 - Godot 版本、目标平台、性能预算和仓库规则；
 - 测试报告、变更影响清单和专业资产交付物。
 - 当前 `game-production-specialist-asset/v1` revision、import recipe digest、目标 Gate 与 protected paths。
+- 当前 `game-production-art-direction/v1` revision、D3/D4 阶段摘要、技术 Profile、benchmark 场景与目标构建上下文。
 
 ## 输出
 

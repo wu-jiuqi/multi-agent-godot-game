@@ -120,7 +120,7 @@ coordination:
   allowed_parent_loop_types: [project-definition, vertical-slice, content-production, release-preparation]
   dependency_rules:
     - "项目简报或已批准选向变化时，对应阶段及下游证据立即 stale。"
-    - "D3 前不得启动大规模最终资产生产；UI 结构变化必须创建独立 UI workflow。"
+    - "D3 证明基准，D4 冻结基线；D4 前不得启动大规模最终资产生产。UI 结构变化必须创建独立 UI workflow。"
   child_loop_creation:
     allowed: true
     conditions:

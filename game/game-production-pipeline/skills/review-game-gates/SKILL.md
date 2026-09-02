@@ -32,6 +32,18 @@ When the review target is a `game-production-specialist-asset/v1` Contract, run 
 
 Store the evaluator output as evidence and bind its `approval_digest` to any subsequent decision. The evaluator is read-only: it never writes a human decision. A project-level `GATE-3` may require all scoped assets to have A3, but one asset's A3 does not itself approve project content freeze.
 
+## Art Direction Gates
+
+For `game-production-art-direction/v1`, run `../../scripts/evaluate_art_direction_gate.py <contract> --gate D0|D1|D2|D3|D4 --project-root <root>` and preserve its outcome without writing approval.
+
+- D0 checks that the visual problem is grounded in approved experience, readability, platform, scope, and rights constraints.
+- D1 checks research provenance and whether at least three options differ in more than palette or surface treatment.
+- D2 always requires the designated human to approve the current `direction_subject_digest`.
+- D3 checks a representative in-engine target build, every required domain, readability, technical profiles, budgets, and independent art/technical reviews.
+- D4 checks full rights/AI provenance, QA, resolved rework, owner approval, and the frozen `contract_subject_digest`.
+
+Evaluate image quality against the recorded visual language and player effect, not taste alone. Screenshots can prove appearance, but executable target-build evidence is still required where the Contract names interaction, motion, import, or performance. D4 does not replace project GATE-3/GATE-4.
+
 ## Guardrails
 
 - The producing Agent cannot be the sole reviewer of its own deliverable.

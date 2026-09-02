@@ -50,7 +50,21 @@
 
 完成后进入 `GATE-2`。失败按下表返回；未通过不得批量生产最终环境资产。
 
-### 5. 按需生产资产并集成
+### 5. 建立主美方向与引擎基准
+
+主责：项目批准的主美 Position / `$direct-game-art`；协作：`AGT-GD`、`AGT-CD`、`AGT-GODOT`、`AGT-QA` 与项目所有者。
+
+如果切片需要证明最终视觉质量或多类资产一致性，从 [`art-direction-contract.template.yaml`](../contracts/art-direction-contract.template.yaml) 建立项目 Contract：
+
+- D0 把玩家体验、玩法可读性、范围、平台和权利政策固定为方向问题；
+- D1 先联网研究权威资料、视频与非游戏来源，再给出至少三条实质不同的方向和推荐；
+- D2 由项目所有者批准当前 `direction_subject_digest`，主美不能替代选向；
+- D3 在 Godot 代表性预置场景中覆盖所有 required domains，提交目标构建、可读性、技术 Profile 和性能实测；
+- D4 绑定完整风格圣经、跨域翻译、权利、QA、零开放返工和生产冻结审批。
+
+D3 只证明方向可行，D4 才允许据此规模化生产最终资产。UI 在本阶段只验证视觉语言、Theme/token、图标/字体/动效如何与世界观一致；Screen/Flow、布局行为和交互仍保持只读，待独立 UI workflow 验证。
+
+### 6. 按需生产资产并集成
 
 主责：按需专业 Agent；集成：`AGT-GODOT`；意图验收：`AGT-CD`。
 
@@ -63,9 +77,11 @@
 
 跨 Loop 交接必须传递 `asset_id + revision + contract_subject_digest`，不能只传路径。程序继续支持占位资源，不等待所有最终资产才开始。公共资产流程对 UI Screen/Flow、布局和交互事实源只读；若返修需要改变 UI，必须启动独立 UI 变更工作流。
 
+每项最终资产必须引用当前已通过 D4 的 `art_direction_id + revision + contract_subject_digest`；若该项目明确没有持续主美方向需求，项目 Contract 必须记录原因和替代的视觉验收事实源。
+
 完成后由 `AGT-QA` 执行集成回归，进入 `GATE-3`。
 
-### 6. 试玩、修订与发布候选
+### 7. 试玩、修订与发布候选
 
 主责：`AGT-QA`；修订由相应责任 Agent 执行。
 
@@ -83,6 +99,9 @@
 | 交互状态、反馈或持久化规则不完整 | P5 | `AGT-CD` |
 | 节点、代码、存档、性能或平台实现失败 | P3/P7 | `AGT-GODOT` |
 | 资产不符合表达需求 | P6 | 对应专业 Agent |
+| 多类资产视觉漂移或 UI 与世界风格割裂 | D3/D4 | 主美 + 对应专业 Agent；UI 结构问题另开 UI workflow |
+| 方向只有表面差异、缺研究或未获人类选向 | D1/D2 | 主美 + 项目所有者 |
+| 基准在目标构建不可读或超预算 | D3 | 主美 + `AGT-GODOT` |
 | 资产来源、许可、合同或再分发权不成立 | P6 / `RGT` 阻塞 | 权利复核者 + 项目所有者 |
 | Source、导入配方或 Runtime 摘要不一致 | P6/P7 / `SRC` 或 `IMP` | 对应专业 Agent + `AGT-GODOT` |
 | 资产超过目标场景预算 | P6/P7 / `PERF` | 对应专业 Agent + `AGT-GODOT` |

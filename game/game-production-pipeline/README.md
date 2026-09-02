@@ -2,7 +2,7 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.5.0-alpha.1`。它新增可选主美 Agent、联网研究驱动的多方向探索、可扩展到 UI 的视觉语言、D0–D4 分阶段摘要与验收、2D/3D/UI 技术 Profile、Godot 引擎内基准和权利溯源，并接入 Bootstrap、项目总校验、生产循环与受控迁移；仍需真实项目回放，因此不是 Production Ready。
+当前版本：`v0.5.0-alpha.2`。它保留 `alpha.1` 的可选主美 Agent、联网研究、多方向探索、可扩展到 UI 的视觉语言、D0–D4、2D/3D/UI 技术 Profile、Godot 基准和权利溯源，并新增 LF 发布契约、无 zlib 差异的存储式 ZIP 与跨 `autocrlf` 回归；仍需真实项目回放，因此不是 Production Ready。
 
 ## 层级
 
@@ -79,9 +79,9 @@ python scripts/validate_project_instance.py --project-root D:\Game\MyProject
 
 脚本拒绝覆盖现有非托管文件。版本不一致进入 `read_only`，相同版本但框架摘要不一致进入 `blocked`；不得手工改写 `plugin-lock.yaml` 绕过迁移。
 
-## 迁移到 v0.5.0-alpha.1
+## 迁移到 v0.5.0-alpha.2
 
-`v0.5.0-alpha.1` 支持从白名单内的 `v0.3.0-alpha.1`、`v0.4.0-alpha.2`、`v0.4.0-alpha.3` 或 `v0.4.0-alpha.4` 显式迁移。迁移只补齐缺失的既有控制面和新的主美方向 `contracts/research/style-bibles/benchmarks/evidence` README、更新 `AGENTS.md` managed block、写审批记录并最后更新 `plugin-lock.yaml`；已有 README 逐字节保留，不修改现有美术/资产 Contract、风格圣经、图片、场景、UI、Snapshot、Event History、组织、Agent Preset 或 Skill Binding。未知摘要、损坏 managed block 或计划后文件漂移都会 fail closed。
+`v0.5.0-alpha.2` 支持从白名单内的 `v0.3.0-alpha.1`、`v0.4.0-alpha.2`、`v0.4.0-alpha.3`、`v0.4.0-alpha.4` 或 `v0.5.0-alpha.1` 显式迁移。从 v0.3/v0.4 迁移时只补齐缺失控制面和主美方向 README；从 `alpha.1` 迁移时只更新 `AGENTS.md` managed block、写审批记录并最后更新 `plugin-lock.yaml`。`alpha.1` 已知的 LF 和 CRLF 两种摘要都在显式白名单中。已有 README、美术/资产 Contract、风格圣经、图片、场景、UI、Snapshot、Event History、组织、Agent Preset 和 Skill Binding 逐字节保留；未知摘要、损坏 managed block 或计划后文件漂移都会 fail closed。
 
 先在项目 Git 工作区干净且已有额外备份的前提下执行 dry-run。保存输出中的 `migration_at` 和 `plan_digest`：
 
@@ -246,7 +246,7 @@ python scripts/build_release.py --plugin-root . --output-dir ..\..\dist
 
 - 治理层仍是文件契约与确定性校验器，没有强制拦截所有手工文件修改的 MCP 或 Hook。
 - Registry 没有数据库事务适配器；脚本会预检和原子写单文件，但不能提供跨文件数据库级事务。
-- 迁移仅覆盖白名单内的 v0.3、alpha.2、alpha.3 和 alpha.4 摘要；其他开发快照和更早版本会 fail closed。
+- 迁移仅覆盖白名单内的 v0.3、v0.4 alpha.2/alpha.3/alpha.4 和 v0.5 alpha.1 摘要；其他开发快照和更早版本会 fail closed。
 - 目前只有 Godot 适配层，Unity 和其他引擎尚未验证。
 - 专业资产公共底座已形成机器闭环，但仍需要首个真实项目提供目标平台预算 Profile、真实 DCC/导入链和发布资产回放证据。
 - 主美 D0–D4 已通过代表性契约纵切片和失败注入，仍需在真实项目中验证风格探索质量、团队吞吐和目标平台 benchmark；本版本只定义 UI 视觉接口，不宣称独立 UI workflow 已完成验收。

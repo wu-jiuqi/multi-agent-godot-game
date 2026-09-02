@@ -94,6 +94,7 @@ def build_migration_from(
     from_lock: dict[str, Any],
     expected_from_version: str,
     supported_from_framework_digests: set[str],
+    include_control_plane_readmes: bool = True,
 ) -> tuple[dict[str, Any], dict[str, str]]:
     errors: list[str] = []
     conflicts: list[dict[str, str]] = []
@@ -135,7 +136,8 @@ def build_migration_from(
         if path.is_file()
     }
 
-    add_control_plane_readmes(project_root, desired, errors)
+    if include_control_plane_readmes:
+        add_control_plane_readmes(project_root, desired, errors)
     if not errors and agents_text is not None:
         if not AGENTS_START_RE.search(agents_text):
             conflicts.append(
@@ -161,7 +163,7 @@ def build_migration_from(
             )
 
     ordered_paths = [
-        *ASSET_AND_LOOP_READMES,
+        *(ASSET_AND_LOOP_READMES if include_control_plane_readmes else ()),
         "AGENTS.md",
         "game-pipeline/plugin-lock.yaml",
     ]
@@ -172,7 +174,10 @@ def build_migration_from(
     ]
     if any(action["path"] == "game-pipeline/plugin-lock.yaml" for action in actions):
         warnings.append("plugin lock 将在控制面文件写入并验证后最后更新")
-    warnings.append("迁移不修改现有 Asset Contract、Snapshot、Event History、游戏内容或 UI 事实源")
+    if include_control_plane_readmes:
+        warnings.append("迁移不修改现有 Asset Contract、Snapshot、Event History、游戏内容或 UI 事实源")
+    else:
+        warnings.append("迁移只更新受管 AGENTS.md 区块与 plugin lock，不修改项目控制面或游戏内容")
 
     return (
         {
@@ -184,7 +189,7 @@ def build_migration_from(
             "history_digests_before": history_digests,
             "postconditions": [
                 "逐个目标文件的写入前摘要仍与计划一致",
-                "专业资产与 Loop Registry 控制面目录存在",
+                *(["专业资产与 Loop Registry 控制面目录存在"] if include_control_plane_readmes else []),
                 "plugin lock 状态为 normal",
                 "项目实例完整校验为 normal",
                 "所有 Event History 的 SHA-256 与迁移前一致",

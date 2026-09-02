@@ -1,6 +1,6 @@
 {
   "name": "game-production-pipeline",
-  "version": "0.5.0-alpha.1",
+  "version": "0.5.0-alpha.2",
   "description": "Turn owner-defined game plans into approved briefs, project-specific teams, production-ready art direction, and auditable game-production pipelines in Codex.",
   "author": {
     "name": "wu-jiuqi",

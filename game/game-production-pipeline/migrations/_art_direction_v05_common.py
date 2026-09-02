@@ -91,12 +91,13 @@ def build_from_alpha(
     from_lock: dict[str, Any],
     expected_from_version: str,
     supported_digests: set[str],
+    expected_to_version: str = TO_VERSION,
 ) -> tuple[dict[str, Any], dict[str, str]]:
     base = load_module(
         Path(__file__).with_name("0-4-0-alpha-3__0-4-0-alpha-4.py"),
         f"_game_pipeline_alpha4_base_for_{expected_from_version.replace('.', '_').replace('-', '_')}",
     )
-    base.TO_VERSION = TO_VERSION
+    base.TO_VERSION = expected_to_version
     details, desired = base.build_migration_from(
         project_root=project_root,
         source_root=source_root,
@@ -122,6 +123,7 @@ def build_from_v03(
     migration_at: str,
     from_version: str,
     from_lock: dict[str, Any],
+    expected_to_version: str = TO_VERSION,
 ) -> tuple[dict[str, Any], dict[str, str]]:
     root = Path(__file__).parent
     legacy = load_module(root / "0-3-0-alpha-1__0-4-0-alpha-2.py", "_game_pipeline_v03_base_for_v05")
@@ -132,7 +134,7 @@ def build_from_v03(
         migration_at=migration_at,
         from_version=from_version,
         from_lock=from_lock,
-        expected_target_version=TO_VERSION,
+        expected_target_version=expected_to_version,
     )
     return finalize_art_control_plane(
         project_root=project_root,

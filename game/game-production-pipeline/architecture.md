@@ -57,6 +57,8 @@ P0～P9 是生产阶段，不默认等于十个 Agent。只有同时满足以下
 
 详细边界见 `agents/`。
 
+可选专项模板 [游戏机制与玩法策划 Agent](agents/gameplay-designer.md) 负责被委派机制的方案比较、规则规格、数值假设与原型验证设计。`AGT-GD` 保留 P0/P1 整体一致性和系统目录责任，具体机制事实源只设一个写入 owner。小项目可兼任，独立岗位需按项目编制批准；机器 Pipeline Contract 使用已有 `SPECIALIST` 槽位，不新增默认 Agent 枚举。方法、模板与交接见 [玩法策划工作流](workflows/gameplay-design.md)。
+
 ## 项目专属编制规则
 
 具体项目可以根据玩法、内容规模、视觉管线、技术风险和团队分工，对默认编制执行以下操作：

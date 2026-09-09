@@ -28,6 +28,17 @@ Codex Plugin
 - `$adapt-godot-production`：把通用产物映射为 Godot 场景、资源、节点、测试与构建证据。
 - `$direct-game-art`：先联网研究，再主动提出多条画风方向，建立风格圣经、跨 2D/3D/VFX/UI 翻译、引擎基准、预算、权利和表现验收。
 
+## 游戏机制与玩法策划角色
+
+仓库新增 [游戏机制与玩法策划 Agent](agents/gameplay-designer.md) 初稿，提供机制选项、核心循环、规则/参数、风险分析和最小原型任务书。它可由游戏设计 Agent 兼任，也可按项目需要设专项岗位；每个机制只保留一个写入负责人。
+
+- [工作流与调用示例](workflows/gameplay-design.md)
+- [策划包模板](assets/gameplay-design-brief.template.md)
+- [一手研究来源与方法边界](references/gameplay-design-methods.md)
+- [合成交付示例](tests/examples/gameplay-design-salvage.md) 与 [行为验收情境](tests/gameplay-designer-evaluation.md)
+
+此增量是尚未发布、尚待真实项目验证的角色/文档模板，不新增 Skill、机器 Contract 或自动安装的具名 Agent。当前任务可直接读取角色文件使用；正式项目实例化沿用既有组织、Preset 和绑定审批流程。已安装的 `v0.5.0-alpha.3` 不会自动包含这些仓库新增文件。
+
 ## 项目实例
 
 初始化不会创建任何已生效部门或 Agent，只建立空 Registry 基线、blocked 项目简报草案和待补全的初始编制草案：

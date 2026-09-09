@@ -9,6 +9,7 @@
 ## 目录
 
 - `game/game-production-pipeline/`：游戏制作多 Agent 管线的 Codex 插件源码。
+- `skills/ui-ux-pro-max/`：UI/UX Skill 的可维护源码，包含任务分流、体验流程、设计检索库及分平台验收规范；本机安装目录为 `~/.codex/skills/ui-ux-pro-max/`（或 `$CODEX_HOME/skills/ui-ux-pro-max/`）。
 - `docs/releases/`：版本发布说明、测试手册与已知限制。
 - `dist/`：本地生成的发布附件，已由 Git 忽略。
 
@@ -26,4 +27,6 @@ python game/game-production-pipeline/scripts/validate_art_direction_contract.py 
 python game/game-production-pipeline/scripts/evaluate_art_direction_gate.py game/game-production-pipeline/contracts/examples/art-direction-clockwork-garden.yaml --gate D4
 python game/game-production-pipeline/scripts/validate_organization_registry.py --templates --snapshot game/game-production-pipeline/contracts/examples/organization-alpha-snapshot.yaml --change-set game/game-production-pipeline/contracts/examples/organization-alpha-change-set.yaml
 python game/game-production-pipeline/scripts/validate_text_encoding.py --plugin-root game/game-production-pipeline
+python skills/ui-ux-pro-max/scripts/validate_data.py
+python -m unittest discover -s skills/ui-ux-pro-max/scripts/tests -p 'test_*.py'
 ```

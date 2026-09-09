@@ -29,6 +29,7 @@ def build_alpha(
     expected_from_version: str,
     supported_digests: set[str],
     metadata_only: bool = False,
+    expected_to_version: str = "0.5.0-alpha.3",
 ) -> tuple[dict[str, Any], dict[str, str]]:
     art = load_module(f"_game_pipeline_art_alpha3_{expected_from_version}", "_art_direction_v05_common.py")
     runtime = load_module(f"_game_pipeline_runtime_alpha3_{expected_from_version}", "_runtime_binding_v05_alpha3_common.py")
@@ -42,6 +43,7 @@ def build_alpha(
         expected_from_version=expected_from_version,
         supported_digests=supported_digests,
         art_common=art,
+        expected_to_version=expected_to_version,
     )
 
 
@@ -52,6 +54,7 @@ def build_v03(
     migration_at: str,
     from_version: str,
     from_lock: dict[str, Any],
+    expected_to_version: str = "0.5.0-alpha.3",
 ) -> tuple[dict[str, Any], dict[str, str]]:
     art = load_module("_game_pipeline_art_alpha3_v03", "_art_direction_v05_common.py")
     runtime = load_module("_game_pipeline_runtime_alpha3_v03", "_runtime_binding_v05_alpha3_common.py")
@@ -62,4 +65,5 @@ def build_v03(
         from_version=from_version,
         from_lock=from_lock,
         art_common=art,
+        expected_to_version=expected_to_version,
     )

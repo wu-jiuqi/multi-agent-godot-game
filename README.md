@@ -4,7 +4,7 @@
 
 ## 当前版本
 
-当前发布候选为 `v0.5.0-alpha.3`：保留可选主美 Agent、多方向探索、跨 2D/3D/VFX/UI 风格圣经、D0–D4 Gate、Godot 基准、技术预算、权利溯源和可复现发布，并补齐 Skill Binding 独立审批与 Agent Adapter 同事务迁移；该版本仍是 Alpha，不是 Production Ready。
+当前版本为 `v0.5.0-alpha.4`：新增可选游戏机制与玩法策划角色、规则规格与原型任务书，补充从 `alpha.3` 及既有支持版本直接迁移的入口。保留主美方向、Skill Binding 独立审批、Agent Adapter 事务迁移与可复现发布；仍是 Alpha，不是 Production Ready。UI/UX Skill 同批提供独立附件。
 
 ## 目录
 
@@ -13,7 +13,7 @@
 - `docs/releases/`：版本发布说明、测试手册与已知限制。
 - `dist/`：本地生成的发布附件，已由 Git 忽略。
 
-新增未发布角色：[游戏机制与玩法策划 Agent](game/game-production-pipeline/agents/gameplay-designer.md)，附研究依据、规则规格模板、原型任务书和代表性验收场景。当前为待真实项目验证的初稿。
+本版新增角色：[游戏机制与玩法策划 Agent](game/game-production-pipeline/agents/gameplay-designer.md)，附研究依据、规则规格模板、原型任务书和代表性验收场景。当前为待真实项目验证的初稿。
 
 通用插件只保存框架、契约、角色模板和可执行工作流；剧情、美术风格、玩法答案与项目专属 Agent 保存在目标游戏项目中。
 

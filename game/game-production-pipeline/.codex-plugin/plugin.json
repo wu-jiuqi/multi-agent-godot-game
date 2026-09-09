@@ -1,13 +1,13 @@
 {
   "name": "game-production-pipeline",
-  "version": "0.5.0-alpha.3",
+  "version": "0.5.0-alpha.4",
   "description": "Turn owner-defined game plans into approved briefs, project-specific teams, production-ready art direction, and auditable game-production pipelines in Codex.",
   "author": {
     "name": "wu-jiuqi",
     "url": "https://github.com/wu-jiuqi"
   },
-  "homepage": "https://github.com/wu-jiuqi/muti-agent",
-  "repository": "https://github.com/wu-jiuqi/muti-agent",
+  "homepage": "https://github.com/wu-jiuqi/multi-agent-godot-game",
+  "repository": "https://github.com/wu-jiuqi/multi-agent-godot-game",
   "skills": "./skills/",
   "interface": {
     "displayName": "Game Production Pipeline",

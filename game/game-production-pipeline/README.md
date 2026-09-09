@@ -2,7 +2,7 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.5.0-alpha.3`。它保留主美 Agent、联网研究、多方向探索、可扩展到 UI 的视觉语言、D0–D4、2D/3D/UI 技术 Profile、Godot 基准、权利溯源和可复现发布，并修复升级时遗漏 Skill Binding 新摘要及 Agent Adapter 重建的依赖闭包缺陷；仍是 Alpha，不是 Production Ready。
+当前版本：`v0.5.0-alpha.4`。新增可选游戏机制与玩法策划角色、规则规格与原型任务书，并支持已发布 `alpha.3` 项目显式迁移。保留主美方向、资产管线、Skill Binding 独立审批、Agent Adapter 事务迁移和可复现发布；仍是 Alpha，角色行为尚待真实项目验证，不是 Production Ready。
 
 ## 层级
 
@@ -30,14 +30,16 @@ Codex Plugin
 
 ## 游戏机制与玩法策划角色
 
-仓库新增 [游戏机制与玩法策划 Agent](agents/gameplay-designer.md) 初稿，提供机制选项、核心循环、规则/参数、风险分析和最小原型任务书。它可由游戏设计 Agent 兼任，也可按项目需要设专项岗位；每个机制只保留一个写入负责人。
+本版包含 [游戏机制与玩法策划 Agent](agents/gameplay-designer.md) 初稿，提供机制选项、核心循环、规则/参数、风险分析和最小原型任务书。它可由游戏设计 Agent 兼任，也可按项目需要设专项岗位；每个机制只保留一个写入负责人。
 
 - [工作流与调用示例](workflows/gameplay-design.md)
 - [策划包模板](assets/gameplay-design-brief.template.md)
 - [一手研究来源与方法边界](references/gameplay-design-methods.md)
 - [合成交付示例](tests/examples/gameplay-design-salvage.md) 与 [行为验收情境](tests/gameplay-designer-evaluation.md)
 
-此增量是尚未发布、尚待真实项目验证的角色/文档模板，不新增 Skill、机器 Contract 或自动安装的具名 Agent。当前任务可直接读取角色文件使用；正式项目实例化沿用既有组织、Preset 和绑定审批流程。已安装的 `v0.5.0-alpha.3` 不会自动包含这些仓库新增文件。
+此增量是已纳入本版发布、尚待真实项目验证的角色/文档模板，不新增 Skill、机器 Contract 或自动安装的具名 Agent。当前任务可直接读取角色文件使用；正式项目实例化沿用既有组织、Preset 和绑定审批流程。已安装的 `v0.5.0-alpha.3` 不会自动包含这些新增文件；需升级到本版。
+
+UI/UX 的 `ui-ux-pro-max` 是独立 Skill，源码位于仓库顶层 `skills/ui-ux-pro-max/`，不在游戏管线插件 ZIP 内。本次 Release 提供单独 Skill ZIP；插件安装不会自动安装或覆盖它。
 
 ## 项目实例
 
@@ -90,9 +92,9 @@ python scripts/validate_project_instance.py --project-root D:\Game\MyProject
 
 脚本拒绝覆盖现有非托管文件。版本不一致进入 `read_only`，相同版本但框架摘要不一致进入 `blocked`；不得手工改写 `plugin-lock.yaml` 绕过迁移。
 
-## 迁移到 v0.5.0-alpha.3
+## 迁移到 v0.5.0-alpha.4
 
-`v0.5.0-alpha.3` 支持从白名单内的 `v0.3.0-alpha.1`、`v0.4.0-alpha.2`、`v0.4.0-alpha.3`、`v0.4.0-alpha.4`、`v0.5.0-alpha.1` 或 `v0.5.0-alpha.2` 显式迁移。迁移器会补齐缺失控制面，更新已改变的插件 Skill 摘要，为新的 Skill Binding subject 要求独立人工批准，并在同一事务中重建全部受影响的托管 `.codex/agents/*.toml`；最后才更新 `plugin-lock.yaml`。已有美术/资产 Contract、风格圣经、图片、场景、UI、Snapshot、Event History、组织、Agent Preset 和项目来源 Skill 保持不变；未知摘要、非托管 Adapter、损坏 managed block 或计划后文件漂移都会 fail closed。
+`v0.5.0-alpha.4` 支持从白名单内的 `v0.3.0-alpha.1`、`v0.4.0-alpha.2`、`v0.4.0-alpha.3`、`v0.4.0-alpha.4`、`v0.5.0-alpha.1`、`v0.5.0-alpha.2` 或 `v0.5.0-alpha.3` 显式迁移。迁移器会补齐缺失控制面，更新已改变的插件 Skill 摘要，为新的 Skill Binding subject 要求独立人工批准，并在同一事务中重建全部受影响的托管 `.codex/agents/*.toml`；最后才更新 `plugin-lock.yaml`。已有美术/资产 Contract、风格圣经、图片、场景、UI、Snapshot、Event History、组织、Agent Preset 和项目来源 Skill 保持不变；未知摘要、非托管 Adapter、损坏 managed block 或计划后文件漂移都会 fail closed。
 
 先在项目 Git 工作区干净且已有额外备份的前提下执行 dry-run。保存输出中的 `migration_at` 和 `plan_digest`：
 
@@ -264,7 +266,7 @@ python scripts/build_release.py --plugin-root . --output-dir ..\..\dist
 
 - 治理层仍是文件契约与确定性校验器，没有强制拦截所有手工文件修改的 MCP 或 Hook。
 - Registry 没有数据库事务适配器；脚本会预检和原子写单文件，但不能提供跨文件数据库级事务。
-- 迁移仅覆盖白名单内的 v0.3、v0.4 alpha.2/alpha.3/alpha.4、v0.5 alpha.1/alpha.2 摘要；其他开发快照和更早版本会 fail closed。
+- 迁移仅覆盖白名单内的 v0.3、v0.4 alpha.2/alpha.3/alpha.4、v0.5 alpha.1/alpha.2/alpha.3 摘要；其他开发快照和更早版本会 fail closed。
 - 目前只有 Godot 适配层，Unity 和其他引擎尚未验证。
 - 专业资产公共底座已形成机器闭环，但仍需要首个真实项目提供目标平台预算 Profile、真实 DCC/导入链和发布资产回放证据。
 - 主美 D0–D4 已通过代表性契约纵切片和失败注入，仍需在真实项目中验证风格探索质量、团队吞吐和目标平台 benchmark；本版本只定义 UI 视觉接口，不宣称独立 UI workflow 已完成验收。

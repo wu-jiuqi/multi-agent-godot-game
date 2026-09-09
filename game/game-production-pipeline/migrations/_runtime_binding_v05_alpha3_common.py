@@ -284,6 +284,7 @@ def build_from_alpha(
     expected_from_version: str,
     supported_digests: set[str],
     art_common: ModuleType,
+    expected_to_version: str = TO_VERSION,
 ) -> tuple[dict[str, Any], dict[str, str]]:
     details, desired = art_common.build_from_alpha(
         project_root=project_root,
@@ -293,7 +294,7 @@ def build_from_alpha(
         from_lock=from_lock,
         expected_from_version=expected_from_version,
         supported_digests=supported_digests,
-        expected_to_version=TO_VERSION,
+        expected_to_version=expected_to_version,
     )
     base = art_common.load_module(
         Path(__file__).with_name("0-4-0-alpha-3__0-4-0-alpha-4.py"),
@@ -319,12 +320,13 @@ def build_metadata_from_alpha(
     expected_from_version: str,
     supported_digests: set[str],
     art_common: ModuleType,
+    expected_to_version: str = TO_VERSION,
 ) -> tuple[dict[str, Any], dict[str, str]]:
     base = art_common.load_module(
         Path(__file__).with_name("0-4-0-alpha-3__0-4-0-alpha-4.py"),
         f"_game_pipeline_alpha3_metadata_base_{expected_from_version.replace('.', '_').replace('-', '_')}",
     )
-    base.TO_VERSION = TO_VERSION
+    base.TO_VERSION = expected_to_version
     details, desired = base.build_migration_from(
         project_root=project_root,
         source_root=source_root,
@@ -353,6 +355,7 @@ def build_from_v03(
     from_version: str,
     from_lock: dict[str, Any],
     art_common: ModuleType,
+    expected_to_version: str = TO_VERSION,
 ) -> tuple[dict[str, Any], dict[str, str]]:
     details, desired = art_common.build_from_v03(
         project_root=project_root,
@@ -360,7 +363,7 @@ def build_from_v03(
         migration_at=migration_at,
         from_version=from_version,
         from_lock=from_lock,
-        expected_to_version=TO_VERSION,
+        expected_to_version=expected_to_version,
     )
     base = art_common.load_module(
         Path(__file__).with_name("0-4-0-alpha-3__0-4-0-alpha-4.py"),

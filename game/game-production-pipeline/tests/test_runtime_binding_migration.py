@@ -305,7 +305,7 @@ class RuntimeBindingMigrationTests(unittest.TestCase):
         self.assertEqual(self.project_skill_digest, project_skill["digest"])
         for action in plan["agent_adapter_actions"]:
             text = (self.project_root / action["path"]).read_text(encoding="utf-8")
-            self.assertIn("# generator-version: 0.5.0-alpha.3", text)
+            self.assertIn("# generator-version: 0.5.0-alpha.4", text)
         validation = project_validator.validate_instance(self.project_root, PLUGIN_ROOT)
         self.assertEqual("normal", validation["state"], validation)
 
@@ -316,6 +316,47 @@ class RuntimeBindingMigrationTests(unittest.TestCase):
         plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
         self.assertEqual("migration_blocked", plan["outcome"])
         self.assertIn(".codex/agents/creative-lead.toml", {item["path"] for item in plan["conflicts"]})
+        self.assertEqual(before, self._snapshot_without_migration_cache())
+
+    def test_alpha3_valid_bindings_preserved_while_six_adapters_update(self) -> None:
+        # Establish a valid team with current, unchanged plugin Skill contents.
+        initial = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
+        migrator.apply_migration(
+            self.project_root, PLUGIN_ROOT, MIGRATION_AT, initial["plan_digest"],
+            "human:owner", initial["skill_binding_approval"]["subject_digest"], "human:owner",
+        )
+        digest = "9d1e7797b7dad799317dc9bc1b710f05018bf9fe6ce144fbcb32e17ae4ad3562"
+        agents_path = self.project_root / "AGENTS.md"
+        old_block = bootstrap.build_managed_blocks("0.5.0-alpha.3", digest)["AGENTS.md"]["content"]
+        merged, error = bootstrap.merge_managed_block(
+            agents_path.read_text(encoding="utf-8"), old_block, markdown=True
+        )
+        self.assertIsNone(error)
+        agents_path.write_text(merged, encoding="utf-8", newline="\n")
+        lock = load_yaml(self.project_root / "game-pipeline/plugin-lock.yaml")
+        lock["plugin_lock"].update(plugin_version="0.5.0-alpha.3", framework_digest=digest)
+        self._write_yaml("game-pipeline/plugin-lock.yaml", lock)
+        for path in self.project_root.glob(".codex/agents/*.toml"):
+            path.write_text(path.read_text(encoding="utf-8").replace(
+                "# generator-version: 0.5.0-alpha.4", "# generator-version: 0.5.0-alpha.3"
+            ), encoding="utf-8", newline="\n")
+        before = self._snapshot_without_migration_cache()
+        plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
+        self.assertEqual("migration_ready", plan["outcome"], plan)
+        self.assertEqual([], plan["skill_binding_changes"])
+        self.assertFalse(plan["skill_binding_approval"]["required"])
+        self.assertEqual(6, len(plan["agent_adapter_actions"]))
+        self.assertEqual({"update"}, {a["action"] for a in plan["agent_adapter_actions"]})
+        result = migrator.apply_migration(
+            self.project_root, PLUGIN_ROOT, MIGRATION_AT, plan["plan_digest"], "human:owner"
+        )
+        self.assertEqual("normal", result["project_state"])
+        self.assertEqual("no_change", result["idempotent_outcome"])
+        changed = {a["path"] for a in plan["actions"] if a["action"] != "no_change"}
+        for relative, data in before.items():
+            if relative not in changed:
+                self.assertEqual(data, (self.project_root / relative).read_bytes(), relative)
+        migrator.rollback_migration(self.project_root, plan["plan_digest"], plan["plan_digest"])
         self.assertEqual(before, self._snapshot_without_migration_cache())
 
     def test_post_validation_failure_restores_every_target_and_approval(self) -> None:

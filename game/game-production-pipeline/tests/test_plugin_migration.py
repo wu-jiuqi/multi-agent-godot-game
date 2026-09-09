@@ -109,7 +109,7 @@ class PluginMigrationTests(unittest.TestCase):
         self.assertEqual(before, after)
         self.assertEqual("migration_ready", plan["outcome"], plan)
         self.assertTrue(plan["can_apply"])
-        self.assertEqual("0.5.0-alpha.3", plan["to_version"])
+        self.assertEqual("0.5.0-alpha.4", plan["to_version"])
         self.assertEqual(
             [
                 "game-pipeline/project-definition/project-brief.yaml",
@@ -150,7 +150,7 @@ class PluginMigrationTests(unittest.TestCase):
             any(item["fact_id"] == "fact:test-game:project-brief" for item in facts["fact_sources"]["sources"])
         )
         agents = (self.project_root / "AGENTS.md").read_text(encoding="utf-8")
-        self.assertIn("0.5.0-alpha.3", agents)
+        self.assertIn("0.5.0-alpha.4", agents)
         self.assertIn("初始项目简报位于", agents)
         self.assertEqual("normal", lock_validator.evaluate_lock(self.project_root, PLUGIN_ROOT)["state"])
         self.assertEqual("normal", project_validator.validate_instance(self.project_root, PLUGIN_ROOT)["state"])
@@ -302,7 +302,7 @@ class Alpha2ToAlpha4MigrationTests(unittest.TestCase):
         plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
         self.assertEqual("migration_ready", plan["outcome"], plan)
         self.assertEqual("0.4.0-alpha.2", plan["from_version"])
-        self.assertEqual("0.5.0-alpha.3", plan["to_version"])
+        self.assertEqual("0.5.0-alpha.4", plan["to_version"])
         self.assertEqual(
             [*bootstrap.ASSET_AND_LOOP_READMES, *bootstrap.ART_DIRECTION_READMES, "AGENTS.md", "game-pipeline/plugin-lock.yaml"],
             [item["path"] for item in plan["actions"]],
@@ -388,7 +388,7 @@ class Alpha3ToAlpha4MigrationTests(unittest.TestCase):
                 self.set_alpha3_lock(digest)
                 plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
                 self.assertEqual("migration_ready", plan["outcome"], plan)
-                self.assertEqual("0.5.0-alpha.3", plan["to_version"])
+                self.assertEqual("0.5.0-alpha.4", plan["to_version"])
 
     def test_apply_creates_asset_control_plane_and_preserves_history(self) -> None:
         self.set_alpha3_lock("16c8b7ec74a098f9382fb1aff1af95d9557f1e4c2dbbfe4dd8caa0033a544621")
@@ -469,10 +469,10 @@ class Alpha1ToAlpha2MigrationTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp.cleanup()
 
-    def set_alpha1_lock(self, digest: str) -> None:
+    def set_alpha1_lock(self, digest: str, version: str = "0.5.0-alpha.1") -> None:
         agents_path = self.project_root / "AGENTS.md"
         old_block = bootstrap.build_managed_blocks(
-            "0.5.0-alpha.1", digest
+            version, digest
         )["AGENTS.md"]["content"]
         merged, error = bootstrap.merge_managed_block(
             agents_path.read_text(encoding="utf-8"), old_block, markdown=True
@@ -484,7 +484,7 @@ class Alpha1ToAlpha2MigrationTests(unittest.TestCase):
         lock = load_yaml(lock_path)
         lock["plugin_lock"].update(
             {
-                "plugin_version": "0.5.0-alpha.1",
+                "plugin_version": version,
                 "framework_digest": digest,
                 "locked_at": CREATED_AT,
             }
@@ -511,7 +511,7 @@ class Alpha1ToAlpha2MigrationTests(unittest.TestCase):
                 plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
                 self.assertEqual("migration_ready", plan["outcome"], plan)
                 self.assertEqual("0.5.0-alpha.1", plan["from_version"])
-                self.assertEqual("0.5.0-alpha.3", plan["to_version"])
+                self.assertEqual("0.5.0-alpha.4", plan["to_version"])
                 self.assertEqual(
                     ["AGENTS.md", "game-pipeline/plugin-lock.yaml"],
                     [item["path"] for item in plan["actions"]],
@@ -543,6 +543,63 @@ class Alpha1ToAlpha2MigrationTests(unittest.TestCase):
         self.assertEqual("migration_blocked", plan["outcome"])
         self.assertFalse(plan["can_apply"])
         self.assertIn("白名单", "\n".join(plan["errors"]))
+
+    def test_published_alpha3_migrates_idempotently_and_rolls_back_exactly(self) -> None:
+        self.set_alpha1_lock(
+            "9d1e7797b7dad799317dc9bc1b710f05018bf9fe6ce144fbcb32e17ae4ad3562",
+            "0.5.0-alpha.3",
+        )
+        before = {p.relative_to(self.project_root): p.read_bytes()
+                  for p in self.project_root.rglob("*") if p.is_file()}
+        plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
+        self.assertEqual("migration_ready", plan["outcome"], plan)
+        self.assertEqual("0.5.0-alpha.4", plan["to_version"])
+        self.assertEqual(["AGENTS.md", "game-pipeline/plugin-lock.yaml"],
+                         [item["path"] for item in plan["actions"]])
+        self.assertFalse(plan["skill_binding_approval"]["required"])
+        result = migrator.apply_migration(
+            self.project_root, PLUGIN_ROOT, MIGRATION_AT, plan["plan_digest"], "human:owner"
+        )
+        self.assertEqual("normal", result["project_state"])
+        self.assertEqual("no_change", result["idempotent_outcome"])
+        migrator.rollback_migration(self.project_root, plan["plan_digest"], plan["plan_digest"])
+        after = {p.relative_to(self.project_root): p.read_bytes()
+                 for p in self.project_root.rglob("*") if p.is_file()
+                 and "game-pipeline/.cache/migrations/" not in p.relative_to(self.project_root).as_posix()}
+        self.assertEqual(before, after)
+
+    def test_unknown_alpha3_digest_is_blocked_without_writes(self) -> None:
+        self.set_alpha1_lock("f" * 64, "0.5.0-alpha.3")
+        before = self.snapshot_user_and_control_plane_bytes()
+        plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
+        self.assertEqual("migration_blocked", plan["outcome"])
+        self.assertIn("白名单", "\n".join(plan["errors"]))
+        self.assertEqual(before, self.snapshot_user_and_control_plane_bytes())
+
+    def test_published_alpha2_direct_migration_applies(self) -> None:
+        self.set_alpha1_lock(
+            "3414c4865f96ed329962bc7ff685cc08be5e3a34e2637c2b4564221bb0216d93",
+            "0.5.0-alpha.2",
+        )
+        plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
+        self.assertEqual("migration_ready", plan["outcome"], plan)
+        result = migrator.apply_migration(
+            self.project_root, PLUGIN_ROOT, MIGRATION_AT, plan["plan_digest"], "human:owner"
+        )
+        self.assertEqual("normal", result["project_state"])
+        self.assertEqual("no_change", result["idempotent_outcome"])
+
+    def test_historical_alpha3_entry_rejects_alpha4_target(self) -> None:
+        self.set_alpha1_lock(self.PUBLISHED_DIGESTS[0])
+        module = planner.load_migrator(
+            PLUGIN_ROOT / "migrations" / "0-5-0-alpha-1__0-5-0-alpha-3.py"
+        )
+        details, _ = module.build_migration(
+            project_root=self.project_root, source_root=PLUGIN_ROOT,
+            migration_at=MIGRATION_AT, from_version="0.5.0-alpha.1",
+            from_lock=load_yaml(self.project_root / "game-pipeline/plugin-lock.yaml")["plugin_lock"],
+        )
+        self.assertTrue(details["errors"], details)
 
 
 class Alpha4ToAlpha5MigrationTests(unittest.TestCase):
@@ -588,7 +645,7 @@ class Alpha4ToAlpha5MigrationTests(unittest.TestCase):
         plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
         self.assertEqual("migration_ready", plan["outcome"], plan)
         self.assertEqual("0.4.0-alpha.4", plan["from_version"])
-        self.assertEqual("0.5.0-alpha.3", plan["to_version"])
+        self.assertEqual("0.5.0-alpha.4", plan["to_version"])
         self.assertEqual(
             [*bootstrap.ASSET_AND_LOOP_READMES, *bootstrap.ART_DIRECTION_READMES, "AGENTS.md", "game-pipeline/plugin-lock.yaml"],
             [item["path"] for item in plan["actions"]],

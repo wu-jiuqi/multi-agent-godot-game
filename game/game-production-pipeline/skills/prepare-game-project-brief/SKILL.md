@@ -1,43 +1,35 @@
 ---
 name: prepare-game-project-brief
-description: Turn a game owner's provided gameplay, art direction, implementation outline, constraints, and source documents into an auditable project brief for staffing design. Use after pipeline bootstrap and before organization design, or when project direction changes require the staffing baseline to be rebuilt and reconfirmed.
+description: Collaboratively develop a game idea into a confirmed project brief and bounded production charter. Use during inception to research options, resolve cross-domain trade-offs with the owner, prepare staffing and acceptance, and authorize low-intervention production; also use when an approved direction needs revision.
 ---
 
 # Prepare Game Project Brief
 
-Coordinate project definition as the Project Manager role without inventing direction or taking ownership from later domain agents.
+Help the owner reach a considered project decision. The owner may arrive with only an idea; do not require them to supply a finished design, art direction, or technical plan.
 
 ## Required Context
 
-- Validate the project instance and read `game-pipeline/project-definition/project-brief.yaml`.
-- Read `../../agents/pipeline-director.md`, `../../contracts/project-brief.template.yaml`, the project `AGENTS.md`, and registered fact sources.
-- Treat the project owner as the authority for gameplay direction, art direction, scope, budget, platform, and initial implementation intent.
+Validate the project instance and read its `AGENTS.md`, registered facts, `project-brief.yaml`, and `production-charter.yaml` under `game-pipeline/project-definition/` when present. Read `../../agents/pipeline-director.md` and [the inception workshop](references/inception-workshop.md). Existing projects without a charter retain their current approval rules until a charter is explicitly confirmed.
 
-## Workflow
+## Inception
 
-1. Register every source with a stable ID, location, version or digest, supplier, and authority. Preserve conflicting sources instead of silently choosing one.
-2. Convert owner-provided plans into concise statements. Classify each as `confirmed`, `preference`, `hypothesis`, or `unknown`; never promote a preference or hypothesis to confirmed.
-3. Cover project goal, gameplay, art direction, implementation outline, platform and engine, and scope constraints. Ask the owner about missing direction-changing information and preserve unanswered items as explicit unknowns.
-4. Record open questions, risks, and responsibility needs. Describe responsibilities and expected artifacts without naming the final Agent or Department; organization design owns that mapping.
-5. Set staffing readiness to `blocked` while a required domain is unknown or a blocking question remains. A readable document is not automatically staffing-ready.
-6. Resolve the plugin root as two directories above this `SKILL.md`, then run `python <plugin-root>/scripts/validate_project_brief.py game-pipeline/project-definition/project-brief.yaml --project-id <project-id>`. Copy the reported `subject_digest` into the brief and rerun validation.
-7. Show the owner the complete brief, changes from their source material, all assumptions and unknowns, staffing readiness, and exact subject digest. Stop for explicit confirmation.
-8. After confirmation, create an immutable `project-brief` approval record with the same subject ID and digest, mark the brief `confirmed`, update its Fact Source binding to `project.definition.confirmed` with the current digest, and run the validator with `--approval-dir game-pipeline/approvals` plus the full project validator.
-9. Route a confirmed, staffing-ready brief to `$design-game-organization`. If the owner changes approved content, mark the brief `revise`, invalidate the old approval for current use, increment the brief version, and repeat confirmation.
+1. Register sources, contradictions, constraints, and unknowns. Distinguish owner-confirmed facts, preferences, Agent proposals, and testable hypotheses. An Agent recommendation never becomes a human decision by inference.
+2. Cover the workshop's player, design, content, art, UI, audio, technology, scope, cost, testing, distribution, and autonomy concerns. Mark irrelevant domains with a reason. Consult bounded specialist subagents for independent research and critique; these are inception consultations, not unapproved persistent production positions.
+3. For consequential choices, present a recommendation and credible alternatives with effects on player experience, feasibility, cost, and risk. Ask a few related questions per round; continue independent research while answers are pending. Do not turn the coverage matrix into an unfiltered questionnaire.
+4. Resolve high-impact uncertainty through a small prototype or representative sample when it is within the current research authorization. Name its learning goal, cost cap, acceptance, and disposal/reuse boundary. A mockup does not prove runtime behavior or player enjoyment.
+5. Prepare the brief, scope exclusions, acceptance examples, risk/fallback register, and responsibility needs. Direction, acceptance thresholds, and scope trade-offs remain the owner's decisions. Implementation details may be delegated inside those decisions.
+6. Draft a project-owned Production Charter from `../../contracts/production-charter.template.yaml`: frozen direction references, production bounds, delegated reviews, reserved decisions, budgets, retry limits, tool permissions, write scope, and exception reporting. A desire for autonomy is not an unlimited spending or publishing grant.
 
-## Ownership Boundaries
+## Launch review
 
-- The Project Manager owns coordination, structure, source indexing, unknowns, risks, and change impact.
-- The human owner approves direction and the brief baseline.
-- The organization architect maps responsibility needs into staffing proposals.
-- Approved game-design, art, content, technical, and QA roles later own their detailed domain documents.
-- Bootstrap mode is a bounded workflow, not an unregistered formal Agent Instance.
+1. Prepare the organization and Skill Binding proposals with $design-game-organization. During inception it may draft from the current brief without applying unapproved changes. Prepare all reviewable subjects before requesting the launch decision.
+2. Run `validate_project_brief.py` and `validate_production_charter.py` from `../../scripts/`; resolve blockers, bind current digests, and show one launch packet linking the brief, charter, staffing/Skill proposals, representative experience and visual choices, limits, remaining bounded experiments, and finish criteria.
+3. Obtain explicit approval of each named subject in the packet; one owner response may approve the listed subjects together. Record the actual response reference separately for each approval. Missing answers, elapsed time, or a script's success cannot supply consent.
+4. Record immutable digest-matched approvals, mark the brief confirmed and the charter approved, update the fact-source bindings, then apply only the approved staffing and Skill changes. Run the full project validator and regenerate approved adapters.
+5. Hand the authorized scope to $operate-game-production-loop. Do not ask the owner to reconfirm routine decisions already covered by the launch packet.
 
-## Failure Routing
+## Revision and failure
 
-- Contradictory sources or missing owner decisions return to the project owner.
-- Invalid structure, stale digest, or missing approval returns to this workflow.
-- Premature Department, Position, Preset, or Skill decisions return to organization design.
-- Detailed gameplay, art, or technical specification requests wait for the approved domain owner unless the human explicitly keeps that decision.
+Unresolved direction choices or contradictory constraints block launch. Unknown production details may remain only with a named Agent owner, experiment, budget, deadline/stop condition, and fallback already accepted in the charter. Changed approved content invalidates its digest-bound approval; increment the revision and return only the affected decisions to inception. Keep unrelated authorized production moving.
 
-Return the brief path and version, source index, classified statements, blocking questions, risks, responsibility needs, validation result, subject digest, confirmation status, and next legal action.
+Return the brief and charter paths, validation and approval states, remaining blockers, delegated scope, and next executable action.

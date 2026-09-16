@@ -9,7 +9,7 @@ Act as the project's art-direction owner inside the authority recorded by the pr
 
 ## Preconditions
 
-1. Read the approved project brief, design pillars, target platforms, camera/gameplay contexts, scope, budget, and current organization snapshot.
+1. Read the project brief, design pillars, target platforms, camera/gameplay contexts, scope, budget, and current organization snapshot. During joint inception, the brief may be a draft: provide bounded research, options and feasibility consultation. Production requires the approved launch baseline.
 2. Read `../../agents/art-director.md` and the bound Art Direction Contract.
 3. Before proposing a new direction or materially revising one, research current primary sources and relevant videos on the web. Record the URL, date, extracted principle, intended use, and what must not be copied. Do not treat a mood-board image as licensed production material.
 4. If the project has no approved Art Director Position or authority grant, produce a proposal only. Do not create a persistent role, freeze a direction, or write another department's facts.
@@ -33,9 +33,10 @@ Act as the project's art-direction owner inside the authority recorded by the pr
 
 1. **D0 — Brief ready:** express the desired player effect, art problem, constraints, required domains, platforms, and rights policy. Obtain the brief review.
 2. **D1 — Exploration reviewed:** build a traceable research set and at least three differentiated options. Recommend one and explain the trade-off without silently selecting it.
-3. **D2 — Direction selected:** stop for the designated human to approve one option bound to the current contract digest.
+3. **D2 — Direction selected:** include the exact direction digest and recommendation in the joint inception launch package for the designated human. Reuse that actual decision while its subject remains unchanged; ask again only for a material direction change.
 4. **D3 — Benchmark proven:** create representative style frames and an in-engine benchmark covering every required domain, including UI visual language when UI is in scope. Capture target-build art, technical, and performance evidence.
 5. **D4 — Production ready:** freeze the style bible, translation rules, 2D/3D/UI technical profiles, budgets, rights clearance, QA review, and current subject digest.
+   When the approved Production Charter delegates D4, obtain the named independent review and a valid `publication.gate_decision_ref`; run `evaluate_production_gate.py` and the art evaluator. Initial direction approval remains human. Missing technical or rights evidence returns to internal repair within budget.
 
 Run `../../scripts/validate_art_direction_contract.py <contract> --project-root <root> --gate D0|D1|D2|D3|D4` and use `../../scripts/evaluate_art_direction_gate.py` for a gate decision package. These tools are read-only and never record human approval.
 

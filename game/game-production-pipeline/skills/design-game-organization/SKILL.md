@@ -9,9 +9,9 @@ Translate project needs into a visible staffing proposal while keeping every per
 
 ## Required Context
 
-Validate the project instance first. Require `game-pipeline/project-definition/project-brief.yaml` to be `confirmed`, staffing-ready, digest-matched, and backed by a valid human approval record. Draft or blocked briefs return to `$prepare-game-project-brief`.
+Validate the project instance first. During collaborative inception, a structurally valid draft brief may support a provisional staffing proposal for the launch packet; it cannot authorize application or production. Before applying changes, require `game-pipeline/project-definition/project-brief.yaml` to be `confirmed`, staffing-ready, digest-matched, and backed by a valid human approval record. Resolve direction blockers with `$prepare-game-project-brief`.
 
-Read the confirmed project brief and then these shared contracts only as needed:
+Read the current project brief (confirmed before applying) and then these shared contracts only as needed:
 
 - `../../architecture.md`
 - `../../agents/project-agent-architect.md`
@@ -28,7 +28,7 @@ Read the confirmed project brief and then these shared contracts only as needed:
 3. Propose persistent changes as a project-owned Organization Change Set. Include stable IDs, responsibilities, authority boundaries, required Skills, acceptance ownership, cost, risks, rollback, and affected loops.
 4. Create or revise project Agent Presets under `game-pipeline/agents/` only as proposal artifacts. Keep them `pending`; do not generate `.codex/agents/*.toml` yet.
 5. Validate the proposal with `../../scripts/validate_organization_registry.py` and render the current and proposed views with `../../scripts/render_organization.py`.
-6. Show the user the organization diagram, affected departments, new or removed positions, authority changes, and approval digest. Stop for explicit human approval.
+6. Show the organization diagram, affected departments, positions, authority changes, Skill bindings, and their approval digests. During inception include them in the joint launch packet so the owner can approve the concrete subjects together. Do not ask again if an existing explicit approval covers these exact digests.
 7. After an approval record exists and its subject digest still matches, apply the Change Set, update bindings/history/snapshot, and generate approved Codex adapters with `../../scripts/generate_codex_agents.py`.
 
 ## Approval Rule

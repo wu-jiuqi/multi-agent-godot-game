@@ -1,4 +1,4 @@
 interface:
   display_name: "Prepare Game Project Brief"
-  short_description: "Prepare staffing-ready game project briefs."
-  default_prompt: "Use $prepare-game-project-brief to turn my confirmed game plan into a staffing-ready project brief."
+  short_description: "Co-design game inception and production authority."
+  default_prompt: "Use $prepare-game-project-brief to develop my game idea with me, settle the project details, and prepare a launch packet for autonomous production."

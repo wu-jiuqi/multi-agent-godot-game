@@ -10,6 +10,7 @@ Evaluate evidence independently, distinguish machine-verifiable checks from judg
 ## Workflow
 
 1. Read `../../agents/qa-release.md`, `../../contracts/human-gates.md`, the bound Pipeline/Loop Contract, and the referenced evidence. Do not accept a summary in place of required source artifacts.
+   Read the current approved Production Charter. For delegated GATE-2/GATE-3/D4, use `../../contracts/production-gate-decision.template.yaml` to record an actual independent review and run `../../scripts/evaluate_production_gate.py <decision> --project-root <root>`. Delegation moves professional judgment to the named reviewer; it does not waive evidence or initial human direction.
 2. Verify identity and freshness: contract ID/version, artifact path, producer, target build, timestamp, acceptance baseline, and relevant Registry event.
 3. Run deterministic validators first. Record their commands, exit status, and output as automatic evidence.
 4. Evaluate qualitative evidence only against criteria approved before execution. Separate observed facts, inferences, unresolved questions, and recommendations.
@@ -40,7 +41,7 @@ For `game-production-art-direction/v1`, run `../../scripts/evaluate_art_directio
 - D1 checks research provenance and whether at least three options differ in more than palette or surface treatment.
 - D2 always requires the designated human to approve the current `direction_subject_digest`.
 - D3 checks a representative in-engine target build, every required domain, readability, technical profiles, budgets, and independent art/technical reviews.
-- D4 checks full rights/AI provenance, QA, resolved rework, owner approval, and the frozen `contract_subject_digest`.
+- D4 checks full rights/AI provenance, QA, resolved rework, the frozen `contract_subject_digest`, and the owner decision or valid charter-delegated independent decision. Bind delegated evidence through `publication.gate_decision_ref`.
 
 Evaluate image quality against the recorded visual language and player effect, not taste alone. Screenshots can prove appearance, but executable target-build evidence is still required where the Contract names interaction, motion, import, or performance. D4 does not replace project GATE-3/GATE-4.
 

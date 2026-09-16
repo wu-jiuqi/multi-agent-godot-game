@@ -31,4 +31,4 @@ The initialized control plane must include `game-pipeline/assets/{contracts,budg
 
 ## Outputs
 
-Return the project path, installed plugin identity/version, lock validation result, created or unchanged files, asset/loop control-plane paths, pending human decisions, and the next recommended skill. For first-time setup, route to `$prepare-game-project-brief`; only a confirmed staffing-ready brief may continue to `$design-game-organization`.
+Return the project path, installed plugin identity/version, lock validation result, created or unchanged files, asset/loop control-plane paths, pending human decisions, and the next recommended skill. For first-time setup, route to `$prepare-game-project-brief`; the director and owner co-design the launch packet; a draft brief may support provisional organization design, while applying staffing requires a confirmed staffing-ready brief.

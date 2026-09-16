@@ -1,0 +1,23 @@
+# Synthetic schema example; replace inputs and digests before production.
+tool_registry:
+  schema_version: game-production-tool-registry/v1
+  registry_id: tools:sample-game
+  version: 1
+  tools:
+  - tool_id: tool:fixture
+    provider: local
+    name: fixture
+    version: '1'
+    capabilities:
+    - write-report
+    permission_scope:
+    - write:project
+    deterministic: true
+    rollback:
+      supported: true
+      procedure_ref: restore task snapshot
+    source:
+      path: tools/fixture-runner.txt
+      sha256: 7cb1ff469def2b3d391cc6e406bf04126eefb295a4d137ec688b72b490d4cf15
+  integrity:
+    registry_digest: ac41214c1a4805eecb6d5d7576e80555eac4ac558ee60408f475f45d161bdb77

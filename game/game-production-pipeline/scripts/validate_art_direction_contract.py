@@ -524,6 +524,12 @@ def validate_art_direction_contract(
         errors.append(f"{lifecycle} 状态必须有开放返工 issue")
 
     publication = mapping(contract.get("publication"), "publication", errors)
+    direction_review = reviews.get("direction_approval", {})
+    if direction_review.get("status") == "approved" and (
+        direction_review.get("reviewer") != responsibility.get("game_director")
+        or not str(direction_review.get("reviewer", "")).startswith("human:")
+    ):
+        errors.append("direction_approval requires the human game_director")
     if publication.get("release_state") not in {"not-ready", "candidate", "approved", "withdrawn"}:
         errors.append("publication.release_state 非法")
     integrity = mapping(contract.get("integrity"), "integrity", errors)
@@ -648,6 +654,42 @@ def validate_art_direction_contract(
     if not strings(publication.get("approval_refs")):
         gate_issues["D4"].append("publication.approval_refs 不能为空")
 
+    # An autonomous charter replaces repeated owner sign-off only with a real,
+    # independently reviewed decision bound to this exact production baseline.
+    delegated_d4 = False
+    charter_path = project_root / "game-pipeline/project-definition/production-charter.yaml" if project_root else None
+    receipt = publication.get("gate_decision_ref")
+    if receipt is not None or (charter_path is not None and charter_path.is_file()):
+        try:
+            from validate_production_charter import load_approvals, safe_path
+            from evaluate_production_gate import evaluate_production_gate
+            if charter_path is None or not charter_path.is_file():
+                raise ValueError("delegated D4 requires project_root and production charter")
+            charter_document = load_yaml(charter_path)
+            policy = next((g for g in charter_document["production_charter"]["gates"] if g["gate_id"] == "D4"), {})
+            c = charter_document["production_charter"]
+            delegated_d4 = (policy.get("owner_kind") == "independent" and c.get("mode") == "autonomous-after-approval"
+                            and c.get("review", {}).get("status") == "approved")
+            if delegated_d4 or receipt is not None:
+                if not isinstance(receipt, dict):
+                    raise ValueError("delegated D4 requires publication.gate_decision_ref")
+                receipt_path = safe_path(project_root, receipt.get("path"))
+                if file_digest(receipt_path) != receipt.get("sha256"):
+                    raise ValueError("D4 receipt file digest mismatch")
+                decision = load_yaml(receipt_path)
+                d = decision.get("production_gate_decision", {})
+                if d.get("gate_id") != "D4" or d.get("producer") != responsibility.get("owner"):
+                    raise ValueError("D4 receipt gate/producer mismatch")
+                subject = d.get("subject", {})
+                if subject.get("kind") != "art-direction" or subject.get("digest") != digests["contract_subject_digest"]:
+                    raise ValueError("D4 receipt does not reference this art baseline")
+                approvals, approval_errors = load_approvals(project_root / "game-pipeline/approvals")
+                result = evaluate_production_gate(decision, charter_document, project_root=project_root, approvals=approvals)
+                if approval_errors or result["state"] != "pass":
+                    raise ValueError("; ".join(approval_errors + result.get("errors", []) + [result["state"]]))
+        except (OSError, ValueError, TypeError, KeyError) as exc:
+            gate_issues["D4"].append(f"delegated D4: {exc}")
+
     enforced = set(GATE_REQUIREMENTS.get(lifecycle, ()))
     if target_gate in GATE_ORDER:
         enforced.add(target_gate)
@@ -673,6 +715,7 @@ def validate_art_direction_contract(
             for gate, issues in gate_issues.items()
         },
         "file_verification": "checked" if project_root is not None else "not-checked",
+        "delegated_d4": delegated_d4,
         "file_checks": file_checks,
         "errors": errors,
         "warnings": warnings,

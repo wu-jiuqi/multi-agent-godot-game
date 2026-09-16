@@ -57,7 +57,7 @@ iteration:
     - task_id: "TASK-ART-D4"
       responsible_role: "qa-reviewer"
       action: "复核风格、可读性、技术预算、权利、返工和生产冻结证据。"
-      expected_output: "D4 candidate and owner approval package"
+      expected_output: "D4 candidate and owner-or-delegated-independent decision package"
   carry_forward:
     - "art_direction_id、revision、阶段摘要、已批准选向、研究来源和返工历史。"
   change_summary_required: true
@@ -90,7 +90,7 @@ acceptance:
   human_gate:
     required: true
     gate_id: "ART-DIRECTION-D2-D4"
-    question: "项目所有者是否批准核心画风选择及其最终生产冻结摘要？"
+    question: "项目所有者是否批准 D2 核心画风；D4 当前冻结摘要是否获所有者或 Charter 指定独立审核者有效批准？"
   success_conditions:
     - "D4 gate evaluation 为 pass。"
     - "风格圣经、基准、技术 Profile、权利记录和所有开放返工均与冻结摘要一致。"

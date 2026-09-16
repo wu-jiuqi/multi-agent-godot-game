@@ -1,0 +1,19 @@
+production_gate_decision:
+  schema_version: game-production-gate-decision/v1
+  project_id: <project-id>
+  charter_digest: <current charter subject digest>
+  gate_id: GATE-2
+  producer: position:<project-id>:producer
+  reviewer: position:<project-id>:qa
+  reviewed_at: <ISO-8601 with timezone>
+  subject:
+    kind: file
+    path: <project-relative candidate>
+    digest: <sha256>
+  checks:
+  - criterion_id: <launch acceptance criterion>
+    result: passed
+    evidence:
+    - path: <actual immutable evidence>
+      sha256: <sha256>
+  decision: pass

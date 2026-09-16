@@ -1,0 +1,203 @@
+production_charter:
+  schema_version: game-production-production-charter/v1
+  identity:
+    charter_id: charter:sample-game:initial
+    project_id: sample-game
+    version: 1
+    project_owner: human:owner
+  mode: autonomous-after-approval
+  inception:
+    collaboration_required: true
+    phase: inception
+    required_human_decisions:
+    - GATE-0
+    - GATE-1
+    - D2
+    launch_blocked_until:
+    - GATE-0
+    - GATE-1
+    - D2
+  coverage:
+    project_goal: 在四周内完成十分钟双人协作垂直切片并验证核心循环。
+    player_experience: 玩家无需口头说明即可理解互补能力并感到协作成就。
+    audience: PC 本地双人玩家。
+    gameplay: 两名角色使用互补能力解除机关并抵达终点。
+    art_direction: 高对比、低饱和手绘剪影。
+    platform_engine: Windows + Godot 4.x，优先预置节点。
+    scope: 一个关卡、两种能力、占位 UI；排除在线联机。
+    schedule: 四周：方向、灰盒、试玩、候选版本。
+    budget: 上限 40 小时 Agent 工作量，无外部付费发布。
+    team: 项目经理、玩法、Godot 实现、艺术与独立 QA。
+    accessibility: 支持键盘重绑定、清晰对比和失败后快速恢复。
+    legal_rights: 仅使用已授权或原创素材，记录来源与许可证。
+    success_metrics: 首次试玩 80% 玩家在十分钟内完成且无需人工解释。
+    risks: 互补关系可能不清晰；通过独立试玩和可观测指标缓解。
+    content: 单关卡和两个机关，不增剧情分支。
+    ui_ux: 开始、双人控制提示、暂停、失败重试与结束流程。
+    audio: 三种交互提示音；音乐首轮不适用。
+    localization: 仅简体中文；界面文字集中管理。
+    distribution: 内部本地试玩包，不对外上传。
+  decisions:
+  - decision_id: decision:sample-game:goal
+    domain: project-goal
+    statement: 完成可试玩垂直切片并验证协作循环。
+    status: confirmed
+    decision_owner: human:owner
+    source_refs:
+    - owner-plan
+    blocks_start: true
+  - decision_id: decision:sample-game:scope
+    domain: scope
+    statement: 首轮限制为单关卡双能力。
+    status: confirmed
+    decision_owner: human:owner
+    source_refs:
+    - owner-plan
+    blocks_start: true
+  open_questions:
+  - question_id: question:sample-game:online
+    question: 后续是否扩展在线联机？
+    decision_owner: human:owner
+    blocks_start: false
+    resolution_hint: 在垂直切片数据后再决定。
+    resolution: out-of-scope
+  acceptance:
+    criteria:
+    - criterion_id: acceptance:sample-game:playable
+      description: 两名玩家可独立完成关卡，核心机关和失败恢复可重复验证。
+      verifier_kind: independent
+      evidence:
+      - tests/replays/vertical-slice.json
+      threshold: 至少 4/5 试玩者无需解释完成
+      blocks_release: true
+    default_verifier_kind: independent
+  authority:
+    workspace_root: .
+    execution:
+      after_launch: autonomous
+      human_questions: boundary-events-only
+      batch_exceptions: true
+      max_retries_per_task: 3
+      max_total_budget: 40
+      budget_unit: hours
+      plan_budgets: {}
+    agent_actions:
+      allowed:
+      - read
+      - write_workspace
+      - run_tests
+      - create_build
+      - prepare_release_package
+      restricted:
+      - change_project_direction
+      - approve_gate
+      - sign_human_approval
+    external_actions:
+    - action: publish
+      authorized: false
+      scope: 仅生成发布包，不上传任何商店或渠道。
+      requires_gate: GATE-4
+    write_paths:
+    - game
+    - scenes
+    - scripts
+    - assets
+    - tests
+    - game-pipeline/evidence
+    - game-pipeline/execution
+    tool_permissions:
+    - read:project
+    - write:project
+    - test:project
+    tool_registry_ref: null
+    allowed_models: []
+  specialist_reviews:
+  - review_id: review:sample-game:gameplay
+    domain: gameplay
+    reviewer_kind: independent
+    reviewer_role: gameplay-qa
+    required_before_start: false
+    acceptance_refs:
+    - acceptance:sample-game:playable
+  gates:
+  - gate_id: GATE-0
+    name: project-charter
+    purpose: 立项目标、范围、预算与约束
+    required_before_start: true
+    owner_kind: human
+    status: pending
+    approval_id: null
+  - gate_id: GATE-1
+    name: core-experience
+    purpose: 核心体验与垂直切片假设
+    required_before_start: true
+    owner_kind: human
+    status: pending
+    approval_id: null
+  - gate_id: D2
+    name: initial-art-direction
+    purpose: 初始视觉方向与可变化边界
+    required_before_start: true
+    owner_kind: human
+    status: pending
+    approval_id: null
+  - gate_id: GATE-2
+    name: production-review
+    purpose: 里程碑生产质量审核
+    required_before_start: false
+    owner_kind: independent
+    status: delegated
+    delegated_reviewer: gameplay-qa
+    approval_id: null
+    acceptance_refs:
+    - acceptance:sample-game:playable
+  - gate_id: GATE-3
+    name: release-candidate
+    purpose: 候选版本质量与风险审核
+    required_before_start: false
+    owner_kind: independent
+    status: delegated
+    delegated_reviewer: release-qa
+    approval_id: null
+    acceptance_refs:
+    - acceptance:sample-game:playable
+  - gate_id: D4
+    name: art-production-baseline
+    purpose: 美术生产基准与风格冻结
+    required_before_start: false
+    owner_kind: independent
+    status: delegated
+    delegated_reviewer: release-qa
+    approval_id: null
+    acceptance_refs:
+    - acceptance:sample-game:playable
+  - gate_id: GATE-4
+    name: external-publish
+    purpose: 对外发布动作
+    required_before_start: false
+    owner_kind: human
+    status: pending
+    approval_id: null
+    acceptance_refs:
+    - acceptance:sample-game:playable
+  notifications:
+    notify_on:
+    - blocked
+    - repeated_failure
+    - budget_exceeded
+    - authorization_boundary
+    - gate_ready
+    - completed
+    quiet_when_unchanged: true
+  review:
+    status: draft
+    approval_id: null
+    confirmed_by: null
+    confirmed_at: null
+  integrity:
+    canonicalization: production-charter-subject-canonical-json-v1
+    digest_algorithm: sha256
+    subject_digest: null
+  brief_ref:
+    path: game-pipeline/project-definition/project-brief.yaml
+    subject_digest: null

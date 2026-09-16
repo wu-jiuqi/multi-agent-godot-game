@@ -90,6 +90,9 @@ def evaluate_art_direction_gate(
         else:
             state = "revise"
             reason = "现有方向产物或基准证据未达到该 Gate 的可观察标准"
+    if gate == "D4" and result.get("delegated_d4") and state == "awaiting_human":
+        state = "revise"
+        reason = "立项已委派 D4；由指定独立审核者补齐实际证据和评审记录"
     digests = art_direction_digests(document)
     approval_subject = {
         "schema_version": SCHEMA_VERSION,

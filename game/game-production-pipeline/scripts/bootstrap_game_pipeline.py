@@ -26,6 +26,7 @@ from pipeline_common import (
     ensure_within,
     file_digest,
     framework_digest,
+    load_yaml,
     manifest_version,
     plugin_root,
     project_brief_subject_digest,
@@ -37,7 +38,7 @@ from pipeline_common import (
 
 ORG_SCHEMA = "0.2-alpha"
 MANAGED_SCHEMA = "v1"
-PROJECT_DEFINITION_README = "# 项目文档基线\n\n项目经理启动工作流把项目所有者已确认的方向整理到 `project-brief.yaml`。草案不得作为正式编制依据；只有摘要匹配的人工确认后才能进入组织设计。\n"
+PROJECT_DEFINITION_README = "# 项目文档基线\n\n项目经理主动协助所有者共同立项，把方向、证据、选择与未知项记录到 `project-brief.yaml`，把启动授权记录到 `production-charter.yaml`。可联合准备组织草案；应用正式编制与启动生产需要精确摘要对应的人类确认。\n"
 ASSET_AND_LOOP_READMES = {
     "game-pipeline/assets/contracts/README.md": "# 专业资产 Contract\n\n每项正式资产每个 revision 保存一份 `game-production-specialist-asset/v1` Contract。复制插件模板后填写真实项目事实；不要把占位模板直接放入本目录。\n",
     "game-pipeline/assets/budgets/README.md": "# 专业资产预算\n\n保存项目批准的目标平台、硬件档位与资产类型预算 Profile；公共插件不提供万能性能阈值。\n",
@@ -48,7 +49,7 @@ ASSET_AND_LOOP_READMES = {
     "game-pipeline/loops/registry/README.md": "# Loop Registry\n\n每个运行实例保存 Snapshot 与不可变 Event History。Registry 只保存资产 Contract 的版本化引用、摘要和 Gate 证据，不复制资产正文。\n",
 }
 ART_DIRECTION_READMES = {
-    "game-pipeline/art-direction/contracts/README.md": "# 主美方向 Contract\n\n每个方向 revision 保存一份 `game-production-art-direction/v1` Contract。D2 核心画风选择与 D4 生产冻结必须绑定指定人工审批；不要把插件占位模板直接放入本目录。\n",
+    "game-pipeline/art-direction/contracts/README.md": "# 主美方向 Contract\n\n每个方向 revision 保存一份 `game-production-art-direction/v1` Contract。D2 核心画风选择绑定指定人工审批；D4 可按已批准 Production Charter 委派独立专业审核；不要把插件占位模板直接放入本目录。\n",
     "game-pipeline/art-direction/research/README.md": "# 视觉研究与来源\n\n保存联网研究、视频时间点、非游戏影响、引用用途、权利类别和 anti-copy 说明。参考图不自动拥有生产授权。\n",
     "game-pipeline/art-direction/style-bibles/README.md": "# 风格圣经\n\n保存当前和历史风格圣经、跨域翻译矩阵、正反例与视觉 token 引用；冻结版本必须绑定 Art Direction Contract digest。\n",
     "game-pipeline/art-direction/benchmarks/README.md": "# 引擎内美术基准\n\n保存 style frames、代表性引擎场景、目标构建、捕获与性能基准引用。D3 通过前不得据此启动大规模最终资产生产。\n",
@@ -276,11 +277,11 @@ def build_initial_project_brief(
 ) -> dict[str, Any]:
     source_id = f"source:{project_id}:project-identity"
     statement_specs = [
-        ("project-goal", f"{project_name} 的项目目标与目标玩家体验尚待项目所有者提供。"),
-        ("gameplay", "核心玩法尚待项目所有者提供。"),
-        ("art-direction", "美术方向尚待项目所有者提供。"),
-        ("implementation", "大致实现方案尚待项目所有者提供并标明约束强度。"),
-        ("scope-constraints", "时间、成本、团队、内容量与发布约束尚待项目所有者提供。"),
+        ("project-goal", f"{project_name} 的项目目标与目标玩家体验待 Agent 辅助所有者共同确定。"),
+        ("gameplay", "核心玩法待 Agent 辅助所有者共同确定。"),
+        ("art-direction", "美术方向待 Agent 辅助所有者共同确定。"),
+        ("implementation", "大致实现方案待 Agent 提出方案，与所有者共同敲定并标明约束强度。"),
+        ("scope-constraints", "时间、成本、团队、内容量与发布约束待 Agent 辅助所有者共同确定。"),
     ]
     statements = [
         {
@@ -425,6 +426,8 @@ def build_managed_blocks(version: str, digest: str) -> dict[str, dict[str, Any]]
 - 项目管线状态位于 `game-pipeline/`，项目专属 Skills 位于 `.agents/skills/`。
 - 当前锁定插件：`{PLUGIN_ID}@{version}`，框架摘要：`{digest}`。
 - 初始项目简报位于 `game-pipeline/project-definition/project-brief.yaml`；未确认前不得批准正式编制。
+- 立项授权位于 `game-pipeline/project-definition/production-charter.yaml`；共同确定方向与边界后，按已批准范围自主制作、自检、有限修复与独立审核，只合并上报越界例外。
+- 自主执行计划和不可变证据位于 `game-pipeline/execution/`；每次恢复须验证摘要、预算和事件，禁止直接改完成状态。
 - 专业资产 Contract 位于 `game-pipeline/assets/contracts/`；P6 资产 Loop 必须绑定 asset_id、revision、文件 digest 与 subject digest，并通过对应 Asset Gate。
 - 主美方向 Contract 位于 `game-pipeline/art-direction/contracts/`；方向工作必须先联网研究，经 D2 人工选向与 D3 引擎基准后才能规模化生产。
 - 公共资产流程对 UI 等领域事实源只读；任何反向修改必须进入独立上游工作流。
@@ -506,12 +509,17 @@ def build_contents(
             ],
         }
     }
+    # A structurally valid draft opens the inception conversation; it grants no execution authority.
+    charter = load_yaml(source_root / "contracts" / "production-charter.template.yaml")
+    charter = json.loads(json.dumps(charter).replace("<project-id>", project_id).replace("human:<owner-id>", human_id))
+    charter["production_charter"]["authority"]["execution"]["max_total_budget"] = 0
     files = {
         "game-pipeline/project.yaml": dump_yaml(project_doc),
         "game-pipeline/plugin-lock.yaml": dump_yaml(lock_doc),
         "game-pipeline/bindings/skill-bindings.yaml": dump_yaml(bindings_doc),
         "game-pipeline/bindings/fact-sources.yaml": dump_yaml(facts_doc),
         "game-pipeline/project-definition/project-brief.yaml": dump_yaml(project_brief),
+        "game-pipeline/project-definition/production-charter.yaml": dump_yaml(charter),
         "game-pipeline/organization/snapshot.yaml": dump_yaml(snapshot),
         "game-pipeline/organization/event-history.yaml": dump_yaml(history),
         "game-pipeline/organization/change-sets/initial-organization.draft.yaml": dump_yaml(change_set),

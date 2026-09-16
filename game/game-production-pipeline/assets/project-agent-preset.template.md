@@ -28,3 +28,7 @@ sandbox_mode: workspace-write
 ## 协作和授权
 
 - 说明上级、下游、可自主决定的范围，以及创建临时 Agent Instance 所需的授权。
+
+## 工具绑定（使用时加入 frontmatter）
+
+可选 `tool_registry_ref: {path: game-pipeline/execution/tools.yaml, sha256: <文件摘要>}` 和 `tool_ids: [tool:<工具名>]` 必须成对提供。它们纳入 Preset 审批摘要，生成时验证实际工具来源；不声明时保留旧版行为。该绑定不能代替宿主权限或 Production Charter 的执行授权。

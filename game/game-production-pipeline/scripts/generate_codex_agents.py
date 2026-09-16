@@ -249,6 +249,32 @@ def toml_string(value: str) -> str:
     return json.dumps(value, ensure_ascii=False)
 
 
+def validate_tool_binding(metadata: dict[str, Any], project_root: Path) -> list[str]:
+    """Optional approved tool scope; this is not a host-level permission mechanism."""
+    if "tool_registry_ref" not in metadata and "tool_ids" not in metadata:
+        return []
+    from validate_execution_plan import check_ref, validate_tool_registry
+    from validate_production_charter import safe_path
+    errors: list[str] = []
+    reference = metadata.get("tool_registry_ref")
+    tool_ids = metadata.get("tool_ids")
+    check_ref(reference, "preset tool registry", errors, project_root)
+    if not isinstance(tool_ids, list) or not tool_ids or any(not isinstance(x, str) for x in tool_ids):
+        errors.append("preset tool_ids must be nonempty strings")
+    if errors:
+        return errors
+    try:
+        document = load_yaml(safe_path(project_root, reference["path"]))
+        result = validate_tool_registry(document, project_root=project_root)
+        errors.extend(result["errors"])
+        known = {tool["tool_id"] for tool in document["tool_registry"]["tools"]}
+        if len(tool_ids) != len(set(tool_ids)) or set(tool_ids) - known:
+            errors.append("preset tool binding references duplicate or unknown tools")
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        errors.append(str(exc))
+    return errors
+
+
 def render_adapter(metadata: dict[str, Any], body: str, source_path: str, digest: str, version: str) -> str:
     if '"""' in body:
         raise ValueError("developer instructions 不能包含 TOML 三引号")
@@ -260,6 +286,10 @@ def render_adapter(metadata: dict[str, Any], body: str, source_path: str, digest
         + "Only act inside this approved responsibility and authority boundary. "
         + "Before spawning or starting another Agent Instance, validate its approved Position or Temporary Grant and register it in the project Registry.\n"
     )
+    if metadata.get("tool_registry_ref"):
+        instructions += "\nApproved tool registry: " + json.dumps(metadata["tool_registry_ref"], ensure_ascii=False)
+        instructions += "\nApproved tools: " + ", ".join(metadata["tool_ids"]) + "\n"
+        instructions += "Validate current registry sources and the execution charter before use. This binding does not grant host tool permissions.\n"
     sandbox_mode = metadata.get("sandbox_mode", "workspace-write")
     return (
         f"# {MANAGED_MARKER}\n"
@@ -365,6 +395,7 @@ def build_generation_plan(
             continue
         if metadata.get("preset_digest") != digest:
             errors.append(f"{path.name} preset_digest 不匹配")
+        errors.extend(f"{path.name}: {message}" for message in validate_tool_binding(metadata, project_root))
         slug = metadata["slug"]
         if slug in seen_slugs:
             errors.append(f"生成文件 slug 冲突: {slug}")

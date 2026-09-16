@@ -109,3 +109,7 @@ python scripts/validate_loop_registry.py --snapshot <snapshot.yaml> --history <e
 运行态模式分别执行：Event/Contract/状态机静态契约检查、可选独立 Record Template 的 draft 结构检查、Snapshot 资源 ID 检查，以及 Event History 的摘要链、并发修订、水位、状态和 iteration 重放。为了兼容 alpha.2 已记录的命令，运行态仍允许省略 `--record-template`；此时不会跳过 Event、Contract、状态机、资源 ID 或历史重放检查，只是不额外校验独立 Record Template。无 `--history` 的原模板校验命令保持兼容。
 
 校验器检查模板结构、Contract 输入/交付 ID、状态集合、轮次规则和事件边界；提供 `--history` 时还会重算每个 Event 摘要、检查哈希链、`sequence`、`record_revision`、`mutation_id`，按状态机重放状态与轮次，并核对 Snapshot 水位。所选存储适配器仍必须实现原子事务和幂等写入。
+
+## 共同立项与自主制作
+
+`production-charter.template.yaml` 记录启动授权；`tool-registry.template.yaml` 固定工具来源与能力；`execution-plan.template.yaml` 绑定上下文、工具、依赖、写入与自检预算；`production-gate-decision.template.yaml` 记录真实独立判断。样例仅用于结构说明，不能代替批准与实际证据。参见 `../skills/operate-game-production-loop/references/autonomous-production.md` 的执行和恢复协议。

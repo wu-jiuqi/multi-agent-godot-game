@@ -1,0 +1,80 @@
+# Synthetic schema example; replace inputs and digests before production.
+execution_plan:
+  schema_version: game-production-execution-plan/v1
+  plan_id: plan:sample-game:production
+  project_id: sample-game
+  version: 1
+  status: draft
+  mode: automate
+  production_charter_ref:
+    path: game-pipeline/project-definition/production-charter.yaml
+    subject_digest: c4a15f5a84f3a1c05228e83ec2f1050c41763601a374cb45e7ac2869d4ca4e93
+  context:
+    input_refs:
+    - path: inputs/intent.md
+      sha256: a6981a028f56d3573456571bc2f3c100a81db9d631c6fc3877ed7f23a2709ecd
+    context_digest: 96f42e26af9b20476045a26eb14db40a4ea17ddc330158fe6bffd38f1cad464c
+    captured_at: '2026-09-16T08:00:00Z'
+  model:
+    provider: fixture
+    name: test
+    version: '1'
+    source_ref:
+      path: inputs/model.json
+      sha256: f135603b4a4249c2d7180f54d0cab2382b9c2b1cf3df54442b92477e6dd339f0
+    source_digest: f135603b4a4249c2d7180f54d0cab2382b9c2b1cf3df54442b92477e6dd339f0
+  tool_registry_ref:
+    path: game-pipeline/execution/tools.yaml
+    sha256: 07407875f4b31ad198fd4b4a29a47a200be24ca9ff45961dc75900f87f22e567
+  tools:
+  - tool_id: tool:fixture
+    version: '1'
+    capability_refs:
+    - write-report
+    permission_scope:
+    - write:project
+    source_digest: 7cb1ff469def2b3d391cc6e406bf04126eefb295a4d137ec688b72b490d4cf15
+  lanes:
+  - lane_id: main
+    max_parallel: 2
+  tasks:
+  - task_id: TASK-001
+    title: fixture report
+    mode: automate
+    responsible_role: position:sample-game:producer
+    reviewer_role: position:sample-game:qa
+    lane_id: main
+    depends_on: []
+    join:
+      strategy: all
+      required_task_ids: []
+    tool_ids:
+    - tool:fixture
+    write_set:
+    - outputs/one.txt
+    output_refs:
+    - outputs/one.txt
+    action: produce report
+    authority_action: write_workspace
+    estimated_cost: 1
+    generated_assets: false
+    asset_contract_refs: []
+    self_check:
+      required: true
+      command_ref: check:report
+      max_repairs: 1
+  retry_policy:
+    max_attempts: 2
+    on_exhausted: blocked
+  budget:
+    max_cost: 5
+    unit: credits
+  acceptance:
+    required_task_ids:
+    - TASK-001
+  evidence_store:
+    uri: repo://game-pipeline/execution/events/production.jsonl
+  asset_contract_policy:
+    generated_assets_require_contract: true
+  integrity:
+    plan_digest: 909ea53fb13ffe3223faf2cc52beb70024b4eef3d8e70a2dddd2deffd4df8bb0

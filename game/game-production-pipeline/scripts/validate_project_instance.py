@@ -21,6 +21,7 @@ from pipeline_common import (
 from validate_organization_registry import validate_change_set, validate_history
 from validate_plugin_lock import evaluate_lock
 from validate_project_brief import validate_project_brief
+from validate_production_charter import validate_production_charter
 from validate_art_direction_contract import validate_art_direction_contract
 from validate_specialist_asset_contract import validate_specialist_asset_contract
 from validate_specialist_asset_loop import (
@@ -216,6 +217,19 @@ def validate_instance(project_root: Path, source_root: Path | None = None) -> di
     warnings.extend(f"Project Brief: {message}" for message in brief_result["warnings"])
     checked.append("game-pipeline/project-definition/project-brief.yaml")
 
+    charter_path = project_root / "game-pipeline/project-definition/production-charter.yaml"
+    if charter_path.is_file():
+        try:
+            charter_result = validate_production_charter(
+                load_yaml(charter_path), expected_project_id=project_id,
+                approvals=approval_records, project_root=project_root,
+            )
+            errors.extend(f"Production Charter: {message}" for message in charter_result["errors"])
+            warnings.extend(f"Production Charter: {message}" for message in charter_result["warnings"])
+        except (OSError, ValueError, TypeError) as exc:
+            errors.append(f"Production Charter: {exc}")
+        checked.append(charter_path.relative_to(project_root).as_posix())
+
     if lock["state"] == "normal":
         generation_plan, _ = build_generation_plan(project_root, source_root)
         errors.extend(f"Agent Adapter: {message}" for message in generation_plan["errors"])
@@ -355,6 +369,38 @@ def validate_instance(project_root: Path, source_root: Path | None = None) -> di
                 f"Specialist Asset Loop {path.parent.name}: {message}"
                 for message in result["warnings"]
             )
+        checked.append(path.relative_to(project_root).as_posix())
+
+
+    execution_dir = project_root / "game-pipeline/execution/plans"
+    for path in sorted(execution_dir.glob("*.yaml")):
+        try:
+            from validate_execution_plan import validate_execution_plan, plan_body
+            from validate_production_run import validate_execution_authority
+            from record_execution_event import read_events, replay_state
+            from validate_production_charter import safe_path
+            plan_document = load_yaml(path)
+            p = plan_body(plan_document)
+            if p.get("project_id") != project_id:
+                errors.append(f"Execution Plan {path.name}: project identity mismatch")
+            result = validate_execution_plan(plan_document, project_root=project_root)
+            errors.extend(f"Execution Plan {path.name}: {x}" for x in result["errors"])
+            if not result["errors"] and p.get("status") not in {"draft", "cancelled"}:
+                result = validate_execution_authority(plan_document, project_root=project_root,
+                                                       approvals=approval_records)
+                errors.extend(f"Execution Authority {path.name}: {x}" for x in result["errors"])
+                if not result["errors"]:
+                    ledger = safe_path(project_root, p["evidence_store"]["uri"])
+                    replay = replay_state(plan_document, read_events(ledger), project_root=project_root)
+                    errors.extend(f"Execution Evidence {path.name}: {x}" for x in replay["anomalies"])
+                    if replay["state"] == "blocked":
+                        warnings.append(f"Execution {path.name}: blocked; inspect budget, retries and recovery point")
+                    if p["status"] == "completed" and replay["state"] != "completed":
+                        errors.append(f"Execution {path.name}: completion has no matching evidence")
+                    if ledger.is_file():
+                        checked.append(ledger.relative_to(project_root).as_posix())
+        except (OSError, ValueError, TypeError, KeyError, AttributeError) as exc:
+            errors.append(f"Execution Plan {path.name}: {exc}")
         checked.append(path.relative_to(project_root).as_posix())
 
     state = "blocked" if errors else lock["state"]

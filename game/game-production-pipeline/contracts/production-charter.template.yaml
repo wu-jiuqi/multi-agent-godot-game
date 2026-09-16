@@ -1,0 +1,193 @@
+production_charter:
+  schema_version: game-production-production-charter/v1
+  identity:
+    charter_id: charter:<project-id>:initial
+    project_id: <project-id>
+    version: 1
+    project_owner: human:<owner-id>
+  mode: autonomous-after-approval
+  inception:
+    collaboration_required: true
+    phase: inception
+    required_human_decisions:
+    - GATE-0
+    - GATE-1
+    - D2
+    launch_blocked_until:
+    - GATE-0
+    - GATE-1
+    - D2
+  coverage:
+    project_goal: <可衡量项目目标>
+    player_experience: <目标玩家体验>
+    audience: <目标玩家与平台人群>
+    gameplay: <核心玩法与循环>
+    art_direction: <视觉与音频方向>
+    platform_engine: <平台、引擎与技术约束>
+    scope: <首个里程碑范围与排除项>
+    schedule: <里程碑、截止时间与节奏>
+    budget: <预算与成本边界>
+    team: <职责与专业覆盖>
+    accessibility: <可访问性目标>
+    legal_rights: <素材、模型、数据与发布权利要求>
+    success_metrics: <验收指标>
+    risks: <主要风险与缓解策略>
+    content: <立项时共同确定，或注明不适用及理由>
+    ui_ux: <立项时共同确定，或注明不适用及理由>
+    audio: <立项时共同确定，或注明不适用及理由>
+    localization: <立项时共同确定，或注明不适用及理由>
+    distribution: <立项时共同确定，或注明不适用及理由>
+  decisions:
+  - decision_id: decision:<project-id>:goal
+    domain: project-goal
+    statement: <经过共同讨论确认的结论或待验证假设>
+    status: unknown
+    decision_owner: human:<owner-id>
+    source_refs: []
+    blocks_start: true
+  open_questions:
+  - question_id: question:<project-id>:example
+    question: <尚未决定的问题>
+    decision_owner: human:<owner-id>
+    blocks_start: true
+    resolution_hint: <需要哪些证据或选项>
+  acceptance:
+    criteria:
+    - criterion_id: acceptance:<project-id>:playable
+      description: <可观察、可重复核验的完成条件>
+      verifier_kind: independent
+      evidence:
+      - <证据路径或命令>
+      threshold: <通过阈值>
+      blocks_release: true
+    default_verifier_kind: independent
+  authority:
+    workspace_root: .
+    execution:
+      after_launch: autonomous
+      human_questions: boundary-events-only
+      batch_exceptions: true
+      max_retries_per_task: 3
+      max_total_budget: 100
+      budget_unit: hours
+      plan_budgets: {}
+    agent_actions:
+      allowed:
+      - read
+      - write_workspace
+      - run_tests
+      - create_build
+      - prepare_release_package
+      restricted:
+      - change_project_direction
+      - approve_gate
+      - sign_human_approval
+    external_actions:
+    - action: publish
+      authorized: false
+      scope: <渠道、账号、环境和有效期；未经授权只能制作发布包>
+      requires_gate: GATE-4
+    write_paths:
+    - game
+    - scenes
+    - scripts
+    - assets
+    - tests
+    - game-pipeline/evidence
+    - game-pipeline/execution
+    tool_permissions:
+    - read:project
+    - write:project
+    - test:project
+    tool_registry_ref: null
+    allowed_models: []
+  specialist_reviews:
+  - review_id: review:<project-id>:gameplay
+    domain: gameplay
+    reviewer_kind: independent
+    reviewer_role: <专业审核角色>
+    required_before_start: false
+    acceptance_refs:
+    - acceptance:<project-id>:playable
+  gates:
+  - gate_id: GATE-0
+    name: project-charter
+    purpose: 立项目标、范围、预算与约束
+    required_before_start: true
+    owner_kind: human
+    status: pending
+    approval_id: null
+  - gate_id: GATE-1
+    name: core-experience
+    purpose: 核心体验与垂直切片假设
+    required_before_start: true
+    owner_kind: human
+    status: pending
+    approval_id: null
+  - gate_id: D2
+    name: initial-art-direction
+    purpose: 初始视觉方向与可变化边界
+    required_before_start: true
+    owner_kind: human
+    status: pending
+    approval_id: null
+  - gate_id: GATE-2
+    name: production-review
+    purpose: 里程碑生产质量审核
+    required_before_start: false
+    owner_kind: independent
+    status: delegated
+    delegated_reviewer: <独立审核 Agent/角色>
+    approval_id: null
+    acceptance_refs:
+    - acceptance:<project-id>:playable
+  - gate_id: GATE-3
+    name: release-candidate
+    purpose: 候选版本质量与风险审核
+    required_before_start: false
+    owner_kind: independent
+    status: delegated
+    delegated_reviewer: <独立审核 Agent/角色>
+    approval_id: null
+    acceptance_refs:
+    - acceptance:<project-id>:playable
+  - gate_id: D4
+    name: art-production-baseline
+    purpose: 美术生产基准与风格冻结
+    required_before_start: false
+    owner_kind: independent
+    status: delegated
+    delegated_reviewer: <独立审核 Agent/角色>
+    approval_id: null
+    acceptance_refs:
+    - acceptance:<project-id>:playable
+  - gate_id: GATE-4
+    name: external-publish
+    purpose: 对外发布动作
+    required_before_start: false
+    owner_kind: human
+    status: pending
+    approval_id: null
+    acceptance_refs:
+    - acceptance:<project-id>:playable
+  notifications:
+    notify_on:
+    - blocked
+    - repeated_failure
+    - budget_exceeded
+    - authorization_boundary
+    - gate_ready
+    - completed
+    quiet_when_unchanged: true
+  review:
+    status: draft
+    approval_id: null
+    confirmed_by: null
+    confirmed_at: null
+  integrity:
+    canonicalization: production-charter-subject-canonical-json-v1
+    digest_algorithm: sha256
+    subject_digest: null
+  brief_ref:
+    path: game-pipeline/project-definition/project-brief.yaml
+    subject_digest: null

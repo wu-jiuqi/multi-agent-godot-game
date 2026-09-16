@@ -24,7 +24,7 @@ class PluginPackageTests(unittest.TestCase):
     def test_manifest_and_skill_entries_match_release(self) -> None:
         manifest = json.loads((PLUGIN_ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
         self.assertEqual("game-production-pipeline", manifest["name"])
-        self.assertRegex(manifest["version"], r"^0\.5\.0-alpha\.4(?:\+codex\.[0-9A-Za-z.-]+)?$")
+        self.assertRegex(manifest["version"], r"^0\.5\.0-alpha\.5(?:\+codex\.[0-9A-Za-z.-]+)?$")
         self.assertEqual("./skills/", manifest["skills"])
         discovered = {path.name for path in (PLUGIN_ROOT / "skills").iterdir() if path.is_dir()}
         self.assertEqual(SKILLS, discovered)
@@ -46,8 +46,8 @@ class PluginPackageTests(unittest.TestCase):
     def test_installation_docs_use_the_personal_marketplace_selector(self) -> None:
         documentation = {"plugin README": PLUGIN_ROOT / "README.md"}
         repository_documentation = {
-            "release notes": REPO_ROOT / "docs" / "releases" / "v0.5.0-alpha.4.md",
-            "test guide": REPO_ROOT / "docs" / "releases" / "v0.5.0-alpha.4-test-guide.md",
+            "release notes": REPO_ROOT / "docs" / "releases" / "v0.5.0-alpha.5.md",
+            "test guide": REPO_ROOT / "docs" / "releases" / "v0.5.0-alpha.5-test-guide.md",
         }
         for path in repository_documentation.values():
             self.assertTrue(path.is_file(), path)
@@ -65,8 +65,8 @@ class PluginPackageTests(unittest.TestCase):
     def test_windows_encoding_guidance_is_explicit_and_safe(self) -> None:
         paths = [PLUGIN_ROOT / "README.md"]
         repository_paths = (
-            REPO_ROOT / "docs" / "releases" / "v0.5.0-alpha.4.md",
-            REPO_ROOT / "docs" / "releases" / "v0.5.0-alpha.4-test-guide.md",
+            REPO_ROOT / "docs" / "releases" / "v0.5.0-alpha.5.md",
+            REPO_ROOT / "docs" / "releases" / "v0.5.0-alpha.5-test-guide.md",
         )
         for path in repository_paths:
             self.assertTrue(path.is_file(), path)

@@ -2,7 +2,7 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.5.0-alpha.4`。新增可选游戏机制与玩法策划角色、规则规格与原型任务书，并支持已发布 `alpha.3` 项目显式迁移。保留主美方向、资产管线、Skill Binding 独立审批、Agent Adapter 事务迁移和可复现发布；仍是 Alpha，角色行为尚待真实项目验证，不是 Production Ready。
+当前版本：`v0.5.0-alpha.5`。新增共同立项、启动授权、受控自主执行、工具绑定、有限修复与独立验收，并支持已发布 `alpha.4` 项目显式迁移。保留主美方向、资产管线、Skill Binding 独立审批、Agent Adapter 事务迁移和可复现发布；仍是 Alpha，角色行为尚待真实项目验证，不是 Production Ready。
 
 ## 层级
 
@@ -21,7 +21,7 @@ Codex Plugin
 ## 七个入口 Skills
 
 - `$bootstrap-game-pipeline`：先生成影响计划和摘要，经确认后初始化项目控制面。
-- `$prepare-game-project-brief`：由项目经理启动工作流把人类确定的玩法、美术方向、实现概要和约束整理为可供编制设计的项目简报。
+- `$prepare-game-project-brief`：由项目经理主动辅助人类共同确定玩法、美术方向、实现概要和约束，形成简报与启动授权。
 - `$design-game-organization`：设计部门、岗位、Agent Presets、Skill 绑定与组织图。
 - `$operate-game-production-loop`：按 Contract、授权和 Registry 运行或恢复生产循环。
 - `$review-game-gates`：独立检查证据，区分自动结果与必须由人类做出的决定。
@@ -92,9 +92,9 @@ python scripts/validate_project_instance.py --project-root D:\Game\MyProject
 
 脚本拒绝覆盖现有非托管文件。版本不一致进入 `read_only`，相同版本但框架摘要不一致进入 `blocked`；不得手工改写 `plugin-lock.yaml` 绕过迁移。
 
-## 迁移到 v0.5.0-alpha.4
+## 迁移到 v0.5.0-alpha.5
 
-`v0.5.0-alpha.4` 支持从白名单内的 `v0.3.0-alpha.1`、`v0.4.0-alpha.2`、`v0.4.0-alpha.3`、`v0.4.0-alpha.4`、`v0.5.0-alpha.1`、`v0.5.0-alpha.2` 或 `v0.5.0-alpha.3` 显式迁移。迁移器会补齐缺失控制面，更新已改变的插件 Skill 摘要，为新的 Skill Binding subject 要求独立人工批准，并在同一事务中重建全部受影响的托管 `.codex/agents/*.toml`；最后才更新 `plugin-lock.yaml`。已有美术/资产 Contract、风格圣经、图片、场景、UI、Snapshot、Event History、组织、Agent Preset 和项目来源 Skill 保持不变；未知摘要、非托管 Adapter、损坏 managed block 或计划后文件漂移都会 fail closed。
+`v0.5.0-alpha.5` 支持从白名单内的 `v0.3.0-alpha.1`、`v0.4.0-alpha.2`、`v0.4.0-alpha.3`、`v0.4.0-alpha.4`、`v0.5.0-alpha.1`、`v0.5.0-alpha.2` 、`v0.5.0-alpha.3` 或 `v0.5.0-alpha.4` 显式迁移。迁移器会补齐缺失控制面，更新已改变的插件 Skill 摘要，为新的 Skill Binding subject 要求独立人工批准，并在同一事务中重建全部受影响的托管 `.codex/agents/*.toml`；最后才更新 `plugin-lock.yaml`。已有美术/资产 Contract、风格圣经、图片、场景、UI、Snapshot、Event History、组织、Agent Preset 和项目来源 Skill 保持不变；未知摘要、非托管 Adapter、损坏 managed block 或计划后文件漂移都会 fail closed。
 
 先在项目 Git 工作区干净且已有额外备份的前提下执行 dry-run。保存输出中的 `migration_at` 和 `plan_digest`：
 
@@ -141,7 +141,7 @@ python scripts/migrate_plugin.py `
 
 ## 项目文档基线
 
-初始化后先使用 `$prepare-game-project-brief`。项目所有者提供已有规划，例如核心玩法、美术方向、大致实现方案、目标平台和范围约束；项目经理只负责结构化、追溯、标记 `confirmed / preference / hypothesis / unknown`、发现矛盾并追问缺口，不得补写人类尚未决定的方向。
+初始化后先使用 `$prepare-game-project-brief`。所有者可以只提供想法或部分规划；项目经理主动研究、咨询专家、提出备选和建议，共同敲定方向与授权。保留 `confirmed / preference / hypothesis / unknown` 和来源，不将建议冒充人类决定。
 
 项目简报位于 `game-pipeline/project-definition/project-brief.yaml`。运行：
 
@@ -197,6 +197,23 @@ P6 专业资产使用 [`contracts/specialist-asset-production.loop-contract.yaml
 - 已批准且未过期的 Temporary Grant 可以允许额度内运行实例免逐个审批，但每个实例仍须先登记并保持可见。
 - 自动校验只能给出证据和建议，不能写入人工决定。
 - 插件治理授权、Codex 沙箱/文件权限、技术验收是三个独立条件。
+
+
+## 共同立项后自主制作
+
+新增默认工作方式：Agent 从一个初步想法开始，主动协助所有者讨论目标玩家、体验、玩法、内容、美术、UI、音频、技术、范围、成本、验收和发布。立项期间提供研究、备选方案和有界试验，把简报、团队、绑定、关键选择及执行边界准备成一份可共同审阅的启动包。
+
+启动确认后，Production Charter 约束动作、写入路径、工具/模型、每个计划的预算和修复上限；GATE-2/GATE-3/D4 可显式委派独立审核者。Execution Plan 固定上下文、工具来源、依赖、并行容量和写入所有权。持久化事件要求实际产出 → 自检 → 有限返修 → 独立复查 → 完成，支持中断恢复和成本/修复/有效完成统计。
+
+主要入口：
+
+- [共同立项工作流](workflows/project-startup.md)与[立项工作坊](skills/prepare-game-project-brief/references/inception-workshop.md)；
+- [启动授权模板](contracts/production-charter.template.yaml)、[执行计划模板](contracts/execution-plan.template.yaml)、[工具注册模板](contracts/tool-registry.template.yaml)；
+- [自主生产操作协议](skills/operate-game-production-loop/references/autonomous-production.md)与[独立关卡评审模板](contracts/production-gate-decision.template.yaml)。
+
+只在方向/范围改变、权限缺口、预算或恢复路径耗尽时集中请求所有者决定。外部发布需精确授权和 GATE-4 证据，否则自主完成发布包。脚本提供可执行校验与记录，不是关闭任务后持续运行的后台服务，也不拦截任意宿主工具调用；实际工具执行、真实成本记录与专业判断由工作流负责。示例与回归测试不代表真实游戏已经通过验收。
+
+升级旧项目保留原授权模式；只有完成新启动包确认才进入自主制作，不通过升级自动扩大权限。
 
 ## 安装到个人 Marketplace
 
@@ -266,7 +283,7 @@ python scripts/build_release.py --plugin-root . --output-dir ..\..\dist
 
 - 治理层仍是文件契约与确定性校验器，没有强制拦截所有手工文件修改的 MCP 或 Hook。
 - Registry 没有数据库事务适配器；脚本会预检和原子写单文件，但不能提供跨文件数据库级事务。
-- 迁移仅覆盖白名单内的 v0.3、v0.4 alpha.2/alpha.3/alpha.4、v0.5 alpha.1/alpha.2/alpha.3 摘要；其他开发快照和更早版本会 fail closed。
+- 迁移仅覆盖白名单内的 v0.3、v0.4 alpha.2/alpha.3/alpha.4、v0.5 alpha.1/alpha.2/alpha.3/alpha.4 摘要；其他开发快照和更早版本会 fail closed。
 - 目前只有 Godot 适配层，Unity 和其他引擎尚未验证。
 - 专业资产公共底座已形成机器闭环，但仍需要首个真实项目提供目标平台预算 Profile、真实 DCC/导入链和发布资产回放证据。
 - 主美 D0–D4 已通过代表性契约纵切片和失败注入，仍需在真实项目中验证风格探索质量、团队吞吐和目标平台 benchmark；本版本只定义 UI 视觉接口，不宣称独立 UI workflow 已完成验收。

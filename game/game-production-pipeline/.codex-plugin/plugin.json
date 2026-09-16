@@ -1,7 +1,7 @@
 {
   "name": "game-production-pipeline",
-  "version": "0.5.0-alpha.4",
-  "description": "Turn owner-defined game plans into approved briefs, project-specific teams, production-ready art direction, and auditable game-production pipelines in Codex.",
+  "version": "0.5.0-alpha.5",
+  "description": "Co-design game inception with the owner, approve bounded production authority, then run auditable multi-agent execution, repair, review, and delivery.",
   "author": {
     "name": "wu-jiuqi",
     "url": "https://github.com/wu-jiuqi"
@@ -12,7 +12,7 @@
   "interface": {
     "displayName": "Game Production Pipeline",
     "shortDescription": "Build auditable multi-agent teams for game production.",
-    "longDescription": "Structure owner-defined game plans into source-traceable project briefs, create project-specific production organizations, establish cross-domain art direction through researched options and in-engine benchmarks, keep authority changes visible, and operate gated production loops in Codex.",
+    "longDescription": "Develop a game idea with the owner across design, art, UI, technology, scope and acceptance. Confirm a launch charter and project-specific team, then execute bounded production with independent review, recovery, evidence and exception-only escalation.",
     "developerName": "wu-jiuqi",
     "category": "Productivity",
     "capabilities": [
@@ -21,9 +21,9 @@
     ],
     "defaultPrompt": [
       "Initialize this game project with an auditable multi-agent production pipeline.",
-      "Turn my gameplay, art direction, and implementation outline into a staffing-ready project brief.",
+      "Develop my game idea with me and prepare a launch packet for low-intervention production.",
       "Show the current game production organization and pending staffing decisions.",
-      "Run the next approved production loop and stop at required human gates.",
+      "Continue production under the approved charter until delivery or an exception requires my decision.",
       "Research and establish a production-ready art direction that also translates coherently into UI visuals."
     ]
   }

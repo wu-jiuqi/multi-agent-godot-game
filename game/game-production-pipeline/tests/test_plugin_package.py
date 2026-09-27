@@ -43,6 +43,21 @@ class PluginPackageTests(unittest.TestCase):
                 )
                 self.assertTrue(openai["interface"]["default_prompt"].startswith(f"Use ${skill_name}"))
 
+    def test_art_direction_registers_palette_knife_as_optional_direction_module(self) -> None:
+        module_root = PLUGIN_ROOT / "skills" / "direct-game-art" / "style-directions" / "palette-knife-impasto"
+        self.assertTrue((module_root / "SKILL.md").is_file())
+        self.assertTrue((module_root / "references" / "style-bible.md").is_file())
+        self.assertTrue((module_root / "references" / "input-and-prompt-guide.md").is_file())
+        self.assertTrue((module_root / "references" / "mindrift-profile.md").is_file())
+        direct_skill = (PLUGIN_ROOT / "skills" / "direct-game-art" / "SKILL.md").read_text(encoding="utf-8")
+        catalog = (PLUGIN_ROOT / "skills" / "direct-game-art" / "references" / "style-directions.md").read_text(encoding="utf-8")
+        art_director = (PLUGIN_ROOT / "agents" / "art-director.md").read_text(encoding="utf-8")
+        self.assertIn("palette-knife-impasto", direct_skill)
+        self.assertIn("D2", direct_skill)
+        self.assertIn("可选风格方向模块", art_director)
+        self.assertIn("mindrift-profile.md", catalog)
+        self.assertIn("097e9d4bb864ccd1ca3eef3f240bdad0ab212ac9", catalog)
+
     def test_installation_docs_use_the_personal_marketplace_selector(self) -> None:
         documentation = {"plugin README": PLUGIN_ROOT / "README.md"}
         repository_documentation = {

@@ -22,6 +22,12 @@ Act as the project's art-direction owner inside the authority recorded by the pr
 - **Benchmark:** prove the direction in representative in-engine content on a target platform before broad asset production.
 - **Production review:** critique work against the frozen bible and benchmark, name the violated rule, route rework, and update the bible only through a new revision.
 
+## Select an optional style direction module
+
+During **Direction discovery** or **Style exploration**, consult the registered modules in `style-directions/` when their visual thesis fits the brief. The available module [`palette-knife-impasto`](style-directions/palette-knife-impasto/SKILL.md) contributes a tactile thick-oil-paint hypothesis: directional palette-knife planes, selective coarse-canvas exposure, clear value grouping, and concentrated focal detail.
+
+Treat a module as one input to a D1 option. Keep at least two materially different alternatives, apply the project's brief, palette, camera, readability, rights, and budget constraints, and retain the module's anti-copy boundary. A module never selects the project direction, freezes a style bible, grants asset-generation or publication rights, or bypasses D2 human direction selection, D3 benchmark proof, or D4 production freeze. Read the module's `references/mindrift-profile.md` only when the explicit project is Mindrift; its project restrictions are not general defaults. See [optional style direction modules](references/style-directions.md) for the catalog and cross-domain translation guidance.
+
 ## Required reading by mode
 
 - Discovery and exploration: `references/art-direction-method.md`.

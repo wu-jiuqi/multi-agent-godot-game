@@ -2,7 +2,7 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.5.0-alpha.5`。新增共同立项、启动授权、受控自主执行、工具绑定、有限修复与独立验收，并支持已发布 `alpha.4` 项目显式迁移。保留主美方向、资产管线、Skill Binding 独立审批、Agent Adapter 事务迁移和可复现发布；仍是 Alpha，角色行为尚待真实项目验证，不是 Production Ready。
+当前版本：`v0.5.0-alpha.6`。新增机器可读的主美画风方向注册表、可选画风方向模块和严格的目录/路径/摘要校验，并支持已发布 `alpha.5` 项目显式迁移。保留共同立项、启动授权、受控自主执行、工具绑定、有限修复、独立验收、主美方向、资产管线、Skill Binding 独立审批、Agent Adapter 事务迁移和可复现发布；仍是 Alpha，角色行为尚待真实项目验证，不是 Production Ready。
 
 ## 层级
 
@@ -92,7 +92,54 @@ python scripts/validate_project_instance.py --project-root D:\Game\MyProject
 
 脚本拒绝覆盖现有非托管文件。版本不一致进入 `read_only`，相同版本但框架摘要不一致进入 `blocked`；不得手工改写 `plugin-lock.yaml` 绕过迁移。
 
-## 迁移到 v0.5.0-alpha.5
+## 迁移到 v0.5.0-alpha.6
+
+`v0.5.0-alpha.6` 支持从已发布的 `v0.5.0-alpha.5` 显式迁移。迁移器只接受 alpha.5 发布框架摘要 `a04796a0f3d0b2fdc63237524122e24def932e4de1761367425aa60785e7018b`，并在同一事务中更新受托管的 `AGENTS.md`、插件 Skill 摘要、非空 Skill Binding 的独立审批、受托管 `.codex/agents/*.toml` 和 `plugin-lock.yaml`。本版新增的主美画风方向注册表和可选模块属于插件框架内容，不会替项目自动选择画风，也不会改写项目已有的美术/资产 Contract、风格圣经、图片、场景、UI、Snapshot、Event History、组织、Agent Preset 或项目来源 Skill；未知摘要、非托管 Adapter、损坏 managed block 或计划后文件漂移都会 fail closed。
+
+先在项目 Git 工作区干净且已有额外备份的前提下执行 dry-run。保存输出中的 `migration_at` 和 `plan_digest`：
+
+```powershell
+$plan = python scripts/migrate_plugin.py `
+  --project-root D:\Game\MyProject | ConvertFrom-Json
+
+$plan.outcome
+$plan.actions
+$plan.skill_binding_changes
+$plan.skill_binding_approval
+$plan.agent_adapter_actions
+$plan.plan_digest
+```
+
+只有 `outcome` 为 `migration_ready`，并由项目所有者审阅全部动作和精确摘要后才能应用：
+
+```powershell
+python scripts/migrate_plugin.py `
+  --project-root D:\Game\MyProject `
+  --migration-at $plan.migration_at `
+  --apply `
+  --approval-digest $plan.plan_digest `
+  --approved-by human:owner `
+  --binding-approval-digest $plan.skill_binding_approval.subject_digest `
+  --binding-approved-by human:owner
+```
+
+只有当 `skill_binding_approval.required` 为 `true` 时才提供后两个参数。迁移计划批准和 Skill Binding 批准是两个独立的人类决定；可以由同一项目所有者作出，但不能用一个摘要代替另一个。
+
+执行器在 `game-pipeline/.cache/migrations/<plan_digest>/` 保存逐字节备份；写入托管元数据、Skill Binding、托管 Adapter 和审批记录后，最后更新 plugin lock，并要求 `validate_plugin_lock.py`、`validate_project_instance.py` 和重复规划全部通过。任何失败都会自动回退全部目标与新审批记录。
+
+如迁移成功后尚未继续编辑目标文件，可显式回退：
+
+```powershell
+python scripts/migrate_plugin.py `
+  --project-root D:\Game\MyProject `
+  --rollback `
+  --plan-digest $plan.plan_digest `
+  --confirm-rollback $plan.plan_digest
+```
+
+回退前会验证迁移后摘要；目标文件一旦又被修改，脚本会拒绝覆盖。禁止只把 `plugin-lock.yaml` 改回旧版本。
+
+## 历史迁移参考：v0.5.0-alpha.5
 
 `v0.5.0-alpha.5` 支持从白名单内的 `v0.3.0-alpha.1`、`v0.4.0-alpha.2`、`v0.4.0-alpha.3`、`v0.4.0-alpha.4`、`v0.5.0-alpha.1`、`v0.5.0-alpha.2` 、`v0.5.0-alpha.3` 或 `v0.5.0-alpha.4` 显式迁移。迁移器会补齐缺失控制面，更新已改变的插件 Skill 摘要，为新的 Skill Binding subject 要求独立人工批准，并在同一事务中重建全部受影响的托管 `.codex/agents/*.toml`；最后才更新 `plugin-lock.yaml`。已有美术/资产 Contract、风格圣经、图片、场景、UI、Snapshot、Event History、组织、Agent Preset 和项目来源 Skill 保持不变；未知摘要、非托管 Adapter、损坏 managed block 或计划后文件漂移都会 fail closed。
 

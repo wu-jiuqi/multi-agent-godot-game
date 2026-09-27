@@ -165,7 +165,7 @@ python scripts/validate_project_brief.py `
 
 五个阶段各有独立摘要，后续增加基准证据不会误使早先的选向失效；真正修改选中方向会让 D2 记录过期。`evaluate_art_direction_gate.py` 只输出 `pass / revise / blocked / awaiting_human` 和审批摘要，不写人工决定。
 
-主美可在 D1 使用已登记的可选方向模块 [`palette-knife-impasto`](skills/direct-game-art/style-directions/palette-knife-impasto/SKILL.md) 作为“刮刀厚涂油画”候选方向输入。它不会自动成为项目画风，也不会跳过联网研究、至少三条方向、D2 人工选向、D3 引擎基准或 D4 生产冻结；《心界》附加规范只在明确处理该项目时加载。方向模块的登记和跨域翻译规则见 [`style-directions.md`](skills/direct-game-art/references/style-directions.md)。
+主美可在 D1 先读取机器可读的[画风方向注册表](skills/direct-game-art/style-directions/registry.yaml)，再按 Brief 和注册元数据选择方向模块。目前登记的 [`palette-knife-impasto`](skills/direct-game-art/style-directions/palette-knife-impasto/SKILL.md) 可作为“刮刀厚涂油画”候选方向输入。运行 `python scripts/validate_style_direction_registry.py skills/direct-game-art/style-directions/registry.yaml` 可检查目录、路径和摘要；模块不会自动成为项目画风，也不会跳过联网研究、至少三条方向、D2 人工选向、D3 引擎基准或 D4 生产冻结。《心界》附加规范只在明确处理该项目时加载。方向模块的解释和跨域翻译规则见 [`style-directions.md`](skills/direct-game-art/references/style-directions.md)。
 
 UI 在主美闭环中承担视觉语言接口：Theme/token、字体、图标、形状、材质和动效必须与世界视觉一致；Screen/Flow、布局行为、焦点、响应式规则和交互逻辑保持只读，留待独立 UI workflow 验证。
 

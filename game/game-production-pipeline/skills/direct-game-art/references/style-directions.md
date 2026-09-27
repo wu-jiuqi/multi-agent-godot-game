@@ -1,10 +1,11 @@
 # Optional Style Direction Modules
 
-The modules under `../style-directions/` are reusable visual hypotheses that the Art Director may bring into D1 exploration. They are inputs to a direction option, not pre-approved project style bibles.
+The canonical machine-readable list is [`../style-directions/registry.yaml`](../style-directions/registry.yaml). The modules under `../style-directions/` are reusable visual hypotheses that the Art Director may bring into D1 exploration. This file explains how to interpret the list and translate a selected module into a direction option; it is not a second registry.
 
 ## Selection and governance
 
 - Read a module only when its visual thesis fits the project brief, player effect, camera, readability needs, and production envelope.
+- Read the registry before choosing a module. Treat a missing entry, duplicate ID, invalid path, stale digest, or failed registry validation as unavailable until repaired.
 - Keep the module beside at least two materially different options. A module cannot satisfy the D1 research requirement by itself, replace the Art Director's recommendation, or make the D2 decision.
 - Convert a module's medium rules into the Contract's direction option fields: thesis, signature, player effect, gameplay/UI translation, feasibility, cost, risks, evidence, and anti-copy boundary.
 - Treat generated images as exploration or benchmark evidence until source rights, technical integration, target-platform readability, and the D3/D4 gates are complete.

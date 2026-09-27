@@ -1,0 +1,41 @@
+style_direction_registry:
+  schema_version: game-production-style-direction-registry/v1
+  registry_id: game-production-pipeline:direct-game-art-style-directions
+  version: 1
+  directions:
+  - id: palette-knife-impasto
+    display_name: 刮刀厚涂油画
+    path: skills/direct-game-art/style-directions/palette-knife-impasto
+    skill_path: skills/direct-game-art/style-directions/palette-knife-impasto/SKILL.md
+    tags:
+    - painterly
+    - impasto
+    - palette-knife
+    - tactile-surface
+    - image-generation
+    - 2d
+    use_when:
+    - 需要有体积的厚颜料和方向性刮刀笔触
+    - 需要将手绘空间媒介翻译到背景、角色、道具或 UI 材质
+    - 需要先做可控的概念图或风格基准
+    avoid:
+    - 一般摄影或纯矢量资产
+    - 只需要代码原生 UI 的任务
+    - 项目要求其他画风或无法接受生成式图像研究的任务
+    domains:
+    - characters
+    - environments
+    - props
+    - vfx
+    - animation
+    - ui
+    source:
+      kind: user-authored
+      uri: https://github.com/wu-jiuqi/palette-knife-impasto
+      revision: 097e9d4bb864ccd1ca3eef3f240bdad0ab212ac9
+      rights_state: reference-only
+    digests:
+      directory_sha256: 961b2bf27f7151bfd70f690673ad3a20d6ac018abfce2875ef54007d0f3580f9
+      skill_sha256: 556907e0493bd8fd8e9431beed62ca2af3a42486160a7314874339ebdea165d4
+  integrity:
+    registry_digest: cc83446cee55708d4e09210f4064720b10f94760630b8994258158a5b30b8d2c

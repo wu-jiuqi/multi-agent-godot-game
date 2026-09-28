@@ -46,19 +46,20 @@ def _rework_routing(
         for code in UI_REWORK_CODES:
             if code in issue and code not in codes:
                 codes.append(code)
-        if "screen_flow_ref" in issue or "key_screen_ids" in issue or "UI_STRUCTURE" in issue:
+        issue_lower = issue.casefold()
+        if "screen_flow_ref" in issue or "key_screen_ids" in issue or "ui_structure" in issue_lower:
             if "UI_STRUCTURE" not in codes:
                 codes.append("UI_STRUCTURE")
-        if "accessibility_constraints" in issue or "readability" in issue.lower() or "可读性" in issue:
+        if "accessibility_constraints" in issue or "readability" in issue_lower or "可读性" in issue:
             if "UI_READABILITY" not in codes:
                 codes.append("UI_READABILITY")
         # Validator messages are intentionally human-readable and may come
         # from an independent UI contract that has no explicit reason code.
         # Keep routing deterministic for those structural evidence failures.
-        if any(token in issue for token in ("UI Visual", "ui_visual", "Style Frame", "UI 本体", "benchmark capture")):
+        if any(token in issue_lower for token in ("ui visual", "ui_visual", "style frame", "ui 本体", "benchmark capture", "style_frame_refs", "benchmark_capture_refs", "visual_review", "component_state_matrix", "typography_ref", "iconography_ref", "shape_language", "material_surface_rules", "ornament_decoration_rules", "motion_language", "color_token_ref")):
             if "UI_VISUAL" not in codes:
                 codes.append("UI_VISUAL")
-        if any(token in issue for token in ("Theme/资源", "resource", "Theme")):
+        if any(token in issue_lower for token in ("theme/资源", "resource", "theme_resource_refs", "场景资源")):
             if "UI_TECH" not in codes:
                 codes.append("UI_TECH")
     # External UI Visual Contracts carry their own route table.  When the

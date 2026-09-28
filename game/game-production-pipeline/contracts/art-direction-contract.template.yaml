@@ -105,6 +105,14 @@ art_direction_contract:
       safe_area_policy: null
       typography_ref: null
       token_ref: null
+      # Required when scope.required_domains contains ui. This is the
+      # main-art-owned UI Visual Contract, not a Screen/Flow contract.
+      ui_visual_contract_ref:
+        artifact_id: ui-visual:<project-id>:<direction-slug>
+        version: 1
+        uri: repo://game-pipeline/ui/contracts/<ui-visual>.yaml
+        sha256: <64位小写 SHA-256>
+        subject_digest: <ui-visual-subject-digest>
       contrast_policy: null
       localization_policy: null
       structural_workflow_boundary: "read-only; UI structure changes require a separate UI workflow"
@@ -184,7 +192,7 @@ art_direction_contract:
       evidence_refs: []
 
   rework:
-    allowed_reason_codes: [BRIEF, RESEARCH, DIRECTION, STYLE, READABILITY, TECH, PERF, RIGHTS, UI_BOUNDARY, REGRESSION]
+    allowed_reason_codes: [BRIEF, RESEARCH, DIRECTION, STYLE, READABILITY, TECH, PERF, RIGHTS, UI_BOUNDARY, REGRESSION, UI_VISUAL, UI_STRUCTURE, UI_TECH, UI_READABILITY]
     current_issues: []
     history: []
 

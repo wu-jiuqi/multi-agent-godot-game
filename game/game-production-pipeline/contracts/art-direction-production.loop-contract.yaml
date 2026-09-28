@@ -15,6 +15,7 @@ purpose:
   out_of_scope:
     - "修改游戏规则、故事事实、UI Screen/Flow、布局行为、交互逻辑或 Godot 架构。"
     - "代替项目内容冻结、发行批准或法律意见。"
+    - "决定 UI Screen/Flow、布局行为、响应式/安全区、焦点导航或交互逻辑。"
 
 responsibility:
   owner_role: "art-director"
@@ -35,6 +36,14 @@ start:
       artifact_type: "project-brief"
       version_requirement: "approved and digest-bound"
       required: true
+    - input_slot_id: "INPUT-UI-SCREEN-FLOW"
+      artifact_type: "ui-screen-flow-contract"
+      version_requirement: "approved and digest-bound when required_domains includes ui"
+      required: false
+    - input_slot_id: "INPUT-UI-VISUAL-CONTRACT"
+      artifact_type: "ui-visual-contract"
+      version_requirement: "game-production-ui-visual/v1, approved and digest-bound when required_domains includes ui"
+      required: false
 
 iteration:
   task_sequence:
@@ -52,12 +61,16 @@ iteration:
       expected_output: "D2 human direction approval"
     - task_id: "TASK-ART-D3"
       responsible_role: "art-director"
-      action: "完成风格语言、跨域翻译和代表性引擎基准，与技术集成者实测。"
+      action: "完成风格语言、跨域翻译和代表性引擎基准，与技术集成者实测；required_domains 含 ui 时同时交付 game-production-ui-visual/v1、关键屏幕 Style Frame、组件状态矩阵、字体/图标和 Theme 映射。"
       expected_output: "D3 benchmark evidence"
     - task_id: "TASK-ART-D4"
       responsible_role: "qa-reviewer"
       action: "复核风格、可读性、技术预算、权利、返工和生产冻结证据。"
       expected_output: "D4 candidate and owner-or-delegated-independent decision package"
+    - task_id: "TASK-ART-UI-VISUAL-HANDOFF"
+      responsible_role: "art-director"
+      action: "把 UI Visual Contract 与 UI Screen/Flow Contract 一并交给 UI workflow；视觉执行能力映射 Theme、StyleBox、字体、图标和组件变体，Godot 只消费已批准交付物。"
+      expected_output: "UI visual handoff with UI_VISUAL/UI_STRUCTURE/UI_TECH/UI_READABILITY routes"
   carry_forward:
     - "art_direction_id、revision、阶段摘要、已批准选向、研究来源和返工历史。"
   change_summary_required: true
@@ -121,6 +134,7 @@ coordination:
   dependency_rules:
     - "项目简报或已批准选向变化时，对应阶段及下游证据立即 stale。"
     - "D3 证明基准，D4 冻结基线；D4 前不得启动大规模最终资产生产。UI 结构变化必须创建独立 UI workflow。"
+    - "UI Visual Contract、Style Frame、组件状态、字体/图标、Theme 映射或目标构建捕获变化时，使受影响 UI benchmark/review stale，并按 UI 返工原因码重新捕获。"
   child_loop_creation:
     allowed: true
     conditions:

@@ -39,6 +39,8 @@ Do not encode critical state in color alone. Combine at least two channels—sha
 
 The Art Director owns UI visual language: typography family and hierarchy, color tokens, icon and illustration style, shape/edge system, surface treatment, motion tone, and visual cohesion with the game world. The UI owner retains information architecture, screen/flow facts, responsive layout behavior, controls, focus order, localization layout, and interaction logic. A visual proposal that changes those facts becomes a separate UI change request.
 
+When UI is a required domain, record this visual language in a separate `game-production-ui-visual/v1` UI Visual Contract. It must point to the read-only Screen/Flow Contract, include component shape and surface rules, fonts, icons, ornaments, a six-state component matrix (`normal`, `hover`, `pressed`, `focus`, `disabled`, `error`), Theme/resource mappings, Style Frames, target captures, and the Art Director's review of the UI body. A background or wireframe alone is not a UI visual deliverable; default controls are greybox until these outputs exist.
+
 ## Research basis
 
 - GDC, *Art Direction for AAA UI*: build a coherent UI art concept from shape language, textures, signature elements, composition, and static/motion/interactive mockups. https://gdcvault.com/play/1025498/Art-Direction-for-AAA

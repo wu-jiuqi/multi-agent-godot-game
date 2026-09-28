@@ -214,7 +214,7 @@ python scripts/validate_project_brief.py `
 
 主美可在 D1 先读取机器可读的[画风方向注册表](skills/direct-game-art/style-directions/registry.yaml)，再按 Brief 和注册元数据选择方向模块。目前登记的 [`palette-knife-impasto`](skills/direct-game-art/style-directions/palette-knife-impasto/SKILL.md) 可作为“刮刀厚涂油画”候选方向输入。运行 `python scripts/validate_style_direction_registry.py skills/direct-game-art/style-directions/registry.yaml` 可检查目录、路径和摘要；模块不会自动成为项目画风，也不会跳过联网研究、至少三条方向、D2 人工选向、D3 引擎基准或 D4 生产冻结。《心界》附加规范只在明确处理该项目时加载。方向模块的解释和跨域翻译规则见 [`style-directions.md`](skills/direct-game-art/references/style-directions.md)。
 
-UI 在主美闭环中承担视觉语言接口：Theme/token、字体、图标、形状、材质和动效必须与世界视觉一致；Screen/Flow、布局行为、焦点、响应式规则和交互逻辑保持只读，留待独立 UI workflow 验证。
+UI 在主美闭环中通过独立的 [`game-production-ui-visual/v1` UI Visual Contract](contracts/ui-visual-contract.template.yaml) 交付视觉身份：Theme/token、字体、图标、组件形状、材质、装饰、完整状态矩阵和动效必须与世界视觉一致，并绑定关键屏幕 Style Frame 与目标构建 UI 本体证据。UI workflow 同时接收该 Contract 与 UI Screen/Flow Contract；后者继续拥有信息架构、布局行为、焦点、响应式规则和交互逻辑。实现顺序与返工路由见 [`ui-visual-handoff.md`](workflows/ui-visual-handoff.md)，自动验收边界见 [`ui-visual-acceptance.md`](contracts/ui-visual-acceptance.md)。
 
 方法依据包括 GDC 的 [独特美术方向框架](https://www.gdcvault.com/play/1028954/Art-Direction-Summit-Building-a)、[AAA UI 美术指导](https://gdcvault.com/play/1025498/Art-Direction-for-AAA)、[风格化 VFX 美术指导](https://www.gdcvault.com/play/1023999/Art-Directing-VFX-for-Stylized)、Riot 的 [Game Art 教学](https://www.riotgames.com/en/artedu/intro-to-game-art) 与 Godot 官方资产导入/Theme/性能文档；详细来源和使用边界保存在 `skills/direct-game-art/references/`。
 
@@ -335,5 +335,5 @@ python scripts/build_release.py --plugin-root . --output-dir ..\..\dist
 - 迁移仅覆盖白名单内的 v0.3、v0.4 alpha.2/alpha.3/alpha.4、v0.5 alpha.1/alpha.2/alpha.3/alpha.4 摘要；其他开发快照和更早版本会 fail closed。
 - 目前只有 Godot 适配层，Unity 和其他引擎尚未验证。
 - 专业资产公共底座已形成机器闭环，但仍需要首个真实项目提供目标平台预算 Profile、真实 DCC/导入链和发布资产回放证据。
-- 主美 D0–D4 已通过代表性契约纵切片和失败注入，仍需在真实项目中验证风格探索质量、团队吞吐和目标平台 benchmark；本版本只定义 UI 视觉接口，不宣称独立 UI workflow 已完成验收。
+- 主美 D0–D4 已通过代表性契约纵切片和失败注入；UI Visual Contract 的资源生产和主美 UI 本体评审仍需在真实项目验证风格质量、团队吞吐和目标平台 benchmark。自动检查不判断审美质量。
 - 迁移器不会自动操作任何现有游戏项目；每个项目都必须单独在隔离副本验证、审阅计划摘要，再决定是否迁移原项目。

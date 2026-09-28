@@ -10,7 +10,8 @@
 | 关卡灰盒 | 可在编辑器中打开和运行的 `.tscn` 场景 |
 | 可复用交互对象 | 独立 `.tscn` 场景、必要脚本和配置 Resource |
 | 游戏数据与规则配置 | 优先使用自定义 `.tres` Resource；跨工具交换时才用 JSON/YAML |
-| UI 结构 | `Control`、Container、Theme 等预置节点与资源 |
+| UI Screen/Flow Contract | `Control`、Container、PanelContainer、Button、HSlider、ProgressBar 等预置节点；布局、响应式、焦点和交互由 UI/UX 拥有 |
+| UI Visual Contract | 主美批准的 Theme、StyleBox、字体、图标、装饰、组件变体与状态资源；映射到既定 UI 结构 |
 | 美术方向基准 | 代表性的预置 `.tscn` benchmark、Theme/Material/Environment `.tres`、目标构建与捕获 |
 | 动画与反馈 | `AnimationPlayer`、`AnimationTree`、Tween、Audio 节点或粒子节点 |
 | 自动验证 | 无头启动、脚本检查、测试插件和目标平台导出检查 |
@@ -33,9 +34,22 @@
 - D3 benchmark 优先保存为编辑器可打开的预置 `.tscn`；固定灯光、WorldEnvironment、相机、角色/环境/道具/VFX/UI overlay 结构序列化到场景或子场景。
 - 2D Profile 对应图像导入模式、色彩空间、alpha、过滤、mipmap、压缩、尺寸和 atlas 规则；3D Profile 对应单位/轴、glTF 导入、材质/纹理、骨骼和 LOD/visibility；UI Profile 对应 Theme、字体、图标与视觉 token。
 - 共享 UI 视觉规则放入 Theme/StyleBox/字体/图标资源；Art Director 对这些资源提出视觉标准，但 UI Screen/Flow、Container 层级、响应布局、焦点和交互仍由 UI workflow 拥有。
+- `required_domains` 包含 `ui` 时，UI Profile 必须引用当前 UI Visual Contract，D3 验证合同、可视化样例、资源、目标构建捕获及主美 UI 本体评审，D4 冻结同一摘要。详见 [`../contracts/ui-visual-acceptance.md`](../contracts/ui-visual-acceptance.md)。
 - `.import` 可作为版本化导入配方证据，`.godot/imported/` 只作 cache。任何离线 DCC 结果都必须在实际导入、渲染器、相机和目标构建中复核。
 - D3 性能证据使用项目批准的硬件、场景和 Build；测量纹理内存、网格/材质、draw call、透明 overdraw、VFX、UI batch/font atlas 及帧时间中实际适用的指标。
 - `validate_project_instance.py` 会发现 `game-pipeline/art-direction/contracts/*.yaml` 并检查 revision、阶段摘要和真实 `repo://` 项目简报引用，但不修改项目场景、Theme 或审批。
+
+## UI 双契约交接
+
+实施顺序是“主美方向 → UI Visual Contract → UI 视觉资源 → Godot 实现 → 主美视觉验收”，具体工作流见 [`../workflows/ui-visual-handoff.md`](../workflows/ui-visual-handoff.md)。不新增视觉方向所有者。
+
+- UI 工作流同时消费已批准的 UI Screen/Flow Contract 与 UI Visual Contract；缺少任一输入，正式 UI 实现不得开始，只能记录为灰盒。
+- UI/UX 固定信息架构、Screen/Flow、布局行为、响应式/安全区、焦点导航和交互逻辑；主美提供形状、组件轮廓、材质表面、色彩/语义 Token、字体、图标、装饰、状态和动效规则，以及关键屏幕 Style Frame 与正反例。
+- UI Visual 执行能力把两者映射为可编辑的 `.tres` Theme/StyleBox、字体/图标文件和序列化组件变体，记录组件 ID、状态、Theme type variation、资源路径和引用摘要。Godot 实现者负责绑定、运行与技术修复。
+- 不得仅根据线框或文字描述实现最终 UI。默认 `StyleBoxFlat`、单线边框及无视觉资产的占位控件只可作为灰盒；允许经主美具体设计并评审的 StyleBox 作为整体方案的一部分，禁止用默认控件冒充视觉交付。
+- 固定结构必须保存到 `.tscn` / `.tres`，状态脚本只切换已声明的资源、属性与动画；不能动态重建整套 UI。视觉变化不得破坏已有信息层级、可读性或交互。
+- D3 的目标分辨率截图/视频必须覆盖关键屏幕和主要状态，并由主美评审 UI 本体的组件形状、文字、图标、装饰和状态。只有背景符合风格不算通过。自动化只能检查引用、摘要、结构和证据存在性，不评价审美质量。
+- `UI_VISUAL` 返回主美；`UI_STRUCTURE` 返回 UI workflow；`UI_TECH` 返回 Godot 实现者；`UI_READABILITY` 返回主美与 UI/UX 联合复审。任何一份 Contract 或资源改变都需更新摘要并重新捕获和评审受影响屏幕。
 
 ## 预置节点优先规则
 

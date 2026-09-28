@@ -31,6 +31,16 @@
 - `TECH`、`PERF` 返回技术美术/实现；
 - `RIGHTS` 返回权利审查者并阻止发布；
 - `UI_BOUNDARY` 返回单独 UI workflow，主美不得直接改 Screen/Flow；
+- `UI_VISUAL` 返回主美补齐 UI Visual Contract、组件视觉资产或视觉评审；
+- `UI_STRUCTURE` 返回 UI workflow 修正 Screen/Flow、布局、响应式、安全区、焦点或交互；
+- `UI_TECH` 返回 Godot 实现者修正 Theme/StyleBox/字体/图标映射、场景序列化或运行时绑定；
+- `UI_READABILITY` 返回主美与 UI/UX 联合复审层级、对比度、状态冗余或本地化可读性；
 - `REGRESSION` 返回引入变化的资产或集成 Loop。
 
 评估器只输出 `pass / revise / blocked / awaiting_human`、问题和审批摘要，不写审批、不更新 Registry。
+
+## UI required domain 的 D3/D4
+
+当 `scope.required_domains` 包含 `ui` 时，D3 还必须验证当前 `technical_profiles.ui.ui_visual_contract_ref` 可解析且 digest 有效，并对该 `game-production-ui-visual/v1` 执行只读结构检查：关键屏幕 Style Frame、字体、图标、Theme/资源映射、完整 `normal/hover/pressed/focus/disabled/error` 状态矩阵、benchmark 捕获和主美 `visual_review` 均存在且绑定同一 UI visual digest。目标构建证据必须展示 UI 本体及主要交互状态；背景符合风格不能替代 UI 视觉交付。
+
+D4 冻结 UI visual/benchmark digest、主美 UI 本体评审、UI/UX 结构评审和 Godot 技术证据。UI Visual Contract、资源、Style Frame、场景或 Build 改变时，受影响 benchmark/review 标为 stale 并回到对应 UI 返工路径。自动化只判断字段、引用、摘要和证据存在性，不宣称判断审美质量。没有 `ui` 的项目继续沿用原 D3/D4，不要求 UI Visual Contract。

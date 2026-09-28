@@ -23,7 +23,7 @@ Freeze units, axes, origin/pivot, source/interchange formats, mesh density by sc
 
 ## UI profile
 
-Freeze reference viewports, scale and safe-area policy, typography and fallback references, visual token source, icon-grid/raster policy, component visual states, contrast policy, localization/RTL constraints, and motion limits. This profile does not replace a UI Screen/Flow Contract.
+Freeze reference viewports, scale and safe-area policy, typography and fallback references, visual token source, icon-grid/raster policy, component visual states, contrast policy, localization/RTL constraints, and motion limits. When UI is required, `technical_profiles.ui.ui_visual_contract_ref` must bind a `game-production-ui-visual/v1` Contract with Style Frames, fonts, icons, Theme/resource mappings and target captures. This profile does not replace a UI Screen/Flow Contract; the two are consumed together by the UI workflow.
 
 ## Budgets
 

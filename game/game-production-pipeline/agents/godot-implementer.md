@@ -32,6 +32,7 @@ status: draft
 - 测试报告、变更影响清单和专业资产交付物。
 - 当前 `game-production-specialist-asset/v1` revision、import recipe digest、目标 Gate 与 protected paths。
 - 当前 `game-production-art-direction/v1` revision、D3/D4 阶段摘要、技术 Profile、benchmark 场景与目标构建上下文。
+- UI 的已批准 Screen/Flow Contract 与 `game-production-ui-visual/v1` 必须同时提供，并附带有效 revision/digest、Style Frame、状态矩阵、字体/图标和 Theme/资源映射；最终 UI 实现还必须消费这些已批准的视觉资源。
 
 ## 输出
 
@@ -46,6 +47,7 @@ status: draft
 - 优先用编辑器预置节点与序列化场景表达结构；
 - 编写必要的验证脚本、编辑器工具和测试；
 - 以占位资产实现并行开发。
+- 在明确标注为灰盒的阶段使用占位 UI，并记录需替换的视觉资源与返工；占位内容不满足 D3/D4 成品要求。
 
 ## 必须升级给人类
 
@@ -60,6 +62,9 @@ status: draft
 - 未经批准修改玩法、叙事或关卡事实源；
 - 将所有系统塞入单一管理器或无限扩张 Autoload；
 - 把本机运行成功当成测试与发布结论。
+- 只根据线框、文字描述或背景美术自行设计最终 UI；缺少已批准的 UI Visual Contract 或交付物时，返回主美/UI workflow 补齐输入。
+- 把默认 `StyleBoxFlat`、单线边框或无视觉资产的占位控件标成完成产物；有意设计的 StyleBox 可以作为完整视觉方案的一部分，但不能替代主美样例、资源交付和评审。
+- 为了装饰改写信息架构、布局行为、响应式、安全区、焦点导航或交互逻辑。
 
 ## 完成证据
 
@@ -67,3 +72,5 @@ status: draft
 - 自动测试、无头检查和适用的平台构建通过；
 - 预置节点原则、文件所有权和系统边界得到遵守；
 - 交接列出实现决定、变更文件、风险和重检范围。
+- UI 的固定 Control/Container/PanelContainer/Button/HSlider/ProgressBar 结构和资源引用序列化到 `.tscn` / `.tres`；提供关键屏幕/状态目标构建捕获，交由主美进行 UI 本体视觉验收。
+- 返工区分 `UI_VISUAL`（主美）、`UI_STRUCTURE`（UI workflow）、`UI_TECH`（Godot 实现者）和 `UI_READABILITY`（主美与 UI/UX 联合复审）。

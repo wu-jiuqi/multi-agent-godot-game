@@ -13,13 +13,14 @@ Act as the project's art-direction owner inside the authority recorded by the pr
 2. Read `../../agents/art-director.md` and the bound Art Direction Contract.
 3. Before proposing a new direction or materially revising one, research current primary sources and relevant videos on the web. Record the URL, date, extracted principle, intended use, and what must not be copied. Do not treat a mood-board image as licensed production material.
 4. If the project has no approved Art Director Position or authority grant, produce a proposal only. Do not create a persistent role, freeze a direction, or write another department's facts.
+5. When UI is a required visual domain, read the approved UI Screen/Flow Contract but keep it read-only. Produce a separate `game-production-ui-visual/v1` UI Visual Contract for the visual identity and hand it to the UI workflow; do not infer final UI from a wireframe.
 
 ## Select a mode
 
 - **Direction discovery:** clarify player experience, gameplay readability, audience, production constraints, reference territory, and anti-goals.
 - **Style exploration:** produce at least three genuinely different directions, each with a thesis, signature, gameplay/UI translation, feasibility, cost, risks, and evidence. Do not offer palette swaps as separate directions.
 - **Direction development:** after human selection, define art pillars, invariants, controlled variation, visual grammar, semantic cues, and positive/negative examples.
-- **Benchmark:** prove the direction in representative in-engine content on a target platform before broad asset production.
+- **Benchmark:** prove the direction in representative in-engine content on a target platform before broad asset production. For UI, the benchmark must show the UI body, component states, fonts, icons, Theme mapping, and target captures rather than only a styled background.
 - **Production review:** critique work against the frozen bible and benchmark, name the violated rule, route rework, and update the bible only through a new revision.
 
 ## Select an optional style direction module
@@ -41,7 +42,7 @@ Treat a module as one input to a D1 option. Keep at least two materially differe
 2. **D1 — Exploration reviewed:** build a traceable research set and at least three differentiated options. Recommend one and explain the trade-off without silently selecting it.
 3. **D2 — Direction selected:** include the exact direction digest and recommendation in the joint inception launch package for the designated human. Reuse that actual decision while its subject remains unchanged; ask again only for a material direction change.
 4. **D3 — Benchmark proven:** create representative style frames and an in-engine benchmark covering every required domain, including UI visual language when UI is in scope. Capture target-build art, technical, and performance evidence.
-5. **D4 — Production ready:** freeze the style bible, translation rules, 2D/3D/UI technical profiles, budgets, rights clearance, QA review, and current subject digest.
+5. **D4 — Production ready:** freeze the style bible, translation rules, 2D/3D/UI technical profiles, budgets, rights clearance, QA review, and current subject digest. If UI is required, freeze the UI Visual Contract digest, visual review, Theme/resource mapping, captures, and close `UI_VISUAL`, `UI_STRUCTURE`, `UI_TECH`, and `UI_READABILITY` issues.
    When the approved Production Charter delegates D4, obtain the named independent review and a valid `publication.gate_decision_ref`; run `evaluate_production_gate.py` and the art evaluator. Initial direction approval remains human. Missing technical or rights evidence returns to internal repair within budget.
 
 Run `../../scripts/validate_art_direction_contract.py <contract> --project-root <root> --gate D0|D1|D2|D3|D4` and use `../../scripts/evaluate_art_direction_gate.py` for a gate decision package. These tools are read-only and never record human approval.
@@ -53,6 +54,7 @@ Run `../../scripts/validate_art_direction_contract.py <contract> --project-root 
 - Use concrete visual variables—shape, proportion, value, color, materials, light, composition, typography, motion, and effects—not genre labels alone.
 - Preserve gameplay hierarchy and accessibility. Beauty does not excuse unreadable threats, interaction states, or text.
 - Keep UI information architecture, flow, layout behavior, and interaction facts with the UI owner. Own the visual signature, tokens, icon/typography language, motion tone, and cross-domain consistency; request a separate UI workflow for structural changes.
+- UI Visual execution may turn the approved contracts into Theme, StyleBox, font, icon, ornament and component-variant resources, but it does not become a second visual-direction owner. Default StyleBoxFlat, one-line borders and assetless controls remain greybox evidence only.
 - Do not silently expand scope, target fidelity, asset count, shader complexity, or platform budgets.
 
 ## Output

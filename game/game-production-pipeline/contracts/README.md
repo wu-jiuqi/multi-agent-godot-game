@@ -16,6 +16,8 @@
 
 主美方向使用 [`art-direction-contract.template.yaml`](art-direction-contract.template.yaml)、[`art-direction-acceptance.md`](art-direction-acceptance.md) 与 [`art-direction-production.loop-contract.yaml`](art-direction-production.loop-contract.yaml)。D0–D4 分别约束方向简报、研究探索、人工选向、引擎基准和生产冻结；阶段摘要彼此隔离，Registry 只保存版本化引用和 Gate 证据，不复制风格圣经或研究正文。
 
+当 `required_domains` 包含 `ui` 时，主美还必须交付 [`ui-visual-contract.template.yaml`](ui-visual-contract.template.yaml) 定义的 `game-production-ui-visual/v1`。它绑定 UI Screen/Flow Contract，但只拥有视觉身份、组件状态、字体、图标、装饰、Theme/资源映射和视觉验收；布局与交互仍归 UI workflow。D3/D4 标准、摘要失效和返工路由见 [`ui-visual-acceptance.md`](ui-visual-acceptance.md)，实现顺序见 [`../workflows/ui-visual-handoff.md`](../workflows/ui-visual-handoff.md)。
+
 ## Project Brief
 
 [`project-brief.template.yaml`](project-brief.template.yaml) 定义项目经理启动工作流整理的项目文档基线。它保存事实源、`confirmed / preference / hypothesis / unknown` 结论、开放问题、风险和责任需求；只有 staffing-ready、摘要匹配且有人类审批记录的简报才能进入组织设计。

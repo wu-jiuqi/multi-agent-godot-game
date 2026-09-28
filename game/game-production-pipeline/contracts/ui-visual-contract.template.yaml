@@ -1,0 +1,158 @@
+ui_visual_contract:
+  schema_version: game-production-ui-visual/v1
+
+  # UI visual identity is a separate, digest-bound output of the Art Director.
+  # It never owns Screen/Flow, layout, focus order, or interaction behavior.
+  identity:
+    ui_visual_id: uivis:<project>:<name>
+    project_id: <project-id>
+    display_name: <ui-visual-direction-name>
+    revision: 1
+    previous_revision_digest: null
+    lifecycle_state: draft
+
+  # Both upstream contracts are required before final UI implementation.
+  art_direction_ref:
+    artifact_id: artdir:<project>:<direction-slug>
+    version: 1
+    uri: repo://game-pipeline/art-direction/contracts/<art-direction>.yaml
+    sha256: <64-lowercase-hex>
+    subject_digest: <art-direction-direction-subject-digest>
+  screen_flow_ref:
+    artifact_id: ui-flow:<project>:<screen-flow>
+    version: 1
+    uri: repo://game-pipeline/ui/contracts/<screen-flow>.yaml
+    sha256: <64-lowercase-hex>
+
+  # State the intended UI signature in rules that can be handed to another artist.
+  visual_identity: <one-sentence UI visual identity and player-facing effect>
+  shape_language:
+    - <component silhouette, corner, proportion, or contour rule>
+  material_surface_rules:
+    - <surface, texture, edge, highlight, or depth rule>
+  color_token_ref:
+    artifact_id: ui-tokens:<project>:<name>
+    version: 1
+    uri: repo://game-pipeline/ui/visual/tokens/<tokens>.yaml
+    sha256: <64-lowercase-hex>
+  typography_ref:
+    artifact_id: ui-type:<project>:<name>
+    version: 1
+    uri: repo://game-pipeline/ui/visual/typography/<typography>.yaml
+    sha256: <64-lowercase-hex>
+  iconography_ref:
+    artifact_id: ui-icons:<project>:<name>
+    version: 1
+    uri: repo://game-pipeline/ui/visual/icons/<iconography>.yaml
+    sha256: <64-lowercase-hex>
+  ornament_decoration_rules:
+    - <ornament, pattern, mark, framing, or decorative density rule>
+
+  # Every listed component explicitly declares every state. If a state is not
+  # applicable, retain it with applicable=false and explain why.
+  component_state_matrix:
+    - component_id: <stable-component-id>
+      node_type: Button|Tab|Panel|Slider|ProgressBar|Toast|other
+      states:
+        normal:
+          applicable: true
+          visual_rule: <shape, surface, typography, icon, ornament and semantic rule>
+          resource_refs:
+            - artifact_id: ui-style:<project>:<component>-normal
+              version: 1
+              uri: repo://game-pipeline/ui/visual/styles/<component>-normal.tres
+              sha256: <64-lowercase-hex>
+        hover:
+          applicable: true
+          visual_rule: <hover rule and feedback channel>
+          resource_refs: []
+        pressed:
+          applicable: true
+          visual_rule: <pressed rule and feedback channel>
+          resource_refs: []
+        focus:
+          applicable: true
+          visual_rule: <focus ring/shape/value rule, not color alone>
+          resource_refs: []
+        disabled:
+          applicable: true
+          visual_rule: <disabled value, pattern, icon and text rule>
+          resource_refs: []
+        error:
+          applicable: false
+          reason: <why this component has no error state, or replace with a real rule>
+          visual_rule: null
+          resource_refs: []
+
+  motion_language:
+    - <transition cadence, easing, anticipation, and feedback rule>
+  theme_resource_refs:
+    - artifact_id: godot-theme:<project>:<name>
+      version: 1
+      uri: repo://game-pipeline/ui/visual/theme/<theme>.tres
+      sha256: <64-lowercase-hex>
+      component_ids: [<component-id>]
+  style_frame_refs:
+    - artifact_id: ui-style-frame:<project>:<screen>
+      version: 1
+      uri: repo://game-pipeline/ui/visual/style-frames/<screen>.png
+      sha256: <64-lowercase-hex>
+      screen_id: <screen-id>
+  positive_example_refs:
+    - artifact_id: ui-example:<project>:positive-<name>
+      version: 1
+      uri: repo://game-pipeline/ui/visual/examples/<positive>.png
+      sha256: <64-lowercase-hex>
+  negative_example_refs:
+    - artifact_id: ui-example:<project>:negative-<name>
+      version: 1
+      uri: repo://game-pipeline/ui/visual/examples/<negative>.png
+      sha256: <64-lowercase-hex>
+
+  # D3/D4 captures must name the screen, state(s), target build and viewport.
+  benchmark_capture_refs:
+    - artifact_id: ui-capture:<project>:<screen>-<state>
+      version: 1
+      uri: repo://game-pipeline/ui/evidence/captures/<screen>-<state>.png
+      sha256: <64-lowercase-hex>
+      screen_id: <screen-id>
+      states: [normal]
+      build_ref: <target-build-id>
+      viewport: {width: 1920, height: 1080}
+      media_type: screenshot
+      ui_visual_digest: <ui-visual-benchmark-digest>
+
+  key_screen_ids: [<screen-id>]
+  required_interaction_states: [normal, hover, pressed, focus, disabled, error]
+  accessibility_constraints:
+    - <contrast, text scaling, localization/RTL, focus visibility, or semantic redundancy rule>
+
+  owner: position:<project-id>:art-director
+  reviewers:
+    art_director: position:<project-id>:art-director
+    ui_ux: position:<project-id>:ui-ux
+    godot_implementer: position:<project-id>:godot-implementer
+  rework_routes:
+    UI_VISUAL: [position:<project-id>:art-director]
+    UI_STRUCTURE: [position:<project-id>:ui-ux]
+    UI_TECH: [position:<project-id>:godot-implementer]
+    UI_READABILITY: [position:<project-id>:art-director, position:<project-id>:ui-ux]
+
+  review:
+    status: pending
+    reviewer: null
+    subject_digest: null
+    reviewed_at: null
+    evidence_refs: []
+    ui_body_reviewed: false
+    findings:
+      - reason_code: UI_VISUAL
+        status: open
+        detail: <finding or remove this placeholder after review>
+
+  integrity:
+    # ui_visual_digest is the immutable visual rules subject digest. Captures
+    # and review are excluded from it; benchmark_subject_digest includes them.
+    ui_visual_digest: null
+    visual_subject_digest: null
+    benchmark_subject_digest: null

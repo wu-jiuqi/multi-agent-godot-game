@@ -25,6 +25,58 @@ GATE_ACTORS = {
     "D3": ("owner", "technical_integrator"),
     "D4": ("game_director", "qa_reviewer", "rights_reviewer"),
 }
+UI_REWORK_CODES = ("UI_VISUAL", "UI_STRUCTURE", "UI_TECH", "UI_READABILITY")
+
+
+def _rework_routing(
+    contract: dict[str, Any],
+    issues: list[str],
+    ui_contract_document: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Classify UI failures without pretending the machine can judge aesthetics."""
+    rework = contract.get("rework") if isinstance(contract.get("rework"), dict) else {}
+    routes = rework.get("routes") if isinstance(rework.get("routes"), dict) else {}
+    ui_contract = contract.get("ui_visual_contract") if isinstance(contract.get("ui_visual_contract"), dict) else {}
+    if not ui_contract and isinstance(ui_contract_document, dict):
+        ui_contract = ui_contract_document.get("ui_visual_contract") if isinstance(ui_contract_document.get("ui_visual_contract"), dict) else {}
+    if not routes and isinstance(ui_contract.get("rework_routes"), dict):
+        routes = ui_contract["rework_routes"]
+    codes: list[str] = []
+    for issue in issues:
+        for code in UI_REWORK_CODES:
+            if code in issue and code not in codes:
+                codes.append(code)
+        if "screen_flow_ref" in issue or "key_screen_ids" in issue or "UI_STRUCTURE" in issue:
+            if "UI_STRUCTURE" not in codes:
+                codes.append("UI_STRUCTURE")
+        if "accessibility_constraints" in issue or "readability" in issue.lower() or "可读性" in issue:
+            if "UI_READABILITY" not in codes:
+                codes.append("UI_READABILITY")
+        # Validator messages are intentionally human-readable and may come
+        # from an independent UI contract that has no explicit reason code.
+        # Keep routing deterministic for those structural evidence failures.
+        if any(token in issue for token in ("UI Visual", "ui_visual", "Style Frame", "UI 本体", "benchmark capture")):
+            if "UI_VISUAL" not in codes:
+                codes.append("UI_VISUAL")
+        if any(token in issue for token in ("Theme/资源", "resource", "Theme")):
+            if "UI_TECH" not in codes:
+                codes.append("UI_TECH")
+    # External UI Visual Contracts carry their own route table.  When the
+    # contract is missing or cannot be loaded, retain deterministic defaults
+    # from the Art Direction ownership boundary instead of dropping the route.
+    defaults = {
+        "UI_VISUAL": [contract.get("responsibility", {}).get("owner")],
+        "UI_STRUCTURE": [contract.get("responsibility", {}).get("game_designer")],
+        "UI_TECH": [contract.get("responsibility", {}).get("technical_integrator")],
+        "UI_READABILITY": [contract.get("responsibility", {}).get("owner"), contract.get("responsibility", {}).get("game_designer")],
+    }
+    for code in codes:
+        if not routes.get(code):
+            routes[code] = [item for item in defaults[code] if isinstance(item, str) and item]
+    return {
+        "reason_codes": codes,
+        "routes": {code: routes.get(code, []) for code in codes},
+    }
 
 
 def evaluate_art_direction_gate(
@@ -94,6 +146,7 @@ def evaluate_art_direction_gate(
         state = "revise"
         reason = "立项已委派 D4；由指定独立审核者补齐实际证据和评审记录"
     digests = art_direction_digests(document)
+    routing = _rework_routing(contract, issues, document)
     approval_subject = {
         "schema_version": SCHEMA_VERSION,
         "art_direction_id": identity.get("art_direction_id"),
@@ -110,6 +163,7 @@ def evaluate_art_direction_gate(
         "approval_digest": canonical_digest(approval_subject),
         "required_review_records": list(review_names),
         "required_actors": {role: responsibility.get(role) for role in GATE_ACTORS[gate]},
+        "rework": routing,
         "gate_result": gate_result,
         "validation_errors": result.get("errors", []),
         "warnings": result.get("warnings", []),

@@ -31,6 +31,19 @@ class ArtDirectionContractTests(unittest.TestCase):
         return self.document["art_direction_contract"]
 
     def refresh_digests(self) -> None:
+        ui_contract = self.document.get("ui_visual_contract")
+        if isinstance(ui_contract, dict):
+            art_identity = self.contract["identity"]
+            ui_contract["art_direction_ref"]["version"] = art_identity["revision"]
+            ui_contract["art_direction_ref"]["subject_digest"] = validator.art_direction_digests(self.document)["direction_subject_digest"]
+            ui_digests = validator.ui_visual_digests({"ui_visual_contract": ui_contract})
+            ui_contract["integrity"].update(ui_digests)
+            ui_contract["visual_review"]["subject_digest"] = ui_digests["ui_visual_digest"]
+            for capture in ui_contract["benchmark_capture_refs"]:
+                capture["ui_visual_digest"] = ui_digests["ui_visual_digest"]
+            ui_digests = validator.ui_visual_digests({"ui_visual_contract": ui_contract})
+            ui_contract["integrity"]["benchmark_subject_digest"] = ui_digests["benchmark_subject_digest"]
+            self.contract["technical_profiles"]["ui"]["ui_visual_contract_ref"]["subject_digest"] = ui_digests["ui_visual_digest"]
         digests = validator.art_direction_digests(self.document)
         for review_name in validator.REVIEW_FIELDS:
             review = self.contract["verification"][review_name]

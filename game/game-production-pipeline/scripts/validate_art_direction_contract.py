@@ -16,6 +16,7 @@ from pipeline_common import canonical_digest, file_digest, load_yaml
 
 
 SCHEMA_VERSION = "game-production-art-direction/v1"
+UI_VISUAL_SCHEMA_VERSION = "game-production-ui-visual/v1"
 GATE_ORDER = ("D0", "D1", "D2", "D3", "D4")
 LIFECYCLE_STATES = {
     "draft",
@@ -95,7 +96,18 @@ REASON_CODES = [
     "RIGHTS",
     "UI_BOUNDARY",
     "REGRESSION",
+    # UI failures must return to the role that can actually correct them.
+    "UI_VISUAL",
+    "UI_STRUCTURE",
+    "UI_TECH",
+    "UI_READABILITY",
 ]
+UI_STATE_NAMES = ("normal", "hover", "pressed", "focus", "disabled", "error")
+UI_ARTIFACT_FIELDS = (
+    "color_token_ref",
+    "typography_ref",
+    "iconography_ref",
+)
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 HTTPS_RE = re.compile(r"^https://", re.IGNORECASE)
 
@@ -249,6 +261,266 @@ def validate_artifact_ref(
     elif state == "mismatch":
         errors.append(f"{label} 引用的文件 SHA-256 不匹配: {relative}")
     return ref
+
+
+def _ui_ref(
+    value: Any,
+    label: str,
+    errors: list[str],
+    *,
+    project_root: Path | None,
+    file_checks: list[dict[str, str]],
+    required: bool = True,
+) -> dict[str, Any]:
+    """Validate a UI Visual Contract artifact reference.
+
+    UI references intentionally use the same repo:// safety and SHA-256 checks as
+    the Art Direction Contract.  Keeping this in one helper prevents a visual
+    contract from quietly pointing at an untracked or outside-project asset.
+    """
+    if value is None and not required:
+        return {}
+    return validate_artifact_ref(value, label, errors, project_root=project_root, file_checks=file_checks)
+
+
+def ui_visual_subject(document: dict[str, Any]) -> dict[str, Any]:
+    """Return the immutable visual subject used by UI review and integrity.
+
+    Evidence and the integrity field are excluded so adding a capture or review
+    record never creates a self-referential digest.  Any change to visual rules,
+    resources, component states, or screen frames changes this digest and makes
+    the dependent benchmark/review stale.
+    """
+    contract = document.get("ui_visual_contract") if isinstance(document, dict) else None
+    if not isinstance(contract, dict):
+        raise ValueError("缺少 ui_visual_contract 映射")
+    subject = copy.deepcopy(contract)
+    subject.pop("integrity", None)
+    subject.pop("benchmark_capture_refs", None)
+    # Implementations may call the optional record visual_review or review.
+    subject.pop("visual_review", None)
+    subject.pop("review", None)
+    return subject
+
+
+def ui_visual_digests(document: dict[str, Any]) -> dict[str, str]:
+    """Calculate stable visual and evidence digests for UI gate binding."""
+    contract = document.get("ui_visual_contract") if isinstance(document, dict) else None
+    if not isinstance(contract, dict):
+        raise ValueError("缺少 ui_visual_contract 映射")
+    subject_digest = canonical_digest(ui_visual_subject(document))
+    captures = contract.get("benchmark_capture_refs", [])
+    benchmark_subject = {"visual_digest": subject_digest, "benchmark_capture_refs": captures}
+    return {
+        "ui_visual_digest": subject_digest,
+        "visual_subject_digest": subject_digest,
+        "benchmark_subject_digest": canonical_digest(benchmark_subject),
+    }
+
+
+def _ui_state_entry(value: Any, label: str, errors: list[str]) -> None:
+    state = mapping(value, label, errors)
+    applicable = state.get("applicable", True)
+    if not isinstance(applicable, bool):
+        errors.append(f"{label}.applicable 必须是布尔值")
+        applicable = True
+    if applicable:
+        rule = state.get("visual_rule", state.get("rule"))
+        if not nonempty_string(rule):
+            errors.append(f"{label}.visual_rule 必须是非空字符串")
+        refs = state.get("resource_refs", state.get("asset_refs", []))
+        if not isinstance(refs, list):
+            errors.append(f"{label}.resource_refs 必须是数组")
+    elif not nonempty_string(state.get("reason")):
+        errors.append(f"{label}.reason 在 applicable=false 时必填")
+
+
+def validate_ui_visual_contract(
+    document: dict[str, Any],
+    *,
+    project_root: Path | None = None,
+    expected_art_direction: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Validate an independent UI Visual Contract and its evidence references.
+
+    This validator checks structure, references, digests, and evidence coverage;
+    it deliberately does not claim to judge visual quality.  That remains the
+    responsibility of the Art Director's visual review.
+    """
+    errors: list[str] = []
+    warnings: list[str] = []
+    file_checks: list[dict[str, str]] = []
+    contract = mapping(document.get("ui_visual_contract"), "ui_visual_contract", errors)
+    if contract.get("schema_version") != UI_VISUAL_SCHEMA_VERSION:
+        errors.append(f"schema_version 必须为 {UI_VISUAL_SCHEMA_VERSION}")
+    identity = mapping(contract.get("identity"), "ui_visual_contract.identity", errors)
+    ui_id = identity.get("ui_visual_id")
+    if not nonempty_string(ui_id) or not ui_id.startswith("uivis:"):
+        errors.append("identity.ui_visual_id 必须以 uivis: 开头")
+    revision = identity.get("revision")
+    if not isinstance(revision, int) or isinstance(revision, bool) or revision < 1:
+        errors.append("identity.revision 必须是正整数")
+    if revision == 1 and identity.get("previous_revision_digest") is not None:
+        errors.append("revision 1 的 previous_revision_digest 必须为 null")
+    if revision != 1 and not SHA256_RE.fullmatch(str(identity.get("previous_revision_digest", ""))):
+        errors.append("revision > 1 必须提供 previous_revision_digest")
+    if identity.get("lifecycle_state") not in LIFECYCLE_STATES:
+        errors.append("identity.lifecycle_state 非法")
+
+    art_ref = _ui_ref(contract.get("art_direction_ref"), "art_direction_ref", errors,
+                      project_root=project_root, file_checks=file_checks)
+    if not SHA256_RE.fullmatch(str(art_ref.get("subject_digest", ""))):
+        errors.append("art_direction_ref.subject_digest 必须是 64 位小写 SHA-256")
+    _ui_ref(contract.get("screen_flow_ref"), "screen_flow_ref", errors,
+            project_root=project_root, file_checks=file_checks)
+    if expected_art_direction:
+        expected_id = expected_art_direction.get("art_direction_id")
+        expected_revision = expected_art_direction.get("revision")
+        if art_ref.get("artifact_id") not in {expected_id, f"artdir:{expected_id}"}:
+            errors.append("art_direction_ref 未绑定当前 Art Direction")
+        if expected_revision is not None and art_ref.get("version") != expected_revision:
+            errors.append("art_direction_ref.version 未绑定当前 Art Direction revision")
+        expected_direction_digest = expected_art_direction.get("direction_subject_digest")
+        if expected_direction_digest is not None:
+            if art_ref.get("subject_digest") != expected_direction_digest:
+                errors.append("art_direction_ref.subject_digest 未绑定当前 Art Direction direction digest")
+
+    for key in ("visual_identity", "shape_language", "material_surface_rules", "ornament_decoration_rules", "motion_language"):
+        if not nonempty_string(contract.get(key)) and not strings(contract.get(key)):
+            errors.append(f"{key} 必须是非空字符串或数组")
+    for key in UI_ARTIFACT_FIELDS:
+        _ui_ref(contract.get(key), key, errors, project_root=project_root, file_checks=file_checks)
+    for key in ("theme_resource_refs", "style_frame_refs", "positive_example_refs", "negative_example_refs"):
+        refs = sequence(contract.get(key), key, errors)
+        if not refs:
+            errors.append(f"{key} 不能为空")
+        for index, ref in enumerate(refs):
+            _ui_ref(ref, f"{key}[{index}]", errors, project_root=project_root, file_checks=file_checks)
+
+    matrix = sequence(contract.get("component_state_matrix"), "component_state_matrix", errors)
+    if not matrix:
+        errors.append("component_state_matrix 不能为空")
+    component_ids: set[str] = set()
+    for index, raw in enumerate(matrix):
+        label = f"component_state_matrix[{index}]"
+        component = mapping(raw, label, errors)
+        cid = component.get("component_id")
+        if not nonempty_string(cid):
+            errors.append(f"{label}.component_id 缺失")
+        elif cid in component_ids:
+            errors.append(f"重复 component_id: {cid}")
+        component_ids.add(cid)
+        if not nonempty_string(component.get("node_type")):
+            errors.append(f"{label}.node_type 缺失")
+        states = mapping(component.get("states"), f"{label}.states", errors)
+        for state_name in UI_STATE_NAMES:
+            if state_name not in states:
+                errors.append(f"{label}.states 缺少 {state_name}")
+            else:
+                _ui_state_entry(states.get(state_name), f"{label}.states.{state_name}", errors)
+
+    accessibility = contract.get("accessibility_constraints")
+    if not strings(accessibility):
+        errors.append("accessibility_constraints 不能为空")
+    owner = contract.get("owner")
+    if not nonempty_string(owner):
+        errors.append("owner 必须是非空字符串")
+    reviewers = mapping(contract.get("reviewers"), "reviewers", errors)
+    for role in ("art_director", "ui_ux", "godot_implementer"):
+        if not nonempty_string(reviewers.get(role)):
+            errors.append(f"reviewers.{role} 缺失")
+    routes = mapping(contract.get("rework_routes"), "rework_routes", errors)
+    for code in ("UI_VISUAL", "UI_STRUCTURE", "UI_TECH", "UI_READABILITY"):
+        if not strings(routes.get(code)):
+            errors.append(f"rework_routes.{code} 必须指定返工角色")
+
+    captures = sequence(contract.get("benchmark_capture_refs"), "benchmark_capture_refs", errors)
+    if not captures:
+        errors.append("benchmark_capture_refs 不能为空")
+    capture_screens: set[str] = set()
+    capture_states: set[str] = set()
+    for index, raw in enumerate(captures):
+        label = f"benchmark_capture_refs[{index}]"
+        capture = mapping(raw, label, errors)
+        if not nonempty_string(capture.get("screen_id")):
+            errors.append(f"{label}.screen_id 缺失")
+        else:
+            capture_screens.add(capture["screen_id"])
+        states = strings(capture.get("states"))
+        if not states:
+            errors.append(f"{label}.states 不能为空")
+        unknown_states = set(states) - set(UI_STATE_NAMES)
+        if unknown_states:
+            errors.append(f"{label}.states 含未知状态: {sorted(unknown_states)}")
+        capture_states.update(states)
+        if capture.get("media_type") not in {"screenshot", "video"}:
+            errors.append(f"{label}.media_type 必须为 screenshot 或 video")
+        for key in ("build_ref", "viewport"):
+            if key == "viewport":
+                if not isinstance(capture.get(key), (list, dict, str)):
+                    errors.append(f"{label}.viewport 缺失")
+            elif not nonempty_string(capture.get(key)):
+                errors.append(f"{label}.{key} 缺失")
+        if not SHA256_RE.fullmatch(str(capture.get("ui_visual_digest", ""))):
+            errors.append(f"{label}.ui_visual_digest 必须是 64 位小写 SHA-256")
+
+    key_screens = set(strings(contract.get("key_screen_ids")))
+    if not key_screens:
+        errors.append("key_screen_ids 不能为空")
+    required_state_values = strings(contract.get("required_interaction_states"))
+    if not required_state_values:
+        errors.append("required_interaction_states 不能为空")
+    required_states = set(required_state_values) or set(UI_STATE_NAMES)
+    unknown_required_states = required_states - set(UI_STATE_NAMES)
+    if unknown_required_states:
+        errors.append(f"required_interaction_states 含未知状态: {sorted(unknown_required_states)}")
+    if key_screens - capture_screens:
+        errors.append(f"benchmark_capture_refs 缺少关键屏幕: {sorted(key_screens - capture_screens)}")
+    if required_states - capture_states:
+        errors.append(f"benchmark_capture_refs 缺少交互状态: {sorted(required_states - capture_states)}")
+
+    try:
+        digests = ui_visual_digests(document)
+    except (TypeError, ValueError) as exc:
+        errors.append(f"无法计算 UI Visual Contract 摘要: {exc}")
+        digests = {"ui_visual_digest": "", "visual_subject_digest": "", "benchmark_subject_digest": ""}
+    integrity = mapping(contract.get("integrity"), "integrity", errors)
+    expected_digest = digests["ui_visual_digest"]
+    if integrity.get("ui_visual_digest") != expected_digest and integrity.get("visual_subject_digest") != expected_digest:
+        errors.append("integrity.ui_visual_digest 不匹配")
+    # Capture and review records must bind the visual baseline.  This catches a
+    # changed UI contract even when the human review was not edited.
+    for index, raw in enumerate(captures):
+        if isinstance(raw, dict) and raw.get("ui_visual_digest") != expected_digest:
+            errors.append(f"benchmark_capture_refs[{index}].ui_visual_digest 已过期")
+    if integrity.get("benchmark_subject_digest") is not None and integrity.get("benchmark_subject_digest") != digests["benchmark_subject_digest"]:
+        errors.append("integrity.benchmark_subject_digest 不匹配")
+    review = contract.get("visual_review", contract.get("review"))
+    if review is not None:
+        review = mapping(review, "visual_review", errors)
+        if review.get("status") not in {"pending", "approved", "rejected", "stale"}:
+            errors.append("visual_review.status 非法")
+        if review.get("status") == "approved":
+            if review.get("subject_digest") != expected_digest:
+                errors.append("visual_review.subject_digest 已过期或不匹配")
+            if not nonempty_string(review.get("reviewer")) or not parse_time(review.get("reviewed_at")):
+                errors.append("visual_review approved 必须提供 reviewer/reviewed_at")
+            if not strings(review.get("evidence_refs")):
+                errors.append("visual_review.evidence_refs 不能为空")
+            if review.get("ui_body_reviewed") is not True:
+                errors.append("visual_review 必须声明已评审 UI 本体")
+    elif identity.get("lifecycle_state") in {"benchmarking", "production_ready"}:
+        errors.append("缺少主美 visual_review 记录")
+    return {
+        "state": "valid" if not errors else "invalid",
+        "schema_version": UI_VISUAL_SCHEMA_VERSION,
+        "ui_visual_id": ui_id,
+        "revision": revision,
+        "digests": digests,
+        "errors": errors,
+        "warnings": warnings,
+        "file_checks": file_checks,
+    }
 
 
 def validate_review(value: Any, label: str, expected_digest: str, errors: list[str]) -> dict[str, Any]:
@@ -448,6 +720,59 @@ def validate_art_direction_contract(
     if two_d.get("enabled") not in {True, False} or three_d.get("enabled") not in {True, False} or ui.get("enabled") not in {True, False}:
         errors.append("technical_profiles 的 enabled 必须是布尔值")
 
+    # UI is a first-class visual deliverable.  Resolve its independent
+    # contract here so D3/D4 cannot pass on a wireframe or a background-only
+    # benchmark.  The embedded form is useful for unit tests; production
+    # projects must use a repo:// artifact reference and project_root.
+    ui_visual_result: dict[str, Any] | None = None
+    ui_visual_contract_document: dict[str, Any] | None = None
+    if "ui" in required_domains:
+        ui_ref = ui.get("ui_visual_contract_ref")
+        if ui_ref is None:
+            errors.append("technical_profiles.ui.ui_visual_contract_ref 缺失")
+        else:
+            _ui_ref(ui_ref, "technical_profiles.ui.ui_visual_contract_ref", errors,
+                    project_root=project_root, file_checks=file_checks)
+        if isinstance(document.get("ui_visual_contract"), dict):
+            ui_visual_contract_document = {"ui_visual_contract": document["ui_visual_contract"]}
+        elif isinstance(ui_ref, dict) and project_root is not None and isinstance(ui_ref.get("uri"), str):
+            uri = ui_ref.get("uri", "")
+            if uri.startswith("repo://"):
+                relative = uri.removeprefix("repo://").replace("\\", "/")
+                path = (project_root / relative).resolve()
+                try:
+                    path.relative_to(project_root.resolve())
+                    if path.is_file():
+                        try:
+                            ui_visual_contract_document = load_yaml(path)
+                        except (OSError, ValueError) as exc:
+                            errors.append(f"UI Visual Contract YAML 无法读取: {exc}")
+                    else:
+                        errors.append("UI Visual Contract 引用的文件不存在")
+                except ValueError:
+                    errors.append("UI Visual Contract 引用越出 project_root")
+        if ui_visual_contract_document is None:
+            # Deferred to D3 below, where this is an actionable visual rework
+            # reason rather than a generic Art Direction schema failure.
+            ui_visual_result = {"state": "invalid", "errors": [
+                "UI Visual Contract 缺失或无法加载 (UI_VISUAL)"
+            ], "digests": {"ui_visual_digest": ""}}
+        else:
+            ui_visual_result = validate_ui_visual_contract(
+                ui_visual_contract_document,
+                project_root=project_root,
+                expected_art_direction={
+                    **identity,
+                    "direction_subject_digest": art_direction_digests(document)["direction_subject_digest"],
+                },
+            )
+            declared_ui_digest = ui_ref.get("subject_digest") if isinstance(ui_ref, dict) else None
+            actual_ui_digest = ui_visual_result.get("digests", {}).get("ui_visual_digest")
+            if not SHA256_RE.fullmatch(str(declared_ui_digest or "")):
+                errors.append("technical_profiles.ui.ui_visual_contract_ref.subject_digest 必须是 64 位小写 SHA-256")
+            elif actual_ui_digest and declared_ui_digest != actual_ui_digest:
+                errors.append("technical_profiles.ui.ui_visual_contract_ref.subject_digest 与 UI Visual Contract 不匹配")
+
     performance = mapping(contract.get("performance"), "performance", errors)
     context = mapping(performance.get("measurement_context"), "performance.measurement_context", errors)
     metrics = sequence(performance.get("metrics"), "performance.metrics", errors)
@@ -572,6 +897,28 @@ def validate_art_direction_contract(
         gate_issues["D2"].append("direction_approval 尚未批准")
 
     gate_issues["D3"].extend(gate_issues["D2"])
+    if "ui" in required_domains:
+        if ui_visual_result is None or ui_visual_result.get("state") != "valid":
+            ui_errors = (ui_visual_result or {}).get("errors", ["UI Visual Contract 未验证"])
+            gate_issues["D3"].extend(f"{issue}" for issue in ui_errors)
+        if ui.get("ui_visual_contract_ref") is None:
+            gate_issues["D3"].append("technical_profiles.ui.ui_visual_contract_ref 缺失 (UI_VISUAL)")
+        if ui_visual_result is not None and ui_visual_result.get("state") == "valid":
+            # D3 requires evidence that the UI body (not merely a backdrop or
+            # wireframe) was reviewed by the Art Director and that the target
+            # build covers the declared screen/state matrix.
+            ui_contract_value = ui_visual_contract_document.get("ui_visual_contract", {})
+            ui_review = ui_contract_value.get("visual_review", ui_contract_value.get("review"))
+            if not isinstance(ui_review, dict) or ui_review.get("status") != "approved":
+                gate_issues["D3"].append("缺少主美 UI visual_review 批准记录 (UI_VISUAL)")
+            if not isinstance(ui_review, dict) or ui_review.get("ui_body_reviewed") is not True:
+                gate_issues["D3"].append("主美评审未声明检查 UI 本体 (UI_VISUAL)")
+            if not isinstance(ui_contract_value.get("style_frame_refs"), list) or not ui_contract_value.get("style_frame_refs"):
+                gate_issues["D3"].append("UI Visual Contract 缺少关键屏幕 Style Frame (UI_VISUAL)")
+            if not isinstance(ui_contract_value.get("theme_resource_refs"), list) or not ui_contract_value.get("theme_resource_refs"):
+                gate_issues["D3"].append("UI Visual Contract 缺少 Theme/资源映射 (UI_TECH)")
+            if not isinstance(ui_contract_value.get("benchmark_capture_refs"), list) or not ui_contract_value.get("benchmark_capture_refs"):
+                gate_issues["D3"].append("UI Visual Contract 缺少 benchmark capture (UI_VISUAL)")
     art_pillars = sequence(bible.get("art_pillars"), "style_bible.art_pillars", errors)
     if not 3 <= len(art_pillars) <= 5:
         gate_issues["D3"].append("style_bible.art_pillars 必须为 3–5 项")
@@ -731,6 +1078,10 @@ def main() -> int:
     args = parser.parse_args()
     try:
         document = load_yaml(args.contract)
+        if isinstance(document.get("ui_visual_contract"), dict) and "art_direction_contract" not in document:
+            result = validate_ui_visual_contract(document, project_root=args.project_root)
+            print(json.dumps(result, ensure_ascii=True, indent=2))
+            raise SystemExit(0 if result.get("state") == "valid" else 1)
         previous = load_yaml(args.previous) if args.previous else None
         result = validate_art_direction_contract(
             document,

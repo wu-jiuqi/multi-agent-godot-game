@@ -2,7 +2,7 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.5.0-alpha.8`。在 alpha.6 的主美画风方向注册表、可选画风方向模块和严格摘要校验之上，补齐由主美负责的 UI Visual Contract、UI 视觉资源映射、D3/D4 UI 视觉验收和明确返工路由，并加强组件资源与目标构建证据的摘要绑定；仍是 Alpha，角色行为尚待真实项目验证，不是 Production Ready。
+当前版本：`v0.5.0-alpha.9`。在 alpha.6 的主美画风方向注册表、可选画风方向模块和严格摘要校验之上，补齐由主美负责的 UI Visual Contract、UI 视觉资源映射、D3/D4 UI 视觉验收和明确返工路由，并加强组件资源与目标构建证据的摘要绑定；仍是 Alpha，角色行为尚待真实项目验证，不是 Production Ready。
 
 ## 层级
 

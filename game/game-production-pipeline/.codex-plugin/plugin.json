@@ -1,6 +1,6 @@
 {
   "name": "game-production-pipeline",
-  "version": "0.5.0-alpha.8",
+  "version": "0.5.0-alpha.9",
   "description": "Co-design game inception with the owner, approve bounded production authority, then run auditable multi-agent execution, repair, review, and delivery.",
   "author": {
     "name": "wu-jiuqi",
@@ -12,7 +12,7 @@
   "interface": {
     "displayName": "Game Production Pipeline",
     "shortDescription": "Build auditable multi-agent teams for game production.",
-    "longDescription": "Develop a game idea with the owner across design, art, UI, technology, scope and acceptance. Confirm a launch charter and project-specific team, then execute bounded production with independent review, recovery, evidence and exception-only escalation.",
+    "longDescription": "Develop a game idea with the owner across design, art, UI, technology, scope and acceptance. Confirm a launch charter and project-specific team, then execute bounded production with independent review, recovery, evidence and exception-only escalation, including auditable Godot UI production.",
     "developerName": "wu-jiuqi",
     "category": "Productivity",
     "capabilities": [
@@ -24,7 +24,8 @@
       "Develop my game idea with me and prepare a launch packet for low-intervention production.",
       "Show the current game production organization and pending staffing decisions.",
       "Continue production under the approved charter until delivery or an exception requires my decision.",
-      "Research and establish a production-ready art direction that also translates coherently into UI visuals."
+      "Research and establish a production-ready art direction that also translates coherently into UI visuals.",
+      "Execute a Godot UI production task with dual contracts, authored scenes, reusable components and target-build evidence."
     ]
   }
 }

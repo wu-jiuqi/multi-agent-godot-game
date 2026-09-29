@@ -20,6 +20,38 @@ Ask only when a missing decision materially changes the product direction, workf
 | New page in an existing product | Reuse its navigation, components, and tokens; define missing states and local additions. | [UX workflow](references/ux-workflow.md); [search guide](references/search-guide.md) only for gaps |
 | New product or requested redesign | Establish the main flow and a coherent visual direction; produce the requested design or implementation and validate it. | [UX workflow](references/ux-workflow.md), [search guide](references/search-guide.md), [acceptance](references/acceptance.md) |
 
+## Godot production mode
+
+When the target stack is Godot, keep the general UI/UX guidance above and also apply the
+[Godot production reference](references/godot-production.md). This mode turns a design
+recommendation into an auditable Godot handoff; it does not replace the project's own
+contracts or approve a visual direction.
+
+- Select exactly one task level: `prototype`, `greybox`, `style-pass`, or `final`. A small,
+  reversible fix may stay at its current level; do not impose a full `final` gate on it.
+- Before implementation, read `project.godot`, the locked Godot version, the current UI
+  scenes/theme/resources, target platform and resolution policy, plus the UI Screen/Flow,
+  UI Visual and Art Direction Contracts when they exist. Ask at most five questions when a
+  missing fact would change scope, direction or acceptance. Use reversible defaults for the
+  rest and list them as assumptions.
+- Keep the two contracts separate: UI/UX owns Screen/Flow, layout, safe areas, focus and
+  interaction; UI Visual owns visual identity, tokens, assets, component states, motion tone
+  and visual acceptance. Godot implementation binds both to authored scenes and resources.
+  Without a UI Visual Contract, label work `greybox` or `style proposal` and never claim a
+  final visual result.
+- Prefer editor-authored `Control`/`Container` scenes and serialized `.tscn`/`.tres` resources.
+  Runtime code may instantiate an existing `PackedScene` for data-driven content, but must
+  not rebuild a fixed UI tree. Record every asset in a manifest and give components an API,
+  state matrix, fallback, motion token and reduced-motion behavior.
+- Preserve evidence for scene loading, declared interaction states, input devices,
+  responsive/localized/accessibility checks, resource replacement, performance and target
+  build captures. Automation can check structure, references, digests and evidence; human
+  review still decides visual quality.
+- Use the fixed ten-part output and one of the five acceptance states
+  `greybox` / `implementation_ready` / `review_pending` / `approved` / `blocked`. A failure
+  must route to `UI_VISUAL`, `UI_STRUCTURE`, `UI_TECH` or `UI_READABILITY` as described in
+  the reference.
+
 ## Resolve UX before styling
 
 For substantial work, describe the user's entry point, goal, minimum steps, success signal, and recovery path. Inventory the requested content and actions; prioritize the primary action within each task context. Use progressive disclosure for genuinely secondary complexity, without hiding essential information.

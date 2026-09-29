@@ -218,6 +218,10 @@ UI 在主美闭环中通过独立的 [`game-production-ui-visual/v1` UI Visual C
 
 方法依据包括 GDC 的 [独特美术方向框架](https://www.gdcvault.com/play/1028954/Art-Direction-Summit-Building-a)、[AAA UI 美术指导](https://gdcvault.com/play/1025498/Art-Direction-for-AAA)、[风格化 VFX 美术指导](https://www.gdcvault.com/play/1023999/Art-Directing-VFX-for-Stylized)、Riot 的 [Game Art 教学](https://www.riotgames.com/en/artedu/intro-to-game-art) 与 Godot 官方资产导入/Theme/性能文档；详细来源和使用边界保存在 `skills/direct-game-art/references/`。
 
+### Godot UI 生产入口
+
+需要把 UI 需求落到 Godot 场景、Theme、资源和目标构建证据时，使用 [`Godot UI 生产 Agent`](agents/ui-production.md) 与 [`Godot UI 生产工作流`](workflows/ui-production.md)，并同时读取顶层 [`ui-ux-pro-max`](../../skills/ui-ux-pro-max/SKILL.md) 的 [Godot production reference](../../skills/ui-ux-pro-max/references/godot-production.md)。该入口保留 UI/UX 与主美的双契约边界，按 `prototype`、`greybox`、`style-pass`、`final` 四级任务执行；固定 UI 优先使用编辑器预置 Control/Container 场景并序列化到 `.tscn`/`.tres`，运行时只实例化已定义组件。每项资源都有可追踪 Manifest，每个组件都有 API、状态、fallback、Motion Token 和 reduced-motion 行为，交接固定为十段输出。验收状态只能是 `greybox`、`implementation_ready`、`review_pending`、`approved` 或 `blocked`，失败沿 `UI_VISUAL`、`UI_STRUCTURE`、`UI_TECH`、`UI_READABILITY` 路由；自动检查不能代替目标构建和人工视觉验收。
+
 ## 专业资产公共底座
 
 项目把每项正式资产的 Contract 放入 `game-pipeline/assets/contracts/`。Contract 统一绑定批准需求、可编辑 Source、Runtime、权利链、不可变 revision、导入配方、项目预算实测、六类评审与原因码返修；详细标准见 [`contracts/specialist-asset-acceptance.md`](contracts/specialist-asset-acceptance.md)，可直接复制 [`contracts/specialist-asset-contract.template.yaml`](contracts/specialist-asset-contract.template.yaml)。

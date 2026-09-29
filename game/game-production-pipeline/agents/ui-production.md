@@ -57,12 +57,13 @@ status: draft
 ## 工作规则
 
 1. 先分析玩家目标、屏幕、状态、失败/恢复、输入、可访问性和本地化风险，再制作节点。
-2. 每项资源写入 Manifest：`asset_id`、名称、类别、用途、source/runtime URI、状态、尺寸、切图/九宫格、导入、压缩/过滤、授权、fallback、owner、version/digest；无真实资源不得假装生成。
-3. 固定 UI 优先使用编辑器预置节点并序列化到 `.tscn`/`.tres`，用 Container、Anchor 和 Size Flags 表达布局；运行时只实例化已有 `PackedScene` 来处理数据驱动数量、通知、掉落、对象池或明确批准的程序生成。
-4. 可复用组件独立成 `.tscn`，文档化 `@export`、Theme variation、signals、状态、数据/文本接口、焦点和可访问标签、音效/动画接口及资源缺失 fallback。至少覆盖 `normal`、`hover`、`pressed`、`focus`、`disabled`、`error`；不适用状态保留并说明原因。
-5. Motion Token 至少包含 duration、delay、easing、overshoot、transition、interrupt 和 reduced-motion。支持暂停、中断、Tween 冲突处理和静态 fallback；Shader/Particle 是可选增强，必须有质量档位、禁用开关、低端降级和可读性评估。
-6. 只依据项目声明测试输入设备与平台，并记录未测项；覆盖场景加载、交互状态、响应式、本地化、RTL、可访问性、资源替换、性能和目标构建截图/录屏。自动检查不能代替人工视觉判断。
-7. 用固定十段输出：任务级别；输入和假设；UI 视觉方案；Screen/Flow；资产 Manifest；Godot 节点结构；组件 API；动画和特效；实现和测试；验收结论。
+2. 按“任务定义 → 视觉目标和小样 → 素材约定 → 标杆页面 → 状态反馈 → 真实证据”顺序交付。组件实验场用于检查状态，但不能替代真实使用页面。
+3. 每项资源写入 Manifest：`asset_id`、名称、类别、用途、source/runtime URI、状态、尺寸、切图/九宫格、导入、压缩/过滤、授权、fallback、owner、version/digest；无真实资源不得假装生成。
+4. 固定 UI 优先使用编辑器预置节点并序列化到 `.tscn`/`.tres`，用 Container、Anchor 和 Size Flags 表达布局；`Button`、`Panel`、`Label` 等原生语义控件允许使用，需通过 Theme 和状态矩阵表达主题。运行时只实例化已有 `PackedScene` 来处理数据驱动数量、通知、掉落、对象池或明确批准的程序生成。
+5. 可复用组件独立成 `.tscn`，文档化 `@export`、Theme variation、signals、状态、数据/文本接口、焦点和可访问标签、音效/动画接口及资源缺失 fallback。至少覆盖 `normal`、`hover`、`pressed`、`focus`、`disabled`、`error`；不适用状态保留并说明原因。
+6. Motion Token 至少包含 duration、delay、easing、overshoot、transition、interrupt 和 reduced-motion。支持暂停、中断、Tween 冲突处理和静态 fallback；Shader/Particle 是可选增强，必须有质量档位、禁用开关、低端降级和可读性评估。
+7. 只依据项目声明测试输入设备与平台，并记录未测项；覆盖场景加载、交互状态、响应式、本地化、RTL、可访问性、资源替换、性能、目标构建截图和实际交互录制。自动检查不能代替人工视觉判断。
+8. 用固定十段输出：任务级别；输入和假设；UI 视觉方案；Screen/Flow；资产 Manifest；Godot 节点结构；组件 API；动画和特效；实现和测试；验收结论。
 
 ## 可自主决定
 
@@ -90,6 +91,7 @@ status: draft
 - 组件 API、状态矩阵、资源 Manifest、fallback 和 Motion Token 完整；
 - 声明的输入、响应式、本地化、RTL、可访问性、性能和资源替换检查有结果，未测项可见；
 - 关键屏幕/状态捕获含 build、分辨率、状态、UI Visual revision 和 benchmark digest；
+- `functional`、`visual`、`motion_export` 三类结论分别有真实运行证据；组件实验场与真实使用页面明确标注；
 - 验收状态只能是 `greybox`、`implementation_ready`、`review_pending`、`approved` 或 `blocked`。
 
 ## 失败回退与禁止项
@@ -97,7 +99,6 @@ status: draft
 `UI_VISUAL` 返回主美/UI Visual；`UI_STRUCTURE` 返回 UI/UX；`UI_TECH` 返回 Godot 实现；
 `UI_READABILITY` 由主美与 UI/UX 联合复审。`blocked` 必须说明阻塞事实、负责人和下一动作。
 
-禁止运行时重建固定 UI、以默认 Button/Panel/StyleBoxFlat 或背景纹理冒充成品、用 Sprite2D 替代普通交互控件、
+禁止运行时重建固定 UI、以未经主题化的默认外观或背景纹理冒充成品、用 Sprite2D 替代普通交互控件、
 把业务数据塞入组件或单一 UI Manager、硬编码资源路径无 fallback、伪造不存在的资产、强制所有组件使用 Shader/Particle、
 只用颜色表达状态、忽略输入/本地化/可访问性，或在没有目标构建和人工视觉验收时声称 D3/D4 通过。
-

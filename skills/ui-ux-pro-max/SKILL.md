@@ -52,6 +52,47 @@ contracts or approve a visual direction.
   must route to `UI_VISUAL`, `UI_STRUCTURE`, `UI_TECH` or `UI_READABILITY` as described in
   the reference.
 
+### Godot page-first production loop
+
+For a substantial UI task, produce one page that proves the player task before extracting a
+component library. Keep a **component lab** when it is useful for checking states, typography,
+Theme parameters, sliders, panels, and motion tokens, but label it as a development tool. It is
+not evidence that the game UI is complete. The acceptance target is a **real-use page** from the
+game (for example, a main menu, pause screen, settings screen, or inventory). If there is no
+gameplay yet, use a clearly labelled themed sample and state the task it represents; do not imply
+that invented content is an existing game feature.
+
+Use these production outputs in order:
+
+1. **Task definition:** page purpose, player goal, information priority, main action, and the
+   shortest operation path including success and recovery.
+2. **Visual target:** concrete reference observations, a static target frame, and a small sample
+   consisting of one content panel, one primary button, one secondary button, and heading/body
+   text at the final display size. Keep the visual-direction confirmation separate from the later
+   full-page confirmation.
+3. **Asset preparation:** real resources plus an asset usage note (purpose, display size,
+   transparent area, text-safe area, stretchable region, fixed corners/ornaments, provenance and
+   license, and placeholder/confirmed status).
+4. **Benchmark page:** one complete, runnable real-use page with the declared task, before making
+   the result a reusable component set.
+5. **Feedback implementation:** state, interruption, motion, sound, and reduced-motion behavior
+   for the benchmark page.
+6. **Evidence and acceptance:** actual runtime screenshots and an interaction recording. Keep
+   function, visual, and motion/export acceptance as separate conclusions; an export success or
+   static screenshot cannot stand in for the other two.
+
+After the benchmark page passes, extract only the patterns that proved useful. Limit each visual
+revision to the three most visible problems, run at least two comparison passes when the task is
+substantial, and stop when the agreed criteria pass instead of adding decoration indefinitely.
+
+The page-first loop is a release requirement, not a request to make a larger component gallery.
+A component lab may contain state swatches and animation controls, but its captures must be
+labelled `component-lab` and cannot be the only visual acceptance evidence. Every benchmark page
+records the task it represents, target viewport, static target frame, runtime build, and owner of
+any open visual decision. Native `Button`, `Panel`, `Label` and other semantic controls remain
+allowed when their Theme and state behavior express the visual direction; the workflow rejects
+an unthemed default appearance, not the node type.
+
 ## Resolve UX before styling
 
 For substantial work, describe the user's entry point, goal, minimum steps, success signal, and recovery path. Inventory the requested content and actions; prioritize the primary action within each task context. Use progressive disclosure for genuinely secondary complexity, without hiding essential information.

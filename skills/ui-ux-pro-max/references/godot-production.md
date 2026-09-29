@@ -206,6 +206,65 @@ cover:
 Automation may verify structure, references, digests, assets and evidence presence. It cannot
 decide aesthetic quality or replace human visual review.
 
+### 4.1 Benchmark page and evidence contract
+
+The first complete page is the proof of the workflow. Keep these artifacts together under the
+project's UI evidence directory:
+
+```text
+task-definition.yaml       # goal, information priority, operation path, recovery
+visual-target.md           # references, concrete observations, static target URI
+visual-sample/             # panel, primary/secondary button, heading/body at target size
+asset-usage.yaml           # display and stretch rules, safe areas, provenance, status
+benchmark-page.md          # real-use page, build and target viewport
+interaction-recording.*    # actual runtime interaction, not an editor mock-up
+acceptance.yaml            # function / visual / motion-export conclusions separately
+```
+
+The benchmark page must be either a real game screen or a clearly labelled themed sample with a
+declared task. A component lab, generated target image, headless scene load, or successful export
+does not substitute for the runtime page. Capture the real build at the target resolution and
+exercise at least: fast enter/exit, repeated activation, press-then-drag-out cancellation,
+keyboard focus/navigation, disabling during animation, reopening after close, and window resize.
+Record unsupported input devices and unavailable capture tools as unverified rather than passing
+them by implication.
+
+Keep three acceptance results independent:
+
+| Result | Proves | Does not prove |
+|---|---|---|
+| `functional` | controls, focus, paths, recovery and business result | visual quality or motion polish |
+| `visual` | runtime composition against the static target at the declared size | keyboard semantics or export parity |
+| `motion_export` | interruption, reduced-motion, sound/effect timing and exported-build parity | that the page is visually approved |
+
+An exported executable is a delivery artifact only after all three rows have evidence. A missing
+row routes to `UI_TECH` when the evidence cannot be produced and to `UI_READABILITY` or
+`UI_VISUAL` when the page fails review.
+
+### 4.2 Godot 4.7.1 visual-only transform policy
+
+For Godot 4.7.1, verify the actual engine API before implementation and document the choice for
+each animated control:
+
+```text
+offset_transform_enabled
+offset_transform_position
+offset_transform_scale
+offset_transform_visual_only
+```
+
+Use `offset_transform_visual_only = true` for small hover/pressed visual juice when the input
+rectangle must remain stable. Use `false` only when the moved hit area is intentional and the
+focus/hover path is tested at the new position. If the project targets an older engine or the
+property is unavailable, put layout in an outer authored control and animate an inner visual
+control. Do not let a second Tween or layout pass compete for the same property; stop/reconcile
+the old tween before starting a new one.
+
+Separate `button_down`, `button_up`, and `pressed`: the first two are physical feedback and the
+last is the accepted activation according to the control's `action_mode`. A release after the
+pointer leaves the button must cancel the action. A successful business result gets its own
+feedback after the operation completes.
+
 ## 5. Fixed handoff output
 
 For every UI request, return these ten sections in this order. If a section is not applicable,
@@ -241,4 +300,3 @@ commercially complete UI. Do not rebuild fixed UI at runtime, use a single UI ma
 logic, hard-code business data or resource paths without fallback, fabricate absent assets,
 force every component to use a shader/particle, ignore input/localization/accessibility, or
 claim D3/D4 without a target build and human visual review.
-

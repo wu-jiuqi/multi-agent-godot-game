@@ -31,6 +31,12 @@ class UiProductionDocumentationTests(unittest.TestCase):
             "Fixed handoff output",
             "implementation_ready",
             "review_pending",
+            "Benchmark page and evidence contract",
+            "task-definition.yaml",
+            "interaction-recording",
+            "motion_export",
+            "offset_transform_visual_only",
+            "button_down",
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, reference)
@@ -63,6 +69,11 @@ class UiProductionDocumentationTests(unittest.TestCase):
             "十段",
             "review_pending",
             "blocked",
+            "标杆页面门槛",
+            "组件实验场只能作为辅助检查页",
+            "functional",
+            "motion_export",
+            "offset_transform_visual_only",
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, workflow)

@@ -27,6 +27,13 @@ When the target stack is Godot, keep the general UI/UX guidance above and also a
 recommendation into an auditable Godot handoff; it does not replace the project's own
 contracts or approve a visual direction.
 
+When the visual system is produced in Codex through the Figma plugin, follow the
+[Codex Figma handoff reference](references/figma-handoff.md) before Godot implementation.
+It fixes the product-input → identity/visual-direction → UX-flow → Figma-prototype order,
+binds `tool:figma-codex-plugin` to the approved UI Agent Preset, and keeps the Figma source
+traceable to `figma_prototype` fields. Figma is a visual-system source; fixed Godot UI trees
+remain editor-authored and serialized.
+
 - Select exactly one task level: `prototype`, `greybox`, `style-pass`, or `final`. A small,
   reversible fix may stay at its current level; do not impose a full `final` gate on it.
 - Before implementation, read `project.godot`, the locked Godot version, the current UI

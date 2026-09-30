@@ -4,6 +4,13 @@
 
 UI workflow 先取得已批准且摘要有效的 UI Screen/Flow Contract 与 `game-production-ui-visual/v1`。前者提供 screen/flow、布局、响应式、安全区、焦点和交互事实；后者由主美提供视觉身份、组件状态、字体/图标、Style Frame、Theme 映射和可访问性视觉规则。
 
+当项目使用 Codex Figma 插件制作视觉系统时，交接必须先完成
+[`ui-ux-pro-max` 的 Codex Figma handoff reference](../../../skills/ui-ux-pro-max/references/figma-handoff.md)
+规定的四段顺序：读取 brief/PRD/GDD，确定产品名/标题/slogan 与视觉方向，确认或推导 UX
+流程，再通过已批准的 `tool:figma-codex-plugin` 生成视觉系统原型。UI Visual Contract
+中的 `figma_prototype` 必须绑定 `provider: figma`、`integration: codex_figma_plugin`、
+文件/版本、Frame 节点、设计系统和证据；没有这些绑定只能 `review_pending`。
+
 ## 交接顺序
 
 1. 主美从 Art Direction Contract 推导 UI 视觉方向，建立 UI Visual Contract 和关键屏幕 Style Frame；不得改写 Screen/Flow。
@@ -18,4 +25,3 @@ UI workflow 先取得已批准且摘要有效的 UI Screen/Flow Contract 与 `ga
 视觉身份或组件资产不成立：`UI_VISUAL` 返回主美；Screen/Flow、布局或交互不成立：`UI_STRUCTURE` 返回 UI workflow；资源绑定、场景序列化或运行时错误：`UI_TECH` 返回 Godot 实现者；对比度、层级或状态表达冲突：`UI_READABILITY` 返回主美与 UI/UX 联合复审。
 
 线框、默认控件、单线边框和无资产占位内容只能记录为灰盒，不得作为最终 UI 的视觉输入或 D3/D4 成品证据。实现者不得从文字描述自行补定主美的形状、字体、图标或状态语气。
-

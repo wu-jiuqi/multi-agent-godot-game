@@ -19,5 +19,29 @@ tool_registry:
     source:
       path: tools/fixture-runner.txt
       sha256: 7cb1ff469def2b3d391cc6e406bf04126eefb295a4d137ec688b72b490d4cf15
+  # UI visual-system work is performed by the Codex Figma plugin. The source
+  # points to a project-local adapter manifest; replace the placeholder path
+  # and digest when the project is bootstrapped. This binding grants the
+  # declared Figma scope only; it does not grant host permissions.
+  - tool_id: tool:figma-codex-plugin
+    provider: codex
+    name: figma-plugin
+    version: '1'
+    capabilities:
+    - inspect-design-file
+    - compose-visual-system
+    - create-prototype
+    - capture-design-evidence
+    permission_scope:
+    - read:figma
+    - write:figma
+    - capture:figma
+    deterministic: false
+    rollback:
+      supported: true
+      procedure_ref: restore the Figma file version or duplicate created before mutation
+    source:
+      path: tools/codex-figma-plugin.adapter.yaml
+      sha256: <replace-with-project-adapter-sha256>
   integrity:
     registry_digest: ac41214c1a4805eecb6d5d7576e80555eac4ac558ee60408f475f45d161bdb77

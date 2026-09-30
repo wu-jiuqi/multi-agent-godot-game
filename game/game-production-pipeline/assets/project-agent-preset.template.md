@@ -31,4 +31,4 @@ sandbox_mode: workspace-write
 
 ## 工具绑定（使用时加入 frontmatter）
 
-可选 `tool_registry_ref: {path: game-pipeline/execution/tools.yaml, sha256: <文件摘要>}` 和 `tool_ids: [tool:<工具名>]` 必须成对提供。它们纳入 Preset 审批摘要，生成时验证实际工具来源；不声明时保留旧版行为。该绑定不能代替宿主权限或 Production Charter 的执行授权。
+可选 `tool_registry_ref: {path: game-pipeline/execution/tools.yaml, sha256: <文件摘要>}` 和 `tool_ids: [tool:<工具名>]` 必须成对提供。它们纳入 Preset 审批摘要，生成时验证实际工具来源；不声明时保留旧版行为。UI 视觉原型若通过 Codex Figma 插件制作，应明确声明 `tool:figma-codex-plugin`，并在对应 Skill Binding 中绑定 `figma:figma-use`；完整页面还绑定 `figma:figma-generate-design`。该绑定不能代替宿主权限或 Production Charter 的执行授权。

@@ -22,7 +22,33 @@ def artifact(name: str) -> dict[str, object]:
     return {"artifact_id": f"ui:{name}", "version": 1, "uri": f"repo://ui/{name}.tres", "sha256": REF}
 
 
+def document_ref(kind: str, slug: str) -> dict[str, object]:
+    return {
+        "artifact_id": f"product-doc:demo:{slug}",
+        "version": 1,
+        "document_kind": kind,
+        "title": f"Demo {kind.upper()}",
+        "uri": f"repo://product-docs/{slug}.md",
+        "sha256": REF,
+        "content_digest": REF,
+        "role": {"brief": "product-goal", "prd": "requirements", "gdd": "game-design"}[kind],
+    }
+
+
 class UIVisualContractTests(unittest.TestCase):
+    def test_template_declares_four_stage_product_to_figma_handoff(self) -> None:
+        template = load_yaml(PLUGIN_ROOT / "contracts" / "ui-visual-contract.template.yaml")
+        contract = template["ui_visual_contract"]
+        self.assertEqual(
+            ["input_intake", "product_identity_and_visual_direction", "ux_flow", "figma_visual_system"],
+            contract["workflow"]["stage_order"],
+        )
+        for field in ("source_document_refs", "product_identity", "visual_direction", "ux_flow", "figma_prototype"):
+            with self.subTest(field=field):
+                self.assertIn(field, contract)
+        self.assertEqual("figma", contract["figma_prototype"]["provider"])
+        self.assertEqual("codex_figma_plugin", contract["figma_prototype"]["integration"])
+
     def make_document(self) -> dict[str, object]:
         states = {
             state: {"applicable": True, "visual_rule": f"{state} treatment", "resource_refs": [artifact("button")]} 
@@ -33,6 +59,75 @@ class UIVisualContractTests(unittest.TestCase):
             "identity": {"ui_visual_id": "uivis:demo", "revision": 1, "previous_revision_digest": None, "lifecycle_state": "production_ready"},
             "art_direction_ref": {"artifact_id": "artdir:demo", "version": 1, "uri": "repo://art-direction.yaml", "sha256": REF, "subject_digest": REF},
             "screen_flow_ref": artifact("screen-flow"),
+            "workflow": {
+                "stage_order": [
+                    "input_intake",
+                    "product_identity_and_visual_direction",
+                    "ux_flow",
+                    "figma_visual_system",
+                ],
+                "current_stage": "figma_visual_system",
+                "stages": {
+                    "input_intake": {"status": "complete"},
+                    "product_identity_and_visual_direction": {"status": "complete"},
+                    "ux_flow": {"status": "complete"},
+                    "figma_visual_system": {"status": "complete"},
+                },
+            },
+            "source_document_refs": [document_ref("brief", "demo-brief"), document_ref("prd", "demo-prd"), document_ref("gdd", "demo-gdd")],
+            "product_identity": {
+                "product_name": "Demo Atelier",
+                "product_title": "Demo Atelier: Garden Console",
+                "slogan": "Make every signal feel hand-crafted.",
+                "decision_ref": artifact("product-identity-decision"),
+                "decision_rationale": "The title and slogan connect the product promise to the player-facing workshop fantasy.",
+            },
+            "visual_direction": {
+                "style_requirements": [
+                    "Warm editorial craft with measured technical controls.",
+                    "Use a quiet canvas, clear hierarchy, and non-color state redundancy.",
+                ],
+                "decision_ref": artifact("visual-direction-decision"),
+                "decision_rationale": "The direction makes dense control state calm and legible.",
+            },
+            "ux_flow": {
+                "resolution": "inherited_from_prd",
+                "authoring_skipped": True,
+                "source_document_refs": ["product-doc:demo:demo-prd"],
+                "decision_ref": artifact("ux-flow-decision"),
+                "skip_reason": "The PRD already specifies the screen sequence, entry points, and return path.",
+                "unresolved_questions": [],
+            },
+            "figma_prototype": {
+                "provider": "figma",
+                "integration": "codex_figma_plugin",
+                "file_ref": {
+                    "artifact_id": "figma-file:demo:1",
+                    "version": 1,
+                    "uri": "https://www.figma.com/file/demo/demo-atelier",
+                    "sha256": REF,
+                },
+                "file_key": "demo",
+                "file_url": "https://www.figma.com/file/demo/demo-atelier",
+                "prototype_url": "https://www.figma.com/proto/demo/demo-atelier",
+                "version": "1.0",
+                "screen_refs": [
+                    {
+                        "screen_id": "main",
+                        "frame_node_id": "1:2",
+                        "frame_url": "https://www.figma.com/design/demo?node-id=1-2",
+                    }
+                ],
+                "design_system_ref": {
+                    "artifact_id": "figma-design-system:demo:1",
+                    "version": 1,
+                    "uri": "https://www.figma.com/design/demo?node-id=2-3",
+                    "sha256": REF,
+                },
+                "handoff_status": "implementation_ready",
+                "handoff_evidence_refs": [artifact("figma-handoff")],
+                "review_evidence_refs": ["evidence:figma-review"],
+            },
             "visual_identity": "Botanical brass atelier controls",
             "shape_language": "Leaf arcs interlock with measured ratchets",
             "material_surface_rules": "Pigment paper with restrained brass glints",
@@ -62,6 +157,45 @@ class UIVisualContractTests(unittest.TestCase):
         contract["visual_review"]["subject_digest"] = digest
         contract["benchmark_capture_refs"][0]["ui_visual_digest"] = digest
         return document
+
+    def test_four_stage_product_to_figma_handoff_is_explicit(self) -> None:
+        contract = self.make_document()["ui_visual_contract"]
+        workflow = contract["workflow"]
+        self.assertEqual(
+            ["input_intake", "product_identity_and_visual_direction", "ux_flow", "figma_visual_system"],
+            workflow["stage_order"],
+        )
+        self.assertTrue(all(stage["status"] == "complete" for stage in workflow["stages"].values()))
+
+        kinds = {ref["document_kind"] for ref in contract["source_document_refs"]}
+        self.assertIn("brief", kinds)
+        self.assertTrue({"prd", "gdd"}.intersection(kinds))
+
+        identity = contract["product_identity"]
+        for field in ("product_name", "product_title", "slogan"):
+            self.assertTrue(identity[field])
+        self.assertTrue(contract["visual_direction"]["style_requirements"])
+
+        ux_flow = contract["ux_flow"]
+        self.assertEqual("inherited_from_prd", ux_flow["resolution"])
+        self.assertTrue(ux_flow["authoring_skipped"])
+        self.assertTrue(ux_flow["skip_reason"])
+
+        figma = contract["figma_prototype"]
+        self.assertEqual("figma", figma["provider"])
+        self.assertEqual("codex_figma_plugin", figma["integration"])
+        for field in ("file_ref", "file_url", "prototype_url", "screen_refs", "design_system_ref", "handoff_evidence_refs"):
+            self.assertTrue(figma[field])
+        self.assertEqual("implementation_ready", figma["handoff_status"])
+
+    def test_product_decision_change_stales_visual_evidence(self) -> None:
+        document = self.make_document()
+        document["ui_visual_contract"]["product_identity"]["slogan"] = "A changed promise."
+        result = validator.validate_ui_visual_contract(document)
+        errors = "\n".join(result["errors"])
+        self.assertIn("integrity.ui_visual_digest 不匹配", errors)
+        self.assertIn("benchmark_capture_refs[0].ui_visual_digest 已过期", errors)
+        self.assertIn("visual_review.subject_digest 已过期或不匹配", errors)
 
     def test_complete_visual_contract_passes_structure_checks(self) -> None:
         result = validator.validate_ui_visual_contract(self.make_document())

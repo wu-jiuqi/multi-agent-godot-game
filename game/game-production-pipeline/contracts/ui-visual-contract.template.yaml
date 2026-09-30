@@ -24,6 +24,109 @@ ui_visual_contract:
     uri: repo://game-pipeline/ui/contracts/<screen-flow>.yaml
     sha256: <64-lowercase-hex>
 
+  # Intake-to-prototype workflow owned by the UI product/design handoff. The
+  # four stages are ordered and must be complete before lifecycle_state reaches
+  # production_ready. These records stay inside the visual subject digest so a
+  # changed product decision or Figma handoff invalidates stale captures.
+  workflow:
+    stage_order:
+      - input_intake
+      - product_identity_and_visual_direction
+      - ux_flow
+      - figma_visual_system
+    current_stage: input_intake
+    stages:
+      input_intake:
+        status: pending|complete
+      product_identity_and_visual_direction:
+        status: pending|complete
+      ux_flow:
+        status: pending|complete
+      figma_visual_system:
+        status: pending|complete
+
+  # Step 1: retain the brief/PRD/GDD inputs used to make the product decision.
+  # At least one brief and one requirements/design document should be listed.
+  source_document_refs:
+    - artifact_id: product-doc:<project>:<slug>
+      version: 1
+      document_kind: brief|prd|gdd|other
+      title: <source document title>
+      uri: repo://game-pipeline/product-docs/<document>.md
+      sha256: <64-lowercase-hex>
+      content_digest: <64-lowercase-hex>
+      role: product-goal|requirements|game-design|constraint
+
+  # Step 2: name the product and freeze the player-facing title/slogan and
+  # overall visual requirements before any Figma screen is authored.
+  product_identity:
+    product_name: <stable product name>
+    product_title: <player-facing product title>
+    slogan: <one-line product slogan>
+    decision_ref:
+      artifact_id: product-identity-decision:<project>:<revision>
+      version: 1
+      uri: repo://game-pipeline/product-decisions/<identity-decision>.yaml
+      sha256: <64-lowercase-hex>
+    decision_rationale: <why this name, title and slogan serve the brief>
+  visual_direction:
+    style_requirements:
+      - <overall visual style, tone, and player-facing effect>
+    decision_ref:
+      artifact_id: ui-style-decision:<project>:<revision>
+      version: 1
+      uri: repo://game-pipeline/product-decisions/<visual-decision>.yaml
+      sha256: <64-lowercase-hex>
+    decision_rationale: <why this visual direction serves the product identity>
+
+  # Step 3: resolve UX flow ownership. If the PRD already contains the UX
+  # flow, set resolution=inherited_from_prd and authoring_skipped=true; do not
+  # create a second competing flow. Otherwise use derived_from_inputs and bind
+  # the decision that explains the derived flow.
+  ux_flow:
+    resolution: inherited_from_prd|derived_from_inputs
+    authoring_skipped: false
+    source_document_refs: [<artifact-id-from-source_document_refs>]
+    decision_ref:
+      artifact_id: ux-flow-decision:<project>:<revision>
+      version: 1
+      uri: repo://game-pipeline/product-decisions/<ux-decision>.yaml
+      sha256: <64-lowercase-hex>
+    skip_reason: <required when resolution=inherited_from_prd and authoring_skipped=true>
+    unresolved_questions: []
+
+  # Step 4: the visual system prototype is created through the Codex Figma
+  # plugin. A prototype is not implementation-ready until its file, prototype
+  # link, screens, design-system handoff and review evidence are all bound.
+  figma_prototype:
+    provider: figma
+    integration: codex_figma_plugin
+    file_ref:
+      artifact_id: figma-file:<project>:<revision>
+      version: 1
+      uri: https://www.figma.com/file/<file-key>/<file-name>
+      sha256: <64-lowercase-hex>
+    file_key: <figma-file-key>
+    file_url: https://www.figma.com/file/<file-key>/<file-name>
+    prototype_url: https://www.figma.com/proto/<file-key>/<prototype-name>
+    version: <figma-version-or-revision>
+    screen_refs:
+      - screen_id: <screen-id>
+        frame_node_id: <figma-node-id>
+        frame_url: https://www.figma.com/design/<file-key>?node-id=<node-id>
+    design_system_ref:
+      artifact_id: figma-design-system:<project>:<revision>
+      version: 1
+      uri: https://www.figma.com/design/<file-key>?node-id=<design-system-node-id>
+      sha256: <64-lowercase-hex>
+    handoff_status: draft|review_pending|implementation_ready
+    handoff_evidence_refs:
+      - artifact_id: figma-handoff:<project>:<revision>
+        version: 1
+        uri: repo://game-pipeline/ui/visual/figma/<handoff>.yaml
+        sha256: <64-lowercase-hex>
+    review_evidence_refs: []
+
   # State the intended UI signature in rules that can be handed to another artist.
   visual_identity: <one-sentence UI visual identity and player-facing effect>
   shape_language:

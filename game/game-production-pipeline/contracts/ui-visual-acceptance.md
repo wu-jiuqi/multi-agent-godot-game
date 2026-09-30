@@ -2,6 +2,17 @@
 
 `game-production-ui-visual/v1` 是主美 UI 视觉身份的可追溯控制面。它和 UI Screen/Flow Contract 分离：前者定义视觉表达，后者定义信息架构、屏幕流程、布局行为、响应式/安全区、焦点和交互事实。UI workflow 必须同时绑定两份 Contract；缺少任一份只能做灰盒，不能进入完成验收。
 
+## 从产品输入到 Figma 原型
+
+UI Visual Contract 还记录产品输入到视觉系统原型的四段交付链。`workflow.stage_order` 固定为 `input_intake` → `product_identity_and_visual_direction` → `ux_flow` → `figma_visual_system`。当 `identity.lifecycle_state=production_ready` 时，四个 `workflow.stages.*.status` 必须为 `complete`；任一阶段没有输入、决定或交付记录只能停留在草稿/灰盒阶段。
+
+1. `source_document_refs` 保存实际读取的 brief、PRD、GDD 或其他产品文档。每项需要 `document_kind`、标题、URI、SHA-256、内容摘要和用途；至少保留产品 brief，并明确需求/游戏设计输入是否存在。
+2. `product_identity` 冻结稳定 `product_name`、玩家可见 `product_title`、`slogan` 和决定引用。`visual_direction.style_requirements` 记录整体视觉风格、语气和玩家感受，并绑定独立的方向决定引用。
+3. `ux_flow.resolution` 必须说明流程来自 `inherited_from_prd` 还是 `derived_from_inputs`。如果 PRD 已包含 UX 流程，设置 `authoring_skipped=true` 并填写 `skip_reason`，沿用同一 `screen_flow_ref`，不得再创建第二份竞争流程；如果没有，则绑定 UX 决策引用和推导所依据的输入。
+4. `figma_prototype` 必须声明 `provider=figma`、`integration=codex_figma_plugin`，并绑定 Figma 文件、原型链接、版本、关键屏幕 Frame、设计系统引用和交接证据。`handoff_status=implementation_ready` 才能进入 Godot 实现；仅有截图或没有文件/节点映射的视觉稿属于 `review_pending`。
+
+这些阶段字段参与 `ui_visual_digest`。产品名、slogan、视觉方向、UX 来源或 Figma 文件/节点变化会使已有 benchmark capture 和主美评审过期，必须重新捕获和复审。现有自动校验继续负责核心 UI 视觉字段、资源引用、摘要和证据覆盖；阶段字段由 Contract 结构验收和交接评审共同确认。
+
 ## 主美交付范围
 
 主美负责并冻结：
@@ -44,4 +55,3 @@ D4 在同一 UI visual/benchmark digest 上冻结主美评审、UI/UX 评审、G
 | `UI_READABILITY` | 主美 + UI/UX 联合复审 | 层级、对比度、状态冗余或本地化导致信息不可读 |
 
 默认 `StyleBoxFlat`、单线边框和无视觉资产的占位控件只能作为灰盒证据，不是 UI 成品。经主美规则具体设计并有资源映射的 StyleBox 可以作为完整方案的一部分。
-

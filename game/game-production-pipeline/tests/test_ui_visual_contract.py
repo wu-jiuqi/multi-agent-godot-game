@@ -1,9 +1,15 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import json
 import sys
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
+
+import yaml
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = PLUGIN_ROOT / "scripts"
@@ -104,7 +110,7 @@ class UIVisualContractTests(unittest.TestCase):
                 "file_ref": {
                     "artifact_id": "figma-file:demo:1",
                     "version": 1,
-                    "uri": "https://www.figma.com/file/demo/demo-atelier",
+                    "uri": "repo://ui/figma/demo-file.json",
                     "sha256": REF,
                 },
                 "file_key": "demo",
@@ -121,12 +127,13 @@ class UIVisualContractTests(unittest.TestCase):
                 "design_system_ref": {
                     "artifact_id": "figma-design-system:demo:1",
                     "version": 1,
-                    "uri": "https://www.figma.com/design/demo?node-id=2-3",
+                    "uri": "repo://ui/figma/demo-design-system.json",
                     "sha256": REF,
                 },
+                "design_system_url": "https://www.figma.com/design/demo?node-id=2-3",
                 "handoff_status": "implementation_ready",
                 "handoff_evidence_refs": [artifact("figma-handoff")],
-                "review_evidence_refs": ["evidence:figma-review"],
+                "review_evidence_refs": [artifact("figma-review")],
             },
             "visual_identity": "Botanical brass atelier controls",
             "shape_language": "Leaf arcs interlock with measured ratchets",
@@ -157,6 +164,124 @@ class UIVisualContractTests(unittest.TestCase):
         contract["visual_review"]["subject_digest"] = digest
         contract["benchmark_capture_refs"][0]["ui_visual_digest"] = digest
         return document
+
+    def materialize_repo_refs(self, document: dict[str, object], root: Path) -> None:
+        def visit(value: object) -> None:
+            if isinstance(value, dict):
+                uri = value.get("uri")
+                if isinstance(uri, str) and uri.startswith("repo://"):
+                    relative = uri.removeprefix("repo://")
+                    path = root / relative
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    payload = f"fixture snapshot: {relative}\n".encode("utf-8")
+                    path.write_bytes(payload)
+                    value["sha256"] = hashlib.sha256(payload).hexdigest()
+                for item in value.values():
+                    visit(item)
+            elif isinstance(value, list):
+                for item in value:
+                    visit(item)
+
+        visit(document)
+
+    def test_figma_handoff_requires_local_snapshots_and_matching_urls(self) -> None:
+        document = self.make_document()
+        figma = document["ui_visual_contract"]["figma_prototype"]
+        figma["file_ref"]["uri"] = figma["file_url"]
+        result = validator.validate_ui_figma_handoff(document)
+        self.assertIn("本地 SHA-256", "\n".join(result["errors"]))
+
+        document = self.make_document()
+        document["ui_visual_contract"]["figma_prototype"]["design_system_url"] = (
+            "https://www.figma.com/design/other-file?node-id=2-3"
+        )
+        result = validator.validate_ui_figma_handoff(document)
+        self.assertIn("design_system_url", "\n".join(result["errors"]))
+
+    def test_malformed_figma_references_return_errors_without_crashing(self) -> None:
+        for field, value in (("file_ref", None), ("design_system_ref", []), ("screen_refs", [None])):
+            with self.subTest(field=field):
+                document = self.make_document()
+                document["ui_visual_contract"]["figma_prototype"][field] = value
+                result = validator.validate_ui_figma_handoff(document)
+                self.assertEqual("invalid", result["state"])
+                self.assertTrue(result["errors"])
+
+    def test_figma_local_snapshot_drift_is_reported(self) -> None:
+        document = self.make_document()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.materialize_repo_refs(document, root)
+            valid = validator.validate_ui_figma_handoff(document, project_root=root)
+            self.assertEqual("valid", valid["state"], valid)
+            snapshot = root / "ui" / "figma" / "demo-file.json"
+            snapshot.write_text("changed\n", encoding="utf-8")
+            drifted = validator.validate_ui_figma_handoff(document, project_root=root)
+            self.assertIn("SHA-256 不匹配", "\n".join(drifted["errors"]))
+
+    def test_inherited_prd_and_stage_skip_cannot_be_bypassed(self) -> None:
+        document = self.make_document()
+        ux = document["ui_visual_contract"]["ux_flow"]
+        ux["source_document_refs"] = ["product-doc:demo:demo-brief"]
+        result = validator.validate_ui_figma_handoff(document)
+        self.assertIn("inherited_from_prd 必须绑定 document_kind=prd", "\n".join(result["errors"]))
+
+        document = self.make_document()
+        document["ui_visual_contract"]["workflow"]["stages"]["ux_flow"]["status"] = "pending"
+        result = validator.validate_ui_figma_handoff(document)
+        self.assertIn("workflow.stages.ux_flow.status=complete", "\n".join(result["errors"]))
+
+    def test_figma_only_readiness_does_not_require_godot_theme_or_build(self) -> None:
+        document = self.make_document()
+        contract = document["ui_visual_contract"]
+        contract.pop("theme_resource_refs")
+        contract.pop("benchmark_capture_refs")
+        result = validator.validate_ui_figma_handoff(document)
+        self.assertEqual("valid", result["state"], result)
+
+    def test_normal_draft_can_record_unfinished_figma_work(self) -> None:
+        document = self.make_document()
+        contract = document["ui_visual_contract"]
+        contract["identity"]["lifecycle_state"] = "draft"
+        contract["figma_prototype"] = {"handoff_status": "draft"}
+        digest = validator.ui_visual_digests(document)["ui_visual_digest"]
+        contract["integrity"]["ui_visual_digest"] = digest
+        contract["visual_review"]["subject_digest"] = digest
+        contract["benchmark_capture_refs"][0]["ui_visual_digest"] = digest
+        result = validator.validate_ui_visual_contract(document)
+        self.assertEqual("valid", result["state"], result)
+        self.assertEqual("draft_not_evaluated", result["figma_handoff"]["state"])
+
+    def test_legacy_figma_only_check_is_not_evaluated_as_a_pass(self) -> None:
+        document = {"ui_visual_contract": {"schema_version": validator.UI_VISUAL_SCHEMA_VERSION}}
+        result = validator.validate_ui_figma_handoff(document)
+        self.assertEqual("legacy_not_evaluated", result["state"])
+        self.assertFalse(result["figma_ready"])
+
+    def test_ui_figma_only_cli_is_a_readiness_checker(self) -> None:
+        document = self.make_document()
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "ui.yaml"
+            path.write_text(yaml.safe_dump(document, sort_keys=False), encoding="utf-8")
+            completed = subprocess.run(
+                [sys.executable, str(SCRIPTS / "validate_art_direction_contract.py"), str(path), "--ui-figma-only"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, completed.returncode, completed.stderr)
+            self.assertTrue(json.loads(completed.stdout)["figma_ready"])
+
+            legacy = Path(temp) / "legacy.yaml"
+            legacy.write_text(yaml.safe_dump({"ui_visual_contract": {"schema_version": validator.UI_VISUAL_SCHEMA_VERSION}}), encoding="utf-8")
+            completed = subprocess.run(
+                [sys.executable, str(SCRIPTS / "validate_art_direction_contract.py"), str(legacy), "--ui-figma-only"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertNotEqual(0, completed.returncode)
+            self.assertEqual("legacy_not_evaluated", json.loads(completed.stdout)["state"])
 
     def test_four_stage_product_to_figma_handoff_is_explicit(self) -> None:
         contract = self.make_document()["ui_visual_contract"]

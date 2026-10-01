@@ -11,6 +11,7 @@ import re
 from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 from pipeline_common import canonical_digest, file_digest, load_yaml
 
@@ -103,6 +104,8 @@ REASON_CODES = [
     "UI_READABILITY",
 ]
 UI_STATE_NAMES = ("normal", "hover", "pressed", "focus", "disabled", "error")
+UI_WORKFLOW_STAGES = ("input_intake", "product_identity_and_visual_direction", "ux_flow", "figma_visual_system")
+UI_WORKFLOW_FIELDS = ("workflow", "source_document_refs", "product_identity", "visual_direction", "ux_flow", "figma_prototype")
 UI_ARTIFACT_FIELDS = (
     "color_token_ref",
     "typography_ref",
@@ -335,6 +338,205 @@ def _ui_state_entry(value: Any, label: str, errors: list[str]) -> None:
         errors.append(f"{label}.reason 在 applicable=false 时必填")
 
 
+def _figma_url(value: Any, label: str, file_key: Any, kinds: set[str], errors: list[str], *, node_id: Any = None, require_node: bool = False) -> None:
+    """Check canonical Figma host, file identity and optionally node identity."""
+    try:
+        parsed = urlparse(value if isinstance(value, str) else "")
+        parts = parsed.path.strip("/").split("/")
+        valid = (parsed.scheme == "https" and parsed.hostname in {"figma.com", "www.figma.com"}
+                 and parsed.username is None and parsed.password is None and parsed.port in {None, 443}
+                 and len(parts) >= 2 and parts[0] in kinds and parts[1] == file_key)
+        nodes = parse_qs(parsed.query).get("node-id", [])
+        if require_node or node_id is not None:
+            valid = valid and len(nodes) == 1 and bool(re.fullmatch(r"\d+[:-]\d+", nodes[0]))
+        if node_id is not None:
+            valid = valid and isinstance(node_id, str) and bool(re.fullmatch(r"\d+[:-]\d+", node_id))
+            valid = valid and nodes[0].replace("-", ":") == node_id.replace("-", ":")
+    except (ValueError, IndexError):
+        valid = False
+    if not valid:
+        errors.append(f"{label} 必须是绑定 file_key 和指定节点的 HTTPS Figma URL")
+
+
+def validate_ui_figma_handoff(document: dict[str, Any], *, project_root: Path | None = None) -> dict[str, Any]:
+    """Check complete Figma handoff readiness, without Godot Theme/build evidence.
+
+    Existing v1 visual contracts are readable, but absence of the whole extension
+    is explicitly legacy, never evidence that Figma work was completed. This is
+    a readiness checker, not a validator for partially authored draft documents.
+    """
+    errors: list[str] = []
+    warnings: list[str] = []
+    file_checks: list[dict[str, str]] = []
+    root = mapping(document, "document", errors)
+    contract = mapping(root.get("ui_visual_contract"), "ui_visual_contract", errors)
+    if contract.get("schema_version") != UI_VISUAL_SCHEMA_VERSION:
+        errors.append(f"schema_version 必须为 {UI_VISUAL_SCHEMA_VERSION}")
+    if not errors and not any(field in contract for field in UI_WORKFLOW_FIELDS):
+        return {"state": "legacy_not_evaluated", "figma_ready": False, "errors": [],
+                "warnings": ["legacy UI Visual Contract 未采用四阶段 workflow，不能证明 Figma 原型已完成"], "file_checks": []}
+    identity = mapping(contract.get("identity"), "identity", errors)
+    production_ready = identity.get("lifecycle_state") == "production_ready"
+    workflow = mapping(contract.get("workflow"), "workflow", errors)
+    if workflow.get("stage_order") != list(UI_WORKFLOW_STAGES):
+        errors.append("workflow.stage_order 必须按标准四阶段顺序填写")
+    current_stage = workflow.get("current_stage")
+    if current_stage not in UI_WORKFLOW_STAGES:
+        errors.append("workflow.current_stage 必须是标准阶段")
+    stages = mapping(workflow.get("stages"), "workflow.stages", errors)
+    if set(stages) != set(UI_WORKFLOW_STAGES):
+        errors.append("workflow.stages 必须恰好包含标准四阶段")
+    statuses: list[Any] = []
+    for name in UI_WORKFLOW_STAGES:
+        status = mapping(stages.get(name), f"workflow.stages.{name}", errors).get("status")
+        statuses.append(status)
+        if status not in ("pending", "complete"):
+            errors.append(f"workflow.stages.{name}.status 必须为 pending 或 complete")
+        if status != "complete":
+            errors.append(f"Figma 交接就绪要求 workflow.stages.{name}.status=complete")
+    for index, status in enumerate(statuses):
+        if status == "complete" and any(prior != "complete" for prior in statuses[:index]):
+            errors.append("workflow.stages 不得跳过未完成的前序阶段")
+    if current_stage in UI_WORKFLOW_STAGES:
+        current_index = UI_WORKFLOW_STAGES.index(current_stage)
+        if any(status != "complete" for status in statuses[:current_index]):
+            errors.append("workflow.current_stage 前序阶段必须 complete")
+        if any(status == "complete" for status in statuses[current_index + 1:]):
+            errors.append("workflow.current_stage 不得落后于已完成阶段")
+
+    def ref(value: Any, label: str) -> dict[str, Any]:
+        # Remote URLs are provenance, not locally verifiable artifact bytes.
+        # All handoff digests must bind a project-local source/evidence snapshot.
+        item = mapping(value, label, errors)
+        uri = item.get("uri")
+        relative = uri.removeprefix("repo://").replace("\\", "/") if isinstance(uri, str) else ""
+        if (not isinstance(uri, str) or not uri.startswith("repo://") or not relative
+                or ":" in relative or any(part in {"", ".", ".."} for part in relative.split("/"))):
+            errors.append(f"{label}.uri 必须是项目内非空 repo:// 快照路径；远程 URL 不能代替本地 SHA-256 证据")
+            # Validate the record shape without touching an unsafe path.
+            return _ui_ref(item, label, errors, project_root=None, file_checks=file_checks)
+        try:
+            return _ui_ref(item, label, errors, project_root=project_root, file_checks=file_checks)
+        except (OSError, ValueError) as exc:
+            errors.append(f"{label} 无法读取本地快照: {exc}")
+            return item
+
+    sources = sequence(contract.get("source_document_refs"), "source_document_refs", errors)
+    source_kinds: dict[str, str] = {}
+    usable_sources: set[str] = set()
+    for index, raw in enumerate(sources):
+        label = f"source_document_refs[{index}]"
+        error_count = len(errors)
+        source = ref(raw, label)
+        kind = source.get("document_kind")
+        if kind not in ("brief", "prd", "gdd", "other"):
+            errors.append(f"{label}.document_kind 必须为 brief/prd/gdd/other")
+        for field in ("title", "role"):
+            if not nonempty_string(source.get(field)):
+                errors.append(f"{label}.{field} 不能为空")
+        if not SHA256_RE.fullmatch(str(source.get("content_digest", ""))):
+            errors.append(f"{label}.content_digest 必须是 64 位小写 SHA-256")
+        source_id = source.get("artifact_id")
+        if nonempty_string(source_id):
+            if source_id in source_kinds:
+                errors.append(f"重复 source_document_refs artifact_id: {source_id}")
+            source_kinds[source_id] = kind
+            if kind in ("brief", "prd", "gdd") and len(errors) == error_count:
+                usable_sources.add(source_id)
+    if not usable_sources:
+        errors.append("source_document_refs 至少需要一份可用的 brief、prd 或 gdd")
+
+    product = mapping(contract.get("product_identity"), "product_identity", errors)
+    for field in ("product_name", "product_title", "slogan", "decision_rationale"):
+        if not nonempty_string(product.get(field)):
+            errors.append(f"product_identity.{field} 不能为空")
+    ref(product.get("decision_ref"), "product_identity.decision_ref")
+    direction = mapping(contract.get("visual_direction"), "visual_direction", errors)
+    requirements = direction.get("style_requirements")
+    if not isinstance(requirements, list) or not requirements or len(strings(requirements)) != len(requirements):
+        errors.append("visual_direction.style_requirements 必须是非空字符串数组")
+    if not nonempty_string(direction.get("decision_rationale")):
+        errors.append("visual_direction.decision_rationale 不能为空")
+    ref(direction.get("decision_ref"), "visual_direction.decision_ref")
+
+    ux = mapping(contract.get("ux_flow"), "ux_flow", errors)
+    resolution = ux.get("resolution")
+    if resolution not in ("inherited_from_prd", "derived_from_inputs"):
+        errors.append("ux_flow.resolution 必须为 inherited_from_prd 或 derived_from_inputs (UI_STRUCTURE)")
+    ux_sources = sequence(ux.get("source_document_refs"), "ux_flow.source_document_refs", errors)
+    if not ux_sources or any(not nonempty_string(item) or item not in usable_sources for item in ux_sources):
+        errors.append("ux_flow.source_document_refs 必须绑定可用的输入文档 (UI_STRUCTURE)")
+    if resolution == "inherited_from_prd":
+        if ux.get("authoring_skipped") is not True or not nonempty_string(ux.get("skip_reason")):
+            errors.append("ux_flow inherited_from_prd 要求 authoring_skipped=true 和 skip_reason (UI_STRUCTURE)")
+        if not any(isinstance(item, str) and source_kinds.get(item) == "prd" and item in usable_sources for item in ux_sources):
+            errors.append("ux_flow inherited_from_prd 必须绑定 document_kind=prd 的来源 (UI_STRUCTURE)")
+    elif resolution == "derived_from_inputs":
+        if ux.get("authoring_skipped") is not False:
+            errors.append("ux_flow derived_from_inputs 要求 authoring_skipped=false (UI_STRUCTURE)")
+        if ux.get("skip_reason") not in (None, ""):
+            errors.append("ux_flow derived_from_inputs 不得填写 skip_reason (UI_STRUCTURE)")
+    ref(ux.get("decision_ref"), "ux_flow.decision_ref")
+    ref(contract.get("screen_flow_ref"), "screen_flow_ref")
+    questions = sequence(ux.get("unresolved_questions"), "ux_flow.unresolved_questions", errors)
+    if statuses[2] == "complete" and questions:
+        errors.append("ux_flow 完成前必须解决 unresolved_questions (UI_STRUCTURE)")
+
+    figma = mapping(contract.get("figma_prototype"), "figma_prototype", errors)
+    if figma.get("provider") != "figma" or figma.get("integration") != "codex_figma_plugin":
+        errors.append("figma_prototype 必须使用 provider=figma 和 integration=codex_figma_plugin")
+    file_key = figma.get("file_key")
+    if not isinstance(file_key, str) or not re.fullmatch(r"[A-Za-z0-9]+", file_key):
+        errors.append("figma_prototype.file_key 必须是非空字母数字标识")
+    if not isinstance(figma.get("version"), (str, int)) or isinstance(figma.get("version"), bool) or not str(figma.get("version", "")).strip():
+        errors.append("figma_prototype.version 缺失或非法")
+    ref(figma.get("file_ref"), "figma_prototype.file_ref")
+    _figma_url(figma.get("file_url"), "figma_prototype.file_url", file_key, {"file", "design"}, errors)
+    _figma_url(figma.get("prototype_url"), "figma_prototype.prototype_url", file_key, {"proto"}, errors)
+    ref(figma.get("design_system_ref"), "figma_prototype.design_system_ref")
+    _figma_url(figma.get("design_system_url"), "figma_prototype.design_system_url", file_key, {"file", "design"}, errors, require_node=True)
+    screens = sequence(figma.get("screen_refs"), "figma_prototype.screen_refs", errors)
+    screen_ids: set[str] = set()
+    for index, raw in enumerate(screens):
+        label = f"figma_prototype.screen_refs[{index}]"
+        screen = mapping(raw, label, errors)
+        screen_id = screen.get("screen_id")
+        if not nonempty_string(screen_id) or screen_id in screen_ids:
+            errors.append(f"{label}.screen_id 必须是唯一非空屏幕 ID")
+        else:
+            screen_ids.add(screen_id)
+        if not nonempty_string(screen.get("frame_node_id")):
+            errors.append(f"{label}.frame_node_id 不能为空")
+        _figma_url(screen.get("frame_url"), f"{label}.frame_url", file_key, {"file", "design"}, errors, node_id=screen.get("frame_node_id"), require_node=True)
+    key_screens = sequence(contract.get("key_screen_ids"), "key_screen_ids", errors)
+    if not key_screens or len(strings(key_screens)) != len(key_screens):
+        errors.append("key_screen_ids 必须是非空字符串数组")
+    missing_screens = set(strings(key_screens)) - screen_ids
+    if not screens or missing_screens:
+        errors.append(f"figma_prototype.screen_refs 缺少关键屏幕: {sorted(missing_screens)}")
+    handoff = figma.get("handoff_status")
+    if handoff not in ("draft", "review_pending", "implementation_ready"):
+        errors.append("figma_prototype.handoff_status 非法")
+    if handoff != "implementation_ready":
+        errors.append("Figma 交接就绪要求 figma_prototype.handoff_status=implementation_ready")
+    if production_ready or statuses[3] == "complete":
+        if handoff != "implementation_ready":
+            errors.append("production_ready 或 Figma 阶段 complete 要求 figma_prototype.handoff_status=implementation_ready")
+    if handoff == "implementation_ready" and any(status != "complete" for status in statuses):
+        errors.append("figma_prototype implementation_ready 要求四阶段全部 complete")
+    for field in ("handoff_evidence_refs", "review_evidence_refs"):
+        evidence = sequence(figma.get(field), f"figma_prototype.{field}", errors)
+        if (field == "handoff_evidence_refs" or handoff == "implementation_ready") and not evidence:
+            errors.append(f"figma_prototype.{field} 不能为空")
+        for index, item in enumerate(evidence):
+            ref(item, f"figma_prototype.{field}[{index}]")
+    if project_root is None:
+        warnings.append("未提供 --project-root；Figma 交接 repo:// 引用未执行真实文件 SHA-256 检查")
+    warnings.append("Figma URL 仅检查格式、文件与节点绑定；远程存在性和视觉质量由设计评审证据确认")
+    return {"state": "invalid" if errors else "valid", "figma_ready": not errors and handoff == "implementation_ready",
+            "errors": errors, "warnings": warnings, "file_checks": file_checks}
+
+
 def validate_ui_visual_contract(
     document: dict[str, Any],
     *,
@@ -350,7 +552,26 @@ def validate_ui_visual_contract(
     errors: list[str] = []
     warnings: list[str] = []
     file_checks: list[dict[str, str]] = []
-    contract = mapping(document.get("ui_visual_contract"), "ui_visual_contract", errors)
+    root = mapping(document, "document", errors)
+    contract = mapping(root.get("ui_visual_contract"), "ui_visual_contract", errors)
+    # New contracts opt into the strict four-stage product-to-Figma handoff.
+    # Legacy v1 contracts remain readable but never imply Figma completion.
+    identity_hint = contract.get("identity") if isinstance(contract.get("identity"), dict) else {}
+    figma_hint = contract.get("figma_prototype") if isinstance(contract.get("figma_prototype"), dict) else {}
+    draft_handoff = identity_hint.get("lifecycle_state") == "draft" and figma_hint.get("handoff_status") != "implementation_ready"
+    if draft_handoff:
+        handoff_result = {
+            "state": "draft_not_evaluated",
+            "figma_ready": False,
+            "errors": [],
+            "warnings": ["draft UI Visual Contract 未执行完整 Figma readiness 检查；使用 --ui-figma-only 检查交接是否就绪"],
+            "file_checks": [],
+        }
+    else:
+        handoff_result = validate_ui_figma_handoff(root, project_root=project_root)
+    errors.extend(f"Figma handoff: {issue}" for issue in handoff_result.get("errors", []))
+    warnings.extend(handoff_result.get("warnings", []))
+    file_checks.extend(handoff_result.get("file_checks", []))
     if contract.get("schema_version") != UI_VISUAL_SCHEMA_VERSION:
         errors.append(f"schema_version 必须为 {UI_VISUAL_SCHEMA_VERSION}")
     identity = mapping(contract.get("identity"), "ui_visual_contract.identity", errors)
@@ -545,6 +766,7 @@ def validate_ui_visual_contract(
         "ui_visual_id": ui_id,
         "revision": revision,
         "digests": digests,
+        "figma_handoff": handoff_result,
         "errors": errors,
         "warnings": warnings,
         "file_checks": file_checks,
@@ -1114,9 +1336,17 @@ def main() -> int:
     parser.add_argument("--previous", type=Path)
     parser.add_argument("--project-root", type=Path)
     parser.add_argument("--gate", choices=GATE_ORDER)
+    parser.add_argument("--ui-figma-only", action="store_true",
+                        help="Check complete Figma handoff readiness only; does not validate incomplete drafts or require Godot Theme/build evidence")
     args = parser.parse_args()
+    if args.ui_figma_only and (args.gate or args.previous):
+        parser.error("--ui-figma-only cannot be combined with --gate or --previous")
     try:
         document = load_yaml(args.contract)
+        if args.ui_figma_only:
+            result = validate_ui_figma_handoff(document, project_root=args.project_root)
+            print(json.dumps(result, ensure_ascii=True, indent=2))
+            return 0 if result.get("state") == "valid" and result.get("figma_ready") is True else 1
         if isinstance(document.get("ui_visual_contract"), dict) and "art_direction_contract" not in document:
             result = validate_ui_visual_contract(document, project_root=args.project_root)
             print(json.dumps(result, ensure_ascii=True, indent=2))

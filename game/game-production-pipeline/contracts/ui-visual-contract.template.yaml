@@ -46,7 +46,7 @@ ui_visual_contract:
         status: pending|complete
 
   # Step 1: retain the brief/PRD/GDD inputs used to make the product decision.
-  # At least one brief and one requirements/design document should be listed.
+  # At least one available brief, PRD, or GDD is enough. Do not require all three.
   source_document_refs:
     - artifact_id: product-doc:<project>:<slug>
       version: 1
@@ -104,7 +104,8 @@ ui_visual_contract:
     file_ref:
       artifact_id: figma-file:<project>:<revision>
       version: 1
-      uri: https://www.figma.com/file/<file-key>/<file-name>
+      # Hash the actual local snapshot bytes, never the cloud URL string.
+      uri: repo://game-pipeline/ui/visual/figma/<file-snapshot>.json
       sha256: <64-lowercase-hex>
     file_key: <figma-file-key>
     file_url: https://www.figma.com/file/<file-key>/<file-name>
@@ -117,8 +118,9 @@ ui_visual_contract:
     design_system_ref:
       artifact_id: figma-design-system:<project>:<revision>
       version: 1
-      uri: https://www.figma.com/design/<file-key>?node-id=<design-system-node-id>
+      uri: repo://game-pipeline/ui/visual/figma/<design-system-snapshot>.json
       sha256: <64-lowercase-hex>
+    design_system_url: https://www.figma.com/design/<file-key>?node-id=<design-system-node-id>
     handoff_status: draft|review_pending|implementation_ready
     handoff_evidence_refs:
       - artifact_id: figma-handoff:<project>:<revision>

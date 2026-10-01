@@ -42,7 +42,7 @@ class AgentToolBindingTests(unittest.TestCase):
         self.assertIn("tool:fixture", result)
         self.assertIn("does not grant host tool permissions", result)
 
-    def test_codex_figma_plugin_is_an_explicit_agent_tool_binding(self):
+    def test_optional_figma_binding_uses_project_snapshot_without_fake_version_or_rollback(self):
         descriptor = write(
             self.root,
             "tools/codex-figma-plugin.adapter.yaml",
@@ -56,27 +56,30 @@ class AgentToolBindingTests(unittest.TestCase):
                 "tools": [
                     {
                         "tool_id": "tool:figma-codex-plugin",
-                        "provider": "codex",
-                        "name": "figma-plugin",
-                        "version": "1",
+                        "provider": "codex-app-host",
+                        "name": "figma",
+                        "version": "project-recorded-host-version",
                         "capabilities": [
                             "inspect-design-file",
-                            "compose-visual-system",
+                            "create-or-update-visual-system",
                             "create-prototype",
                             "capture-design-evidence",
                         ],
                         "permission_scope": ["read:figma", "write:figma", "capture:figma"],
                         "deterministic": False,
-                        "rollback": {
-                            "supported": True,
-                            "procedure_ref": "restore Figma file version",
-                        },
+                        "rollback": {"supported": False, "procedure_ref": None},
                         "source": {"path": descriptor.relative_to(self.root).as_posix(), "sha256": file_digest(descriptor)},
+                        "capability_verification": {
+                            "status": "pending",
+                            "verified_against": "project-local host schema snapshot",
+                            "evidence_refs": [],
+                        },
                     }
                 ],
             }
         }
         registry["tool_registry"]["integrity"] = {"registry_digest": registry_digest(registry)}
+        self.assertFalse(registry["tool_registry"]["tools"][0]["rollback"]["supported"])
         registry_path = write(self.root, "game-pipeline/execution/figma-tools.yaml", registry)
         metadata = {
             "tool_registry_ref": {
@@ -90,6 +93,7 @@ class AgentToolBindingTests(unittest.TestCase):
         rendered = render_adapter(metadata, "Produce the UI visual prototype.", "preset.md", "0" * 64, "test")
         self.assertIn("tool:figma-codex-plugin", rendered)
         self.assertIn("Approved tool registry", rendered)
+        self.assertNotIn('"version": "1"', rendered)
 
 
 if __name__ == "__main__":

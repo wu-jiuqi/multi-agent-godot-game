@@ -20,6 +20,21 @@ Ask only when a missing decision materially changes the product direction, workf
 | New page in an existing product | Reuse its navigation, components, and tokens; define missing states and local additions. | [UX workflow](references/ux-workflow.md); [search guide](references/search-guide.md) only for gaps |
 | New product or requested redesign | Establish the main flow and a coherent visual direction; produce the requested design or implementation and validate it. | [UX workflow](references/ux-workflow.md), [search guide](references/search-guide.md), [acceptance](references/acceptance.md) |
 
+## Codex Figma mode
+
+When the requested deliverable is a Figma visual system, prototype, component, or token
+library, use the [Codex Figma handoff reference](references/figma-handoff.md) as the
+entry point. Load `figma-use` before every `use_figma` call; load
+`figma-create-new-file` before `create_new_file`, `figma-generate-design` for a full
+page, and `figma-generate-library` for components, tokens, or libraries. Inspect an
+existing file before editing, or resolve the host plan/editor type before creating a new
+file. Keep the returned file key, node IDs, screenshots, and local evidence snapshots.
+
+Figma-only work ends with Figma structural/visual review and does not require Godot
+scenes, the ten-part Godot handoff, target builds, or runtime acceptance rows. When Godot
+implementation is also requested, complete the Figma handoff before applying the Godot
+production mode below.
+
 ## Godot production mode
 
 When the target stack is Godot, keep the general UI/UX guidance above and also apply the

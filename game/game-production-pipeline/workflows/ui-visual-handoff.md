@@ -2,7 +2,7 @@
 
 ## 输入
 
-UI workflow 先取得已批准且摘要有效的 UI Screen/Flow Contract 与 `game-production-ui-visual/v1`。前者提供 screen/flow、布局、响应式、安全区、焦点和交互事实；后者由主美提供视觉身份、组件状态、字体/图标、Style Frame、Theme 映射和可访问性视觉规则。
+UI workflow 先取得产品 brief/PRD/GDD 中至少一份可用来源，并形成产品身份、整体视觉要求和 UX 复用/补齐记录；再取得已批准且摘要有效的 UI Screen/Flow Contract，并建立或更新 `game-production-ui-visual/v1` 草案。前者提供 screen/flow、布局、响应式、安全区、焦点和交互事实；后者由主美提供视觉身份、组件状态、字体/图标、Style Frame、Theme 映射和可访问性视觉规则。
 
 当项目使用 Codex Figma 插件制作视觉系统时，交接必须先完成
 [`ui-ux-pro-max` 的 Codex Figma handoff reference](../../../skills/ui-ux-pro-max/references/figma-handoff.md)
@@ -13,12 +13,12 @@ UI workflow 先取得已批准且摘要有效的 UI Screen/Flow Contract 与 `ga
 
 ## 交接顺序
 
-1. 主美从 Art Direction Contract 推导 UI 视觉方向，建立 UI Visual Contract 和关键屏幕 Style Frame；不得改写 Screen/Flow。
-2. UI/UX 绑定 Screen/Flow 与 UI Visual Contract，确认组件清单、状态覆盖和结构边界。
-3. UI Visual 执行能力制作 Theme、StyleBox、字体、图标、装饰与组件变体，并将资源路径和 digest 写回 Contract 引用；它执行主美方向，不创建新的视觉方向。
-4. Godot 实现者在既定 `.tscn` Control/Container/PanelContainer/Button/HSlider/ProgressBar/Toast 结构中绑定已批准资源。固定结构和资源序列化到 `.tscn` / `.tres`；脚本只切换已声明的状态资源和动效。
-5. 目标构建捕获关键屏幕与主要状态，由主美检查 UI 本体；UI/UX 检查结构/可读性，Godot 实现者检查资源/场景/运行时。
-6. D3/D4 绑定同一 UI visual/benchmark digest。任何视觉资源、合同、场景或构建变化都触发影响屏幕的重新捕获与评审。
+1. 项目经理读取产品文档，整理来源、标题、slogan 和产品名候选；所有者确认产品身份，主美记录整体视觉要求。
+2. UI/UX 判断 PRD 是否已有 UX；已有则绑定原流程并跳过重复编写，否则补齐 Screen/Flow、布局、响应式、安全区、焦点和交互事实。
+3. 主美从已确认的产品身份与 Art Direction 推导 UI 视觉方向；UI Visual 执行能力通过 Codex Figma 插件建立变量、样式、组件状态、关键屏幕和原型链接，并将文件/节点/本地快照摘要写入 Contract。
+4. UI/UX 与主美共同评审 Figma 原型；交互路径、可读性或视觉规则不成立时分别按 `UI_STRUCTURE`、`UI_READABILITY`、`UI_VISUAL` 返回。`implementation_ready` 只代表 Figma 可交接。
+5. 需要引擎实现时，Godot 实现者在既定 `.tscn` Control/Container/PanelContainer/Button/HSlider/ProgressBar/Toast 结构中绑定已批准资源。固定结构和资源序列化到 `.tscn` / `.tres`；脚本只切换已声明的状态资源和动效。
+6. 目标构建捕获关键屏幕与主要状态，由主美检查 UI 本体；UI/UX 检查结构/可读性，Godot 实现者检查资源/场景/运行时。D3/D4 绑定同一 UI visual/benchmark digest。
 
 ## 失败返回
 

@@ -13,7 +13,7 @@ Act as the project's art-direction owner inside the authority recorded by the pr
 2. Read `../../agents/art-director.md` and the bound Art Direction Contract.
 3. Before proposing a new direction or materially revising one, research current primary sources and relevant videos on the web. Record the URL, date, extracted principle, intended use, and what must not be copied. Do not treat a mood-board image as licensed production material.
 4. If the project has no approved Art Director Position or authority grant, produce a proposal only. Do not create a persistent role, freeze a direction, or write another department's facts.
-5. When UI is a required visual domain, read the approved UI Screen/Flow Contract but keep it read-only. Produce a separate `game-production-ui-visual/v1` UI Visual Contract for the visual identity and hand it to the UI workflow; do not infer final UI from a wireframe.
+5. When UI is required, follow [the UI workflow](../../workflows/ui-production.md): source brief/PRD/GDD and title/slogan, confirm product identity and style, reuse or fill UX, then author the visual system and prototype through the Codex Figma plugin. Keep Screen/Flow read-only and record visual identity in `game-production-ui-visual/v1`. Reuse approved directions; request owner judgment only for missing or changed decisions.
 
 ## Select a mode
 
@@ -54,7 +54,7 @@ Run `../../scripts/validate_art_direction_contract.py <contract> --project-root 
 - Use concrete visual variables—shape, proportion, value, color, materials, light, composition, typography, motion, and effects—not genre labels alone.
 - Preserve gameplay hierarchy and accessibility. Beauty does not excuse unreadable threats, interaction states, or text.
 - Keep UI information architecture, flow, layout behavior, and interaction facts with the UI owner. Own the visual signature, tokens, icon/typography language, motion tone, and cross-domain consistency; request a separate UI workflow for structural changes.
-- UI Visual execution may turn the approved contracts into Theme, StyleBox, font, icon, ornament and component-variant resources, but it does not become a second visual-direction owner. Default StyleBoxFlat, one-line borders and assetless controls remain greybox evidence only.
+- UI Visual execution first creates and reviews the Figma design system, components and prototype. A later engine task maps these to Theme, StyleBox, fonts, icons and component resources. Figma design acceptance does not require an engine build and never proves D3/D4 runtime acceptance. Default controls remain greybox until the approved visual rules and resources are applied.
 - Do not silently expand scope, target fidelity, asset count, shader complexity, or platform budgets.
 
 ## Output

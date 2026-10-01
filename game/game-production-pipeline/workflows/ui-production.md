@@ -1,20 +1,51 @@
-# Godot UI 生产工作流
+# Figma UI 设计与 Godot 生产工作流
 
 状态：draft；此工作流配合 [`AGT-UI-PRODUCTION-TEMPLATE`](../agents/ui-production.md) 与
-顶层 [`ui-ux-pro-max`](../../../skills/ui-ux-pro-max/SKILL.md) 使用。它把 UI Screen/Flow
-和 UI Visual 双契约交给 Godot 实现，不新增机器 Contract、Gate 或运行时状态。
+顶层 [`ui-ux-pro-max`](../../../skills/ui-ux-pro-max/SKILL.md) 使用。它先把产品输入、身份、UX
+与 Figma 视觉系统整理成可追溯交接，再在需要时把 UI Screen/Flow 和 UI Visual 双契约交给 Godot 实现；不新增机器 Contract、Gate 或运行时状态。
 
 ## 使用入口
 
+本工作流默认先通过 Codex 中的 Figma 插件完成产品视觉系统和原型，再将 UI Screen/Flow 与 UI Visual 双契约交给 Godot 实现。Figma 设计阶段不要求存在 `project.godot`；Godot 是设计交接之后的实施阶段。本工作流复用现有 Contract、Gate 和运行时状态。
+
+输入可来自产品 brief、PRD、GDD、已有品牌规范、已批准的 Art Direction、UI/UX 事实和现有 Figma 文件。先提取产品标题与 slogan，再确认产品名及整体视觉风格，复用或补齐 UX，最后通过 Codex Figma 插件制作视觉系统与页面原型。
+
 ```text
 请读取 game/game-production-pipeline/agents/ui-production.md 和
-skills/ui-ux-pro-max/references/godot-production.md，按 Godot UI 生产工作流执行。
-输入：项目根目录、UI 需求、任务级别（可由 Agent 判断）和已有契约/资源。
-约束：锁定 Godot 版本、目标平台、基准分辨率、可写路径、不能改变的 Screen/Flow 或视觉事实。
-先检查输入和双契约，再按固定十段输出；若缺少会改变方向的事实，集中提出不超过五个问题。
+skills/ui-ux-pro-max/references/figma-handoff.md，按四步 UI 流程执行。
+输入：可用 brief/PRD/GDD、已有品牌和视觉要求、已有 UX、目标平台和 Figma 文件（如有）。
+先提取标题与 slogan，再确认名称和视觉方向；PRD 已有 UX 就复用，只补缺口。
+使用 Codex Figma 插件交付可编辑视觉系统、关键页面与可点击原型。
+仅当任务包含 Godot 实施时，再加载 godot-production.md 并执行阶段 B 的十段交付。
+已有有效决定直接沿用；缺少会改变方向的事实时，集中提出不超过五个问题。
 ```
 
 正式项目岗位仍须使用已批准的 Organization、Position、Preset 和 Skill Binding；本文件不会自动创建持久 Agent。
+
+## 阶段 A：文档到 Figma 原型
+
+四步顺序对应 UI Visual Contract 的 `workflow.stage_order`，项目记录复用 Contract 已有字段。来源不足时先形成可审阅提案；已有确认的产品名、slogan、视觉方向和 UX 不重复索要确认，也不重新发明。
+
+| 步骤 | 输入与负责人 | 输出与检查 | 人工判断与退出条件 | 失败退回 |
+|---|---|---|---|---|
+| 1. `input_intake`：获取产品文档与文案 | brief/PRD/GDD 或等效文档；项目经理拥有产品目标与文案事实 | `source_document_refs` 记录来源、版本、摘要与角色；提取已定标题/slogan，缺失则给出有理由的候选，并区分事实与建议；检查链接、版本和缺口 | 项目经理/所有者判断定位和候选；目标、受众、范围与约束足够后进入下一步 | 文档缺失、冲突或定位不明 → 项目经理补足事实，候选保持待确认 |
+| 2. `product_identity_and_visual_direction`：确认名称与视觉要求 | 第 1 步候选、现有品牌和 Art Direction；所有者定产品名，主美承接视觉方向 | 写入 `product_identity` 的 `product_name`、`product_title`、`slogan`、`decision_ref`；写入 `visual_direction.style_requirements`、决定来源与理由；检查决定引用可解析 | 确认产品名、对外标题、slogan、风格语气、字体/色彩/形状/材质及可读性要求；已有有效批准继续沿用 | 命名/定位 → 项目经理与所有者；视觉 → `UI_VISUAL`/主美；超出已批方向由所有者决定 |
+| 3. `ux_flow`：复用或补齐 UX | 第 1 步 PRD 与其流程、Screen/Flow；UI/UX 拥有结构事实 | PRD 已完整覆盖时写 `resolution: inherited_from_prd`、`authoring_skipped: true`、来源与 `skip_reason`；缺失时写 `derived_from_inputs`、`authoring_skipped: false`，只补屏幕/流程/状态/失败恢复缺口；检查 stable ID 与关键路径覆盖 | UI/UX 确认沿用范围和缺口；若 PRD 只有部分流程，仅补缺口并保留已有 ID/引用，不重做已定路径 | `UI_STRUCTURE` → UI/UX；改变产品范围或核心交互 → 项目经理/所有者 |
+| 4. `figma_visual_system`：制作视觉系统与原型 | 已确认身份/视觉方向、UX 和目标尺寸；UI 生产 Agent 协调 Codex Figma 插件执行 | Figma 文件、设计系统/变量样式、组件及状态、关键屏幕、原型连线、截图与评审记录；填入 `figma_prototype` 的文件/节点/版本/原型链接和交接证据；核对 screen ID ↔ frame node ID、链接可访问与覆盖 | 主美判断视觉一致性，UI/UX 判断流程与可读性；设计交接通过后可设 `handoff_status: implementation_ready`，未评审为 `review_pending`；这不代表引擎或 D3/D4 通过 | 视觉 → `UI_VISUAL`；结构 → `UI_STRUCTURE`；可读性 → `UI_READABILITY`；工具/访问失败记录阻塞并恢复 Figma 执行 |
+
+执行第 4 步前发现并读取已安装插件的 `figma:figma-use` 与匹配的 `figma:figma-generate-design` Skill；新建文件时同时读取 `figma:figma-create-new-file`。项目工具登记为 `tool:figma-codex-plugin`，交接记录为 `provider: figma`、`integration: codex_figma_plugin`。插件不可用、访问失败或节点链接未返回时，保留输入与待恢复动作，不编造链接，不把本地 HTML、截图或 Godot 场景称为已完成的 Figma 原型。
+
+设计交付至少包含：来源文档清单；产品身份与风格决定；UX 复用/补齐记录；Figma 文件及原型链接；screen/node 映射；设计系统与组件状态；版本快照或导出证据；评审结论、owner 和下一步。远程 Figma 的可变链接不能代替可复查版本与快照摘要。Figma 预览证明设计产物，目标构建证明运行效果，二者分别保留。
+
+阶段 A 的制作顺序为：检查现有文件/设计系统 → 建立必要的变量与样式 → 制作一个代表性页面 → 提炼并补齐组件状态 → 扩展关键页面与原型连线 → 结构和截图检查 → 按 UX 路径走查。创建组件时加载 `figma-generate-library`。可复用组件、字体层级、语义颜色、间距/尺寸和适用的响应式规则必须在真实页面中有对应使用；Figma 页面建议分为 Foundations、Components、Screens、Prototype，已有文件沿用其命名。
+
+原型走查至少覆盖入口、主操作、成功反馈、返回/取消和适用的错误恢复；记录每条 flow 的起点、目标 frame、动作和结果。单有原型 URL 或静态截图不证明可点击路径可用。受工具能力限制无法实现的交互单独列为未验证项，不能标成完成。Figma 调用失败先检查实际画布变化，再对已知节点局部修复；权限/连接问题返回工具负责人，产品和视觉决定不因工具失败而重做。
+
+设计交接可独立运行 `python scripts/validate_art_direction_contract.py <ui-contract.yaml> --ui-figma-only --project-root <project-root>`。这是完整交接就绪检查，不验证审美，也不把未完成的草案当成已完成；Godot 验收再运行完整 Contract 校验和目标构建检查。
+
+## 阶段 B：已确认设计到 Godot
+
+仅当任务包含 Godot 实施时进入本阶段。先核对阶段 A 的产品、UX、Figma 交接和双契约引用是否有效，再读取引擎工程；Figma frame 作为设计依据，交互 UI 仍拆为预置节点、Theme 与独立组件，不能把整张 frame 贴图当作运行时 UI。
 
 ## 前置条件与模式
 

@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+import sys
 import unittest
 from pathlib import Path
+
+import yaml
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PLUGIN_ROOT = REPO_ROOT / "game" / "game-production-pipeline"
+if str(PLUGIN_ROOT / "scripts") not in sys.path:
+    sys.path.insert(0, str(PLUGIN_ROOT / "scripts"))
+
+from validate_execution_plan import registry_digest
 
 
 class UiProductionDocumentationTests(unittest.TestCase):
@@ -85,13 +92,32 @@ class UiProductionDocumentationTests(unittest.TestCase):
     def test_codex_figma_handoff_is_explicit_and_preserves_authored_godot_ui(self) -> None:
         skill = (REPO_ROOT / "skills" / "ui-ux-pro-max" / "SKILL.md").read_text(encoding="utf-8")
         reference_path = REPO_ROOT / "skills" / "ui-ux-pro-max" / "references" / "figma-handoff.md"
+        godot_reference = (REPO_ROOT / "skills" / "ui-ux-pro-max" / "references" / "godot-production.md").read_text(encoding="utf-8")
+        optional_tool_path = PLUGIN_ROOT / "assets" / "figma-tool-registry-entry.template.yaml"
+        default_registry_path = PLUGIN_ROOT / "contracts" / "tool-registry.template.yaml"
         self.assertTrue(reference_path.is_file())
+        self.assertTrue(optional_tool_path.is_file())
         reference = reference_path.read_text(encoding="utf-8")
+        optional_tool = yaml.safe_load(optional_tool_path.read_text(encoding="utf-8"))["figma_tool_registry_entry"]
+        default_registry = yaml.safe_load(default_registry_path.read_text(encoding="utf-8"))
+        self.assertEqual("tool:figma-codex-plugin", optional_tool["tool_id"])
+        self.assertEqual("<host-plugin-version-recorded-by-project>", optional_tool["version"])
+        self.assertFalse(optional_tool["rollback"]["supported"])
+        self.assertIsNone(optional_tool["rollback"]["procedure_ref"])
+        self.assertNotIn("http", optional_tool["source"]["path"])
+        self.assertEqual(
+            ["tool:fixture"],
+            [tool["tool_id"] for tool in default_registry["tool_registry"]["tools"]],
+        )
+        self.assertEqual(
+            default_registry["tool_registry"]["integrity"]["registry_digest"],
+            registry_digest(default_registry),
+        )
         for marker in (
             "references/figma-handoff.md",
             "tool:figma-codex-plugin",
-            "figma:figma-use",
-            "figma:figma-generate-design",
+            "figma-use",
+            "figma-generate-design",
             "input_intake",
             "product_identity_and_visual_direction",
             "ux_flow",
@@ -109,9 +135,14 @@ class UiProductionDocumentationTests(unittest.TestCase):
             "serialized `.tscn`/`.tres`",
             "Do not export a Figma frame as a runtime UI",
             "do not reconstruct a fixed UI tree",
+            "figma-create-new-file",
+            "figma-generate-library",
+            "safeToRetryWithoutCanvasRead",
+            "Figma URLs (`file_url`, `prototype_url`, `frame_url`",
+            "Figma-only request",
         ):
             with self.subTest(marker=marker):
-                self.assertIn(marker, skill + "\n" + reference)
+                self.assertIn(marker, skill + "\n" + reference + "\n" + godot_reference)
 
 
 if __name__ == "__main__":

@@ -1,21 +1,17 @@
 skill_bindings:
   schema_version: game-production-skill-bindings/v1
   project_id: "<project-id>"
-  # For a Godot UI project, bind the Codex Figma usage skills on the UI preset
-  # and bind tool:figma-codex-plugin in that preset's frontmatter. Skills
-  # describe the Figma API workflow; the tool registry grants the approved
-  # file-read/write/capture scope. Keep this separate from Godot runtime UI
-  # implementation, which must use authored .tscn/.tres scenes.
-  # Example skills for the UI preset (resolve the installed plugin paths and
-  # digests before approval):
-  #   - skill_id: "figma:figma-use"
-  #     source: "plugin"
-  #     path: "<figma-plugin-skill-path>/figma-use"
-  #     digest: "<figma-use-digest>"
-  #   - skill_id: "figma:figma-generate-design"
-  #     source: "plugin"
-  #     path: "<figma-plugin-skill-path>/figma-generate-design"
-  #     digest: "<figma-generate-design-digest>"
+  # For a UI project, bind a project-local UI dispatcher Skill (source:
+  # project) and bind tool:figma-codex-plugin in that preset's frontmatter.
+  # The dispatcher records which host Figma skills are required; the actual
+  # host plugin is not under this repository's source_root and must not be
+  # given a guessed plugin path or digest here. Record its verified schema and
+  # local snapshot through assets/figma-tool-registry-entry.template.yaml.
+  # The dispatcher should require, as applicable:
+  #   figma-use; figma-create-new-file; figma-generate-design;
+  #   figma-generate-library
+  # Keep this separate from Godot runtime UI implementation, which must use
+  # authored .tscn/.tres scenes.
   bindings:
     - preset_id: "preset:project:<project-id>:<agent-slug>"
       preset_digest: "<Agent Preset 摘要>"

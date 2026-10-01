@@ -69,7 +69,7 @@ iteration:
       expected_output: "D4 candidate and owner-or-delegated-independent decision package"
     - task_id: "TASK-ART-UI-VISUAL-HANDOFF"
       responsible_role: "art-director"
-      action: "把 UI Visual Contract 与 UI Screen/Flow Contract 一并交给 UI workflow；视觉执行能力映射 Theme、StyleBox、字体、图标和组件变体，Godot 只消费已批准交付物。"
+      action: "把 UI Visual Contract 与 UI Screen/Flow Contract 交给 UI workflow；先通过 Codex Figma 插件制作并评审视觉系统与原型，再由 Godot 任务映射 Theme、StyleBox、字体、图标和组件变体。Figma 原型不替代 D3/D4 运行证据。"
       expected_output: "UI visual handoff with UI_VISUAL/UI_STRUCTURE/UI_TECH/UI_READABILITY routes"
   carry_forward:
     - "art_direction_id、revision、阶段摘要、已批准选向、研究来源和返工历史。"

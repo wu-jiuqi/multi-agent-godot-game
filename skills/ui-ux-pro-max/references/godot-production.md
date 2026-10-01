@@ -1,5 +1,12 @@
 # Godot UI production reference
 
+If the visual system is being made in Codex through Figma, complete
+[figma-handoff.md](figma-handoff.md) first. That handoff resolves product inputs, identity,
+visual direction, and UX ownership before Godot receives a screen or component mapping.
+This reference governs the engine implementation after that handoff. A Figma-only request
+stops at Figma structural/visual acceptance and does not require this reference's ten-part
+Godot output, scenes, target build, or runtime acceptance evidence.
+
 This reference is the Godot-specific execution contract for `ui-ux-pro-max`. It applies
 when the target project is Godot and complements the project's own contracts, scene rules,
 and approval records. It keeps a UI useful to players, replaceable by another artist, and

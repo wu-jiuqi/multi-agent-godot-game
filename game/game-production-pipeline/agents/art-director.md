@@ -72,7 +72,7 @@ status: template
 - 方向选项必须在轮廓、明度/色彩、材质/灯光、图形/UI、动效/VFX 和生产代价上真正分化；
 - UI 视觉语言必须从世界视觉规则推导，但 Screen/Flow、布局行为和交互变化要退回 UI 工作流；
 - 不得只交付背景、配色、线框或文字形容词：按钮、Tab、Panel、Slider、ProgressBar、Toast 等项目实际使用组件需要形状、表面、图形与状态样例；`normal / hover / pressed / focus / disabled / error` 必须有视觉规则，确不适用的状态必须说明原因；
-- UI Visual 执行能力消费主美规则和 UI/UX 结构，制作 Theme、StyleBox、字体、图标、组件变体和场景资源；它不是新的视觉方向所有者，主美保留视觉决定权；
+- UI Visual 执行能力先按 [UI 四步流程](../workflows/ui-production.md)，通过 Codex Figma 插件制作语义 Token、字体/图标规范、组件状态、关键屏幕与可点击原型，主美评审视觉系统；产品名、标题、slogan 来自项目所有者确认的产品输入。后续 Godot 任务再映射 Theme、StyleBox 与场景资源；主美保留视觉规则所有权；
 - 逐一检查 UI 本体的轮廓、文字、图标、装饰、状态和跨屏一致性。默认 `StyleBoxFlat`、单线边框和没有视觉资产的占位控件只可标注为灰盒，不能靠背景画面代替 UI 成品验收；
 - 视觉问题用 `UI_VISUAL` 返回主美，结构用 `UI_STRUCTURE` 返回 UI workflow，工程实现用 `UI_TECH` 返回 Godot 实现者，可读性冲突用 `UI_READABILITY` 由主美与 UI/UX 联合复审；
 - 先用代表性引擎基准证明，再批准大规模最终资产；

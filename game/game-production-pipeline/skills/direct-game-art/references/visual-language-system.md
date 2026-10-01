@@ -43,6 +43,8 @@ When UI is a required domain, record this visual language in a separate `game-pr
 
 ## Research basis
 
+For UI design, follow the [Codex Figma workflow](../../../workflows/ui-production.md). The visual-system prototype is authored in Figma after product identity, overall style and UX are resolved. Save file/node links and local snapshots of tokens, component states, key screens and interaction evidence. Theme/resource mappings and target-build captures belong to the later engine stage; Figma-only design can be accepted independently.
+
 - GDC, *Art Direction for AAA UI*: build a coherent UI art concept from shape language, textures, signature elements, composition, and static/motion/interactive mockups. https://gdcvault.com/play/1025498/Art-Direction-for-AAA
 - GDC, *Graphic Design is Key*: typography, iconography, logo, color, graphic elements, key art, motion, and menus form one visual signature. https://www.gdcvault.com/play/1023276/Art-Direction-Graphic-Design-is
 - GDC, *Art Directing VFX for Stylized Games*: translate the project art direction into explicit VFX pillars instead of allowing effects to become a separate visual style. https://www.gdcvault.com/play/1023999/Art-Directing-VFX-for-Stylized

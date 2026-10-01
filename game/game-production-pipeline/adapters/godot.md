@@ -41,11 +41,11 @@
 
 ## UI 双契约交接
 
-实施顺序是“主美方向 → UI Visual Contract → UI 视觉资源 → Godot 实现 → 主美视觉验收”，具体工作流见 [`../workflows/ui-visual-handoff.md`](../workflows/ui-visual-handoff.md)。不新增视觉方向所有者。
+实施顺序是“brief/PRD/GDD 与标题/slogan → 确认产品名和整体视觉风格 → 复用或补齐 UX → Codex Figma 视觉系统原型 → Godot 实现与运行验收”，具体工作流见 [`../workflows/ui-visual-handoff.md`](../workflows/ui-visual-handoff.md)。前四步可独立完成，不要求先有 Godot 工程；本适配层只负责后续引擎实现。
 
 - UI 工作流同时消费已批准的 UI Screen/Flow Contract 与 UI Visual Contract；缺少任一输入，正式 UI 实现不得开始，只能记录为灰盒。
 - UI/UX 固定信息架构、Screen/Flow、布局行为、响应式/安全区、焦点导航和交互逻辑；主美提供形状、组件轮廓、材质表面、色彩/语义 Token、字体、图标、装饰、状态和动效规则，以及关键屏幕 Style Frame 与正反例。
-- UI Visual 执行能力把两者映射为可编辑的 `.tres` Theme/StyleBox、字体/图标文件和序列化组件变体，记录组件 ID、状态、Theme type variation、资源路径和引用摘要。Godot 实现者负责绑定、运行与技术修复。
+- Godot 实现者消费已评审的 Figma Token、组件、屏幕与交互规格，映射为可编辑的 `.tres` Theme/StyleBox、字体/图标文件和序列化组件变体。记录 `screen_id/component_id → Figma node ID → .tscn/.tres`，保留源文件链接和本地快照摘要；Figma 原型通过不能替代运行、输入和技术检查。
 - 不得仅根据线框或文字描述实现最终 UI。默认 `StyleBoxFlat`、单线边框及无视觉资产的占位控件只可作为灰盒；允许经主美具体设计并评审的 StyleBox 作为整体方案的一部分，禁止用默认控件冒充视觉交付。
 - 固定结构必须保存到 `.tscn` / `.tres`，状态脚本只切换已声明的资源、属性与动画；不能动态重建整套 UI。视觉变化不得破坏已有信息层级、可读性或交互。
 - D3 的目标分辨率截图/视频必须覆盖关键屏幕和主要状态，并由主美评审 UI 本体的组件形状、文字、图标、装饰和状态。只有背景符合风格不算通过。自动化只能检查引用、摘要、结构和证据存在性，不评价审美质量。

@@ -57,6 +57,8 @@ P0～P9 是生产阶段，不默认等于十个 Agent。只有同时满足以下
 
 详细边界见 `agents/`。
 
+UI 默认采用 [Codex Figma 四步工作流](workflows/ui-production.md)：文档与标题/slogan → 产品名与视觉方向 → 复用或补齐 UX → Figma 视觉系统原型。项目经理整理命名和来源，项目所有者保留产品身份与核心风格决定，主美负责视觉规则，UI/UX 拥有流程，UI 生产执行者调用 Figma 插件。四步是任务分工，不自动新增四个岗位。Figma 设计验收与 Godot 运行验收分开；只有后续引擎任务才要求 `.tscn`/`.tres` 和目标构建证据。
+
 可选专项模板 [游戏机制与玩法策划 Agent](agents/gameplay-designer.md) 负责被委派机制的方案比较、规则规格、数值假设与原型验证设计。`AGT-GD` 保留 P0/P1 整体一致性和系统目录责任，具体机制事实源只设一个写入 owner。小项目可兼任，独立岗位需按项目编制批准；机器 Pipeline Contract 使用已有 `SPECIALIST` 槽位，不新增默认 Agent 枚举。方法、模板与交接见 [玩法策划工作流](workflows/gameplay-design.md)。
 
 ## 项目专属编制规则

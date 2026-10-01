@@ -73,7 +73,7 @@ class Alpha5ToAlpha6MigrationTests(unittest.TestCase):
         plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
         self.assertEqual("migration_ready", plan["outcome"], plan)
         self.assertEqual(ALPHA5_VERSION, plan["from_version"])
-        self.assertEqual("0.5.0-alpha.10", plan["to_version"])
+        self.assertEqual("0.5.0-alpha.11", plan["to_version"])
         self.assertEqual(
             ["AGENTS.md", "game-pipeline/plugin-lock.yaml"],
             [item["path"] for item in plan["actions"]],
@@ -104,7 +104,7 @@ class Alpha5ToAlpha6MigrationTests(unittest.TestCase):
         self.assertEqual("no_change", result["idempotent_outcome"])
         self.assertEqual("no_change", planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)["outcome"])
         lock = load_yaml(self.project_root / "game-pipeline" / "plugin-lock.yaml")
-        self.assertEqual("0.5.0-alpha.10", lock["plugin_lock"]["plugin_version"])
+        self.assertEqual("0.5.0-alpha.11", lock["plugin_lock"]["plugin_version"])
         self.assertEqual(framework_digest(PLUGIN_ROOT), lock["plugin_lock"]["framework_digest"])
 
 

@@ -2,28 +2,28 @@
 
 `game-production-ui-visual/v1` 是主美 UI 视觉身份的可追溯控制面。它和 UI Screen/Flow Contract 分离：前者定义视觉表达，后者定义信息架构、屏幕流程、布局行为、响应式/安全区、焦点和交互事实。UI workflow 必须同时绑定两份 Contract；缺少任一份只能做灰盒，不能进入完成验收。
 
-## 从产品输入到 Figma 原型
+## 从产品输入到 Penpot 原型
 
-UI Visual Contract 还记录产品输入到视觉系统原型的四段交付链。`workflow.stage_order` 固定为 `input_intake` → `product_identity_and_visual_direction` → `ux_flow` → `figma_visual_system`。当 `identity.lifecycle_state=production_ready` 时，四个 `workflow.stages.*.status` 必须为 `complete`；任一阶段没有输入、决定或交付记录只能停留在草稿/灰盒阶段。
+UI Visual Contract 还记录产品输入到视觉系统原型的四段交付链。`workflow.stage_order` 固定为 `input_intake` → `product_identity_and_visual_direction` → `ux_flow` → `penpot_visual_system`。当 `identity.lifecycle_state=production_ready` 时，四个 `workflow.stages.*.status` 必须为 `complete`；任一阶段没有输入、决定或交付记录只能停留在草稿/灰盒阶段。
 
 1. `source_document_refs` 保存实际读取的 brief、PRD、GDD 或其他产品文档。每项需要 `document_kind`、标题、URI、SHA-256、内容摘要和用途；至少一份可用的 brief、PRD 或 GDD 即可，不要求同时提供三类文档。
 2. `product_identity` 冻结稳定 `product_name`、玩家可见 `product_title`、`slogan` 和决定引用。`visual_direction.style_requirements` 记录整体视觉风格、语气和玩家感受，并绑定独立的方向决定引用。
 3. `ux_flow.resolution` 必须说明流程来自 `inherited_from_prd` 还是 `derived_from_inputs`。如果 PRD 已包含 UX 流程，设置 `authoring_skipped=true` 并填写 `skip_reason`，沿用同一 `screen_flow_ref`，不得再创建第二份竞争流程；如果没有，则绑定 UX 决策引用和推导所依据的输入。
-4. `figma_prototype` 必须声明 `provider=figma`、`integration=codex_figma_plugin`，并绑定 Figma 文件、原型链接、版本、关键屏幕 Frame、设计系统引用和交接证据。`handoff_status=implementation_ready` 才能进入 Godot 实现；仅有截图或没有文件/节点映射的视觉稿属于 `review_pending`。
+4. `penpot_prototype` 必须声明 `provider=penpot`、`integration=penpot_mcp`，并绑定 Penpot 文件、原型链接、版本、关键屏幕 Frame、设计系统引用和交接证据。`handoff_status=implementation_ready` 才能进入 Godot 实现；仅有截图或没有文件/节点映射的视觉稿属于 `review_pending`。
 
-`file_url`、`prototype_url`、`screen_refs[].frame_url` 和 `design_system_url` 保存 Figma 云端位置；必须绑定同一 `file_key`，Frame URL 的 `node-id` 必须匹配 `frame_node_id`。`file_ref`、`design_system_ref` 及其他交接证据的 `uri` 指向 `repo://` 本地快照，其 SHA-256 对应实际文件字节。不得对 Figma URL 字符串计算摘要冒充设计快照。
+`file_url`、`prototype_url`、`screen_refs[].frame_url` 和 `design_system_url` 保存 Penpot 云端位置；交接记录必须绑定同一 `file_id`，并为每个屏幕记录 `page_id` 与 `shape_id`。Penpot URL 只做 provenance，不假设具体页面或形状 URL 格式。`file_ref`、`design_system_ref` 及其他交接证据的 `uri` 指向 `repo://` 本地快照，其 SHA-256 对应实际文件字节。不得对远程 URL 字符串计算摘要冒充设计快照。
 
-这些阶段字段参与 `ui_visual_digest`。产品名、slogan、视觉方向、UX 来源或 Figma 文件/节点变化会使已有 benchmark capture 和主美评审过期，必须重新捕获和复审。机器检查输入与 UX 来源、阶段顺序、文件/节点绑定、本地摘要和证据覆盖；视觉质量与远程文件实际可访问性仍由设计评审确认。
+这些阶段字段参与 `ui_visual_digest`。产品名、slogan、视觉方向、UX 来源或 Penpot 文件/页面/形状变化会使已有 benchmark capture 和主美评审过期，必须重新捕获和复审。机器检查输入与 UX 来源、阶段顺序、文件/页面/形状绑定、本地摘要和证据覆盖；视觉质量与远程文件实际可访问性仍由设计评审确认。
 
-## 独立 Figma 交接就绪检查
+## 独立 Penpot 交接就绪检查
 
 ```powershell
-python scripts/validate_art_direction_contract.py <ui-contract.yaml> --ui-figma-only --project-root <project>
+python scripts/validate_art_direction_contract.py <ui-contract.yaml> --ui-penpot-only --project-root <project>
 ```
 
-此命令检查完整交接是否已就绪，不是未完成草稿的合法性检查。草稿可保留 `pending` 阶段、空 Figma 交付字段以及未决问题；无需预先创建未来文件，但不能通过完整交接检查。四阶段全部 `complete`、`handoff_status=implementation_ready`、来源/决定/UX/关键屏幕/设计系统/评审证据齐全才返回 `figma_ready=true`。Figma-only 检查不需要 Godot Theme、`.tscn`、目标构建、运行时截图或 D3/D4；它不会宣布引擎实现完成。
+此命令检查完整交接是否已就绪，不是未完成草稿的合法性检查。草稿可保留 `pending` 阶段、空 Penpot 交付字段以及未决问题；无需预先创建未来文件，但不能通过完整交接检查。四阶段全部 `complete`、`handoff_status=implementation_ready`、来源/决定/UX/关键屏幕/设计系统/评审证据齐全才返回 `penpot_ready=true`。Penpot-only 检查不需要 Godot Theme、`.tscn`、目标构建、运行时截图或 D3/D4；它不会宣布引擎实现完成。旧项目仍可使用兼容别名 `--ui-figma-only`。
 
-未采用任何四阶段扩展字段的旧 v1 文档返回 `legacy_not_evaluated`、`figma_ready=false`，CLI 返回非零；完整 UI 验证会单独显示此结果，兼容旧数据不等于 Figma 通过。只要出现任一扩展字段，就必须完整检查，不能删除部分字段绕过前序阶段、UX 来源或 Figma 证据要求。提供 `--project-root` 会检查所有交接本地引用的真实 SHA-256；省略时仅检查结构并明确报告文件未核验。
+未采用任何四阶段扩展字段的旧 v1 文档返回 `legacy_not_evaluated`、`penpot_ready=false`，CLI 返回非零；完整 UI 验证会单独显示此结果，兼容旧数据不等于 Penpot 通过。只要出现任一扩展字段，就必须完整检查，不能删除部分字段绕过前序阶段、UX 来源或 Penpot 证据要求。提供 `--project-root` 会检查所有交接本地引用的真实 SHA-256；省略时仅检查结构并明确报告文件未核验。
 
 ## 主美交付范围
 
@@ -67,3 +67,4 @@ D4 在同一 UI visual/benchmark digest 上冻结主美评审、UI/UX 评审、G
 | `UI_READABILITY` | 主美 + UI/UX 联合复审 | 层级、对比度、状态冗余或本地化导致信息不可读 |
 
 默认 `StyleBoxFlat`、单线边框和无视觉资产的占位控件只能作为灰盒证据，不是 UI 成品。经主美规则具体设计并有资源映射的 StyleBox 可以作为完整方案的一部分。
+旧版 Figma 文档兼容：保留 `figma_prototype`、`figma_visual_system` 与 `--ui-figma-only` 别名；新文档 canonical 使用 Penpot 字段。Penpot URL 只接受官方 `https://design.penpot.app` 或安全 HTTPS 自托管域名，并要求非空 `file_id`、`page_id`、`shape_id` 稳定标识，不假定具体节点 URL 格式。

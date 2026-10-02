@@ -42,18 +42,18 @@ def document_ref(kind: str, slug: str) -> dict[str, object]:
 
 
 class UIVisualContractTests(unittest.TestCase):
-    def test_template_declares_four_stage_product_to_figma_handoff(self) -> None:
+    def test_template_declares_four_stage_product_to_penpot_handoff(self) -> None:
         template = load_yaml(PLUGIN_ROOT / "contracts" / "ui-visual-contract.template.yaml")
         contract = template["ui_visual_contract"]
         self.assertEqual(
-            ["input_intake", "product_identity_and_visual_direction", "ux_flow", "figma_visual_system"],
+            ["input_intake", "product_identity_and_visual_direction", "ux_flow", "penpot_visual_system"],
             contract["workflow"]["stage_order"],
         )
-        for field in ("source_document_refs", "product_identity", "visual_direction", "ux_flow", "figma_prototype"):
+        for field in ("source_document_refs", "product_identity", "visual_direction", "ux_flow", "penpot_prototype"):
             with self.subTest(field=field):
                 self.assertIn(field, contract)
-        self.assertEqual("figma", contract["figma_prototype"]["provider"])
-        self.assertEqual("codex_figma_plugin", contract["figma_prototype"]["integration"])
+        self.assertEqual("penpot", contract["penpot_prototype"]["provider"])
+        self.assertEqual("penpot_mcp", contract["penpot_prototype"]["integration"])
 
     def make_document(self) -> dict[str, object]:
         states = {
@@ -164,6 +164,67 @@ class UIVisualContractTests(unittest.TestCase):
         contract["visual_review"]["subject_digest"] = digest
         contract["benchmark_capture_refs"][0]["ui_visual_digest"] = digest
         return document
+
+    def make_penpot_document(self) -> dict[str, object]:
+        """Convert the complete legacy fixture into the canonical Penpot shape."""
+        document = self.make_document()
+        contract = document["ui_visual_contract"]
+        legacy = contract.pop("figma_prototype")
+        contract["workflow"]["stage_order"][-1] = "penpot_visual_system"
+        contract["workflow"]["current_stage"] = "penpot_visual_system"
+        contract["workflow"]["stages"]["penpot_visual_system"] = contract["workflow"]["stages"].pop("figma_visual_system")
+        contract["penpot_prototype"] = {
+            "provider": "penpot",
+            "integration": "penpot_mcp",
+            "file_ref": {**legacy["file_ref"], "artifact_id": "penpot-file:demo:1", "uri": "repo://ui/penpot/demo-file.json"},
+            "file_id": "demo-file",
+            "page_id": "demo-page",
+            "file_url": "https://design.penpot.app/#/workspace/demo/project/demo/file/demo-file",
+            "prototype_url": "https://design.penpot.app/#/view/demo-file?page-id=demo-page",
+            "version": "1.0",
+            "screen_refs": [{
+                "screen_id": "main",
+                "page_id": "demo-page",
+                "shape_id": "main-shape",
+                "frame_url": "https://design.penpot.app/#/view/demo-file?page-id=demo-page&shape-id=main-shape",
+            }],
+            "design_system_ref": {**legacy["design_system_ref"], "artifact_id": "penpot-design-system:demo:1", "uri": "repo://ui/penpot/demo-design-system.json"},
+            "design_system_url": "https://design.penpot.app/#/view/demo-file?page-id=demo-page",
+            "handoff_status": "implementation_ready",
+            "handoff_evidence_refs": [{**artifact("penpot-handoff")}],
+            "review_evidence_refs": [{**artifact("penpot-review")}],
+        }
+        digest = validator.ui_visual_digests(document)["ui_visual_digest"]
+        contract["integrity"]["ui_visual_digest"] = digest
+        contract["visual_review"]["subject_digest"] = digest
+        contract["benchmark_capture_refs"][0]["ui_visual_digest"] = digest
+        return document
+
+    def test_penpot_handoff_is_ready_and_checks_stable_ids(self) -> None:
+        document = self.make_penpot_document()
+        result = validator.validate_ui_figma_handoff(document)
+        self.assertEqual("valid", result["state"], result)
+        self.assertTrue(result["penpot_ready"])
+        full_result = validator.validate_ui_visual_contract(document)
+        self.assertEqual("valid", full_result["state"], full_result)
+        self.assertEqual("valid", full_result["penpot_handoff"]["state"])
+        document["ui_visual_contract"]["penpot_prototype"]["screen_refs"][0]["shape_id"] = ""
+        invalid = validator.validate_ui_figma_handoff(document)
+        self.assertIn("shape_id", "\n".join(invalid["errors"]))
+
+    def test_penpot_only_cli_accepts_canonical_contract(self) -> None:
+        document = self.make_penpot_document()
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "penpot.yaml"
+            path.write_text(yaml.safe_dump(document, sort_keys=False), encoding="utf-8")
+            completed = subprocess.run(
+                [sys.executable, str(SCRIPTS / "validate_art_direction_contract.py"), str(path), "--ui-penpot-only"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, completed.returncode, completed.stderr)
+            self.assertTrue(json.loads(completed.stdout)["penpot_ready"])
 
     def materialize_repo_refs(self, document: dict[str, object], root: Path) -> None:
         def visit(value: object) -> None:

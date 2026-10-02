@@ -27,13 +27,13 @@ ui_visual_contract:
   # Intake-to-prototype workflow owned by the UI product/design handoff. The
   # four stages are ordered and must be complete before lifecycle_state reaches
   # production_ready. These records stay inside the visual subject digest so a
-  # changed product decision or Figma handoff invalidates stale captures.
+  # changed product decision or Penpot handoff invalidates stale captures.
   workflow:
     stage_order:
       - input_intake
       - product_identity_and_visual_direction
       - ux_flow
-      - figma_visual_system
+      - penpot_visual_system
     current_stage: input_intake
     stages:
       input_intake:
@@ -42,7 +42,7 @@ ui_visual_contract:
         status: pending|complete
       ux_flow:
         status: pending|complete
-      figma_visual_system:
+      penpot_visual_system:
         status: pending|complete
 
   # Step 1: retain the brief/PRD/GDD inputs used to make the product decision.
@@ -58,7 +58,7 @@ ui_visual_contract:
       role: product-goal|requirements|game-design|constraint
 
   # Step 2: name the product and freeze the player-facing title/slogan and
-  # overall visual requirements before any Figma screen is authored.
+  # overall visual requirements before any Penpot screen is authored.
   product_identity:
     product_name: <stable product name>
     product_title: <player-facing product title>
@@ -95,37 +95,38 @@ ui_visual_contract:
     skip_reason: <required when resolution=inherited_from_prd and authoring_skipped=true>
     unresolved_questions: []
 
-  # Step 4: the visual system prototype is created through the Codex Figma
-  # plugin. A prototype is not implementation-ready until its file, prototype
+  # Step 4: the visual system prototype is created through the Codex Penpot
+  # MCP server. A prototype is not implementation-ready until its file, prototype
   # link, screens, design-system handoff and review evidence are all bound.
-  figma_prototype:
-    provider: figma
-    integration: codex_figma_plugin
+  penpot_prototype:
+    provider: penpot
+    integration: penpot_mcp
     file_ref:
-      artifact_id: figma-file:<project>:<revision>
+      artifact_id: penpot-file:<project>:<revision>
       version: 1
-      # Hash the actual local snapshot bytes, never the cloud URL string.
-      uri: repo://game-pipeline/ui/visual/figma/<file-snapshot>.json
+      uri: repo://game-pipeline/ui/visual/penpot/<file-snapshot>.json
       sha256: <64-lowercase-hex>
-    file_key: <figma-file-key>
-    file_url: https://www.figma.com/file/<file-key>/<file-name>
-    prototype_url: https://www.figma.com/proto/<file-key>/<prototype-name>
-    version: <figma-version-or-revision>
+    file_id: <penpot-file-id>
+    page_id: <penpot-page-id>
+    file_url: https://design.penpot.app/#/workspace/<workspace-id>/project/<project-id>/file/<file-id>
+    prototype_url: https://design.penpot.app/#/view/<file-id>?page-id=<page-id>
+    version: <penpot-version-or-revision>
     screen_refs:
       - screen_id: <screen-id>
-        frame_node_id: <figma-node-id>
-        frame_url: https://www.figma.com/design/<file-key>?node-id=<node-id>
+        page_id: <penpot-page-id>
+        shape_id: <penpot-shape-id>
+        frame_url: https://design.penpot.app/#/view/<file-id>?page-id=<page-id>&shape-id=<shape-id>
     design_system_ref:
-      artifact_id: figma-design-system:<project>:<revision>
+      artifact_id: penpot-design-system:<project>:<revision>
       version: 1
-      uri: repo://game-pipeline/ui/visual/figma/<design-system-snapshot>.json
+      uri: repo://game-pipeline/ui/visual/penpot/<design-system-snapshot>.json
       sha256: <64-lowercase-hex>
-    design_system_url: https://www.figma.com/design/<file-key>?node-id=<design-system-node-id>
+    design_system_url: https://design.penpot.app/#/view/<file-id>?page-id=<page-id>
     handoff_status: draft|review_pending|implementation_ready
     handoff_evidence_refs:
-      - artifact_id: figma-handoff:<project>:<revision>
+      - artifact_id: penpot-handoff:<project>:<revision>
         version: 1
-        uri: repo://game-pipeline/ui/visual/figma/<handoff>.yaml
+        uri: repo://game-pipeline/ui/visual/penpot/<handoff>.yaml
         sha256: <64-lowercase-hex>
     review_evidence_refs: []
 

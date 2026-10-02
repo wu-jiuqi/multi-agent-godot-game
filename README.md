@@ -6,7 +6,7 @@
 
 当前版本为 `v0.5.0-alpha.11`：共同立项后在已批准边界内自主制作，新增执行计划、工具来源绑定、持久化证据、自修复与独立审核；仍是 Alpha，尚需真实项目验证。
 
-本版纳入 **Codex Figma UI 四步流程**：读取 brief/PRD/GDD 并提取标题与 slogan → 确认产品名及整体视觉风格 → 复用 PRD 已有 UX 或补齐缺口 → 通过 Codex Figma 插件制作视觉系统和页面原型。入口见 [UI 生产工作流](game/game-production-pipeline/workflows/ui-production.md)。Figma 设计可独立交付，Godot 场景实现是后续任务；实施与验证说明见 [Figma UI 管线变更](docs/changes/2026-10-01-figma-ui-pipeline.md)。
+本版 UI 管线改为 **Penpot-first 四步流程**：读取 brief/PRD/GDD 并提取标题与 slogan → 确认产品名及整体视觉风格 → 复用 PRD 已有 UX 或补齐缺口 → 通过 Penpot MCP 制作视觉系统和页面原型。入口见 [UI 生产工作流](game/game-production-pipeline/workflows/ui-production.md)。Penpot 设计可独立交付，Godot 场景实现是后续任务；实施与验证说明见 [Penpot UI 管线迁移](docs/changes/2026-10-01-penpot-ui-pipeline.md)。旧 Figma 合约保留兼容读取。
 
 ## 目录
 

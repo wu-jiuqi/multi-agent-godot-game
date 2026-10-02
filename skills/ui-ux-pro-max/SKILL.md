@@ -20,19 +20,18 @@ Ask only when a missing decision materially changes the product direction, workf
 | New page in an existing product | Reuse its navigation, components, and tokens; define missing states and local additions. | [UX workflow](references/ux-workflow.md); [search guide](references/search-guide.md) only for gaps |
 | New product or requested redesign | Establish the main flow and a coherent visual direction; produce the requested design or implementation and validate it. | [UX workflow](references/ux-workflow.md), [search guide](references/search-guide.md), [acceptance](references/acceptance.md) |
 
-## Codex Figma mode
+## Codex Penpot mode
 
-When the requested deliverable is a Figma visual system, prototype, component, or token
-library, use the [Codex Figma handoff reference](references/figma-handoff.md) as the
-entry point. Load `figma-use` before every `use_figma` call; load
-`figma-create-new-file` before `create_new_file`, `figma-generate-design` for a full
-page, and `figma-generate-library` for components, tokens, or libraries. Inspect an
-existing file before editing, or resolve the host plan/editor type before creating a new
-file. Keep the returned file key, node IDs, screenshots, and local evidence snapshots.
+When the requested deliverable is a Penpot visual system, prototype, component, or token
+library, use the [Codex Penpot handoff reference](references/penpot-handoff.md) as the
+entry point. The repository does not ship a Penpot client skill or assume a connected
+host; configure the official Penpot MCP server in the Codex host first. Start with a
+read-only inspection of the focused Penpot page, then make small writes and keep the
+returned file/page/shape IDs, screenshots, and local evidence snapshots.
 
-Figma-only work ends with Figma structural/visual review and does not require Godot
+Penpot-only work ends with Penpot structural/visual review and does not require Godot
 scenes, the ten-part Godot handoff, target builds, or runtime acceptance rows. When Godot
-implementation is also requested, complete the Figma handoff before applying the Godot
+implementation is also requested, complete the Penpot handoff before applying the Godot
 production mode below.
 
 ## Godot production mode
@@ -42,11 +41,11 @@ When the target stack is Godot, keep the general UI/UX guidance above and also a
 recommendation into an auditable Godot handoff; it does not replace the project's own
 contracts or approve a visual direction.
 
-When the visual system is produced in Codex through the Figma plugin, follow the
-[Codex Figma handoff reference](references/figma-handoff.md) before Godot implementation.
-It fixes the product-input → identity/visual-direction → UX-flow → Figma-prototype order,
-binds `tool:figma-codex-plugin` to the approved UI Agent Preset, and keeps the Figma source
-traceable to `figma_prototype` fields. Figma is a visual-system source; fixed Godot UI trees
+When the visual system is produced in Codex through the Penpot MCP server, follow the
+[Codex Penpot handoff reference](references/penpot-handoff.md) before Godot implementation.
+It fixes the product-input → identity/visual-direction → UX-flow → Penpot-prototype order,
+binds `tool:penpot-mcp` to the approved UI Agent Preset, and keeps the Penpot source
+traceable to `penpot_prototype` fields. Penpot is a visual-system source; fixed Godot UI trees
 remain editor-authored and serialized.
 
 - Select exactly one task level: `prototype`, `greybox`, `style-pass`, or `final`. A small,
@@ -158,4 +157,8 @@ Match the requested deliverable and keep the response proportional:
 - **Design:** main flow, visual/component decisions and applicable states, rationale and assumptions, how implementation will be accepted.
 - **Review:** prioritize task blockers and accessibility failures before secondary friction and cosmetic consistency. For each material finding give location/state, reproduction or observed evidence, user impact, proposed fix, and a recheck criterion. Distinguish observed defects from hypotheses.
 
-User judgment is needed for unresolved product goals, conflicting requirements, or consequential tradeoffs; routine reversible improvements within the brief should proceed. When another installed skill is needed for browser operation, Figma, or asset generation, use that capability for the actual task without automatically starting a second full design workflow.
+User judgment is needed for unresolved product goals, conflicting requirements, or consequential tradeoffs; routine reversible improvements within the brief should proceed. When another installed skill is needed for browser operation, Penpot, or asset generation, use that capability for the actual task without automatically starting a second full design workflow.
+
+## Legacy Figma compatibility
+
+Existing Figma contracts may remain during migration; use [the legacy mapping](references/figma-handoff.md) and do not treat Figma as the default host. New work uses `penpot_prototype`, `provider: penpot`, `integration: penpot_mcp`, and `tool:penpot-mcp`.

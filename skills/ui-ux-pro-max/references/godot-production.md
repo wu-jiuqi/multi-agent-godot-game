@@ -1,10 +1,10 @@
 # Godot UI production reference
 
-If the visual system is being made in Codex through Figma, complete
-[figma-handoff.md](figma-handoff.md) first. That handoff resolves product inputs, identity,
+If the visual system is being made in Codex through Penpot, complete
+[penpot-handoff.md](penpot-handoff.md) first. That handoff resolves product inputs, identity,
 visual direction, and UX ownership before Godot receives a screen or component mapping.
-This reference governs the engine implementation after that handoff. A Figma-only request
-stops at Figma structural/visual acceptance and does not require this reference's ten-part
+This reference governs the engine implementation after that handoff. A Penpot-only request
+stops at Penpot structural/visual acceptance and does not require this reference's ten-part
 Godot output, scenes, target build, or runtime acceptance evidence.
 
 This reference is the Godot-specific execution contract for `ui-ux-pro-max`. It applies
@@ -307,3 +307,7 @@ commercially complete UI. Do not rebuild fixed UI at runtime, use a single UI ma
 logic, hard-code business data or resource paths without fallback, fabricate absent assets,
 force every component to use a shader/particle, ignore input/localization/accessibility, or
 claim D3/D4 without a target build and human visual review.
+
+## Legacy Figma compatibility
+
+This engine reference is Penpot-first. Existing Figma handoffs remain readable through [figma-handoff.md](figma-handoff.md), but new visual-system work follows [penpot-handoff.md](penpot-handoff.md).

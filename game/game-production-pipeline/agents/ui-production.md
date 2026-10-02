@@ -1,33 +1,33 @@
 ---
 id: AGT-UI-PRODUCTION-TEMPLATE
-name: Figma UI 设计与生产 Agent
+name: Penpot UI 设计与生产 Agent
 version: 0.2.0
 status: draft
 ---
 
-# Figma UI 设计与生产 Agent
+# Penpot UI 设计与生产 Agent
 
 ## 定位与使命
 
-从产品文档、命名和视觉要求出发，协调已有角色完成四步 UI 流程，通过 Codex Figma 插件交付可编辑视觉系统和原型；
+从产品文档、命名和视觉要求出发，协调已有角色完成四步 UI 流程，通过 Penpot MCP 交付可编辑视觉系统和原型；
 任务包含 Godot 实施时，再交付可运行且有证据的场景与资源。此文件是可复用角色模板，不会自动注册持久 Agent；
 需要项目岗位时仍通过已批准的 Position、Preset、Skill Binding 和现有生成器实例化。
 
-## Figma 设计模式（默认入口）
+## Penpot 设计模式（默认入口）
 
-读取 [UI 工作流阶段 A](../workflows/ui-production.md) 和 [Figma handoff](../../../skills/ui-ux-pro-max/references/figma-handoff.md)，按下列顺序执行：
+读取 [UI 工作流阶段 A](../workflows/ui-production.md) 和 [Penpot handoff](../../../skills/ui-ux-pro-max/references/penpot-handoff.md)，按下列顺序执行：
 
 1. 获取已有 brief、PRD、GDD 中足以描述产品的一份或多份资料，提取产品标题和 slogan；缺失时提出候选与依据，不冒充已确认文案。
 2. 由项目经理整理并让所有者确认产品名、标题、slogan，由主美细化整体视觉风格；既有确认直接沿用，常规细节由执行者完成。
 3. PRD 已有完整 UX 时引用原章节、ID 和摘要并跳过重建；部分缺失只补缺口。UI/UX 拥有 Screen/Flow、异常恢复、导航、状态和可访问性事实。
-4. 读取宿主可用的官方 Figma 技能，通过 Codex Figma 插件制作变量/样式、组件状态、关键页面和可点击原型；检查节点结构、截图与交互路径，再交主美和 UI/UX 评审。
+4. 读取宿主可用的官方 Penpot MCP 能力，通过 Penpot MCP 制作变量/样式、组件状态、关键页面和可点击原型；检查节点结构、截图与交互路径，再交主美和 UI/UX 评审。
 
-输入为来源文档、产品决定、目标平台/尺寸、已有设计系统和 Figma 文件（如有）。不要求 `project.godot`、Theme 或目标构建。
-输出为来源/决定引用、UX 复用或补齐记录、Figma 文件及节点映射、原型链接、设计系统、本地快照和评审证据；对应 UI Visual Contract 的 `workflow`、`source_document_refs`、`product_identity`、`visual_direction`、`ux_flow`、`figma_prototype`。
+输入为来源文档、产品决定、目标平台/尺寸、已有设计系统和 Penpot 文件（如有）。不要求 `project.godot`、Theme 或目标构建。
+输出为来源/决定引用、UX 复用或补齐记录、Penpot 文件及节点映射、原型链接、设计系统、本地快照和评审证据；对应 UI Visual Contract 的 `workflow`、`source_document_refs`、`product_identity`、`visual_direction`、`ux_flow`、`penpot_prototype`。
 
-本模式拥有授权 Figma 页面、组件与交接快照；不拥有命名决定、核心画风或 UX 事实。上游 Contract 由原 owner 更新，Agent 提交变更建议及产物引用。状态为 `draft / review_pending / implementation_ready`，工具不可用则报告阻塞 owner 与恢复动作，保留草案，不生成虚构文件链接。`implementation_ready` 只证明设计可交接，不能宣称 Godot 或 D3/D4 完成。
+本模式拥有授权 Penpot 页面、组件与交接快照；不拥有命名决定、核心画风或 UX 事实。上游 Contract 由原 owner 更新，Agent 提交变更建议及产物引用。状态为 `draft / review_pending / implementation_ready`，工具不可用则报告阻塞 owner 与恢复动作，保留草案，不生成虚构文件链接。`implementation_ready` 只证明设计可交接，不能宣称 Godot 或 D3/D4 完成。
 
-通过条件是四步产物齐全、引用及本地快照可复查、主要流程走查和设计评审完成。失败按 `UI_VISUAL / UI_STRUCTURE / UI_READABILITY` 返回上游；Figma 访问/调用故障返回工具负责人。若只要求 Figma 原型，到此交付；以下规则仅在任务包含 Godot 实施时应用。
+通过条件是四步产物齐全、引用及本地快照可复查、主要流程走查和设计评审完成。失败按 `UI_VISUAL / UI_STRUCTURE / UI_READABILITY` 返回上游；Penpot 访问/调用故障返回工具负责人。若只要求 Penpot 原型，到此交付；以下规则仅在任务包含 Godot 实施时应用。
 
 ## Godot 实施：任务级别
 

@@ -2,9 +2,9 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.5.0-alpha.11`。在 alpha.10 的 UI Visual Contract、UI 视觉资源映射、D3/D4 UI 视觉验收和明确返工路由之上，加入 Codex Figma UI 四步生产流程、独立 Figma 交接契约和 alpha.10 受摘要保护迁移；仍是 Alpha，角色行为尚待真实项目验证，不是 Production Ready。
+当前版本：`v0.5.0-alpha.11`。在 alpha.10 的 UI Visual Contract、UI 视觉资源映射、D3/D4 UI 视觉验收和明确返工路由之上，加入 Penpot MCP UI 四步生产流程、独立 Penpot 交接契约和 alpha.10 受摘要保护迁移；仍是 Alpha，角色行为尚待真实项目验证，不是 Production Ready。
 
-UI 默认先在 Codex Figma 中完成产品资料提取、产品身份、UX 流程和视觉系统原型，再按需要进入 Godot 场景实现。Figma-only 交付可通过 `validate_art_direction_contract.py --ui-figma-only` 验证，不要求先创建 Godot 场景或 Theme 资源。
+UI 默认先在 Penpot MCP 中完成产品资料提取、产品身份、UX 流程和视觉系统原型，再按需要进入 Godot 场景实现。Penpot-only 交付可通过 `validate_art_direction_contract.py --ui-penpot-only` 验证，不要求先创建 Godot 场景或 Theme 资源；`--ui-figma-only` 仍是旧项目兼容别名。
 
 ## 层级
 
@@ -216,13 +216,13 @@ python scripts/validate_project_brief.py `
 
 主美可在 D1 先读取机器可读的[画风方向注册表](skills/direct-game-art/style-directions/registry.yaml)，再按 Brief 和注册元数据选择方向模块。目前登记的 [`palette-knife-impasto`](skills/direct-game-art/style-directions/palette-knife-impasto/SKILL.md) 可作为“刮刀厚涂油画”候选方向输入。运行 `python scripts/validate_style_direction_registry.py skills/direct-game-art/style-directions/registry.yaml` 可检查目录、路径和摘要；模块不会自动成为项目画风，也不会跳过联网研究、至少三条方向、D2 人工选向、D3 引擎基准或 D4 生产冻结。《心界》附加规范只在明确处理该项目时加载。方向模块的解释和跨域翻译规则见 [`style-directions.md`](skills/direct-game-art/references/style-directions.md)。
 
-UI 现在按 Figma-first 闭环执行：读取 brief/PRD/GDD，提取并确认产品名、标题和 slogan，冻结整体视觉要求；PRD 已有 UX 时直接引用，否则只补齐缺口；最后通过 Codex Figma 插件制作视觉系统、组件状态、关键屏幕和可点击原型。上述记录进入独立的 [`game-production-ui-visual/v1` UI Visual Contract](contracts/ui-visual-contract.template.yaml)，其中 `figma_prototype` 绑定文件、Frame 节点、设计系统、本地快照摘要和评审证据。Figma 设计阶段不需要 Godot 工程；`implementation_ready` 只表示可交给引擎实现。UI Screen/Flow 仍拥有信息架构、布局行为、焦点、响应式规则和交互逻辑，Figma 与 Godot 的交接顺序及返工路由见 [`ui-visual-handoff.md`](workflows/ui-visual-handoff.md)，自动验收边界见 [`ui-visual-acceptance.md`](contracts/ui-visual-acceptance.md)。
+UI 现在按 Penpot-first 闭环执行：读取 brief/PRD/GDD，提取并确认产品名、标题和 slogan，冻结整体视觉要求；PRD 已有 UX 时直接引用，否则只补齐缺口；最后通过 Penpot MCP 制作视觉系统、组件状态、关键屏幕和可点击原型。上述记录进入独立的 [`game-production-ui-visual/v1` UI Visual Contract](contracts/ui-visual-contract.template.yaml)，其中 `penpot_prototype` 绑定文件、页面/形状、设计系统、本地快照摘要和评审证据。Penpot 设计阶段不需要 Godot 工程；`implementation_ready` 只表示可交给引擎实现。UI Screen/Flow 仍拥有信息架构、布局行为、焦点、响应式规则和交互逻辑，Penpot 与 Godot 的交接顺序及返工路由见 [`ui-visual-handoff.md`](workflows/ui-visual-handoff.md)，自动验收边界见 [`ui-visual-acceptance.md`](contracts/ui-visual-acceptance.md)。
 
 方法依据包括 GDC 的 [独特美术方向框架](https://www.gdcvault.com/play/1028954/Art-Direction-Summit-Building-a)、[AAA UI 美术指导](https://gdcvault.com/play/1025498/Art-Direction-for-AAA)、[风格化 VFX 美术指导](https://www.gdcvault.com/play/1023999/Art-Directing-VFX-for-Stylized)、Riot 的 [Game Art 教学](https://www.riotgames.com/en/artedu/intro-to-game-art) 与 Godot 官方资产导入/Theme/性能文档；详细来源和使用边界保存在 `skills/direct-game-art/references/`。
 
 ### Godot UI 生产入口
 
-需要制作 Figma 视觉系统或原型时，使用 [`Figma UI 设计与生产 Agent`](agents/ui-production.md) 与 [`Figma UI 设计与 Godot 生产工作流`](workflows/ui-production.md)，并读取顶层 [`ui-ux-pro-max`](../../skills/ui-ux-pro-max/SKILL.md) 的 [Figma handoff reference](../../skills/ui-ux-pro-max/references/figma-handoff.md)。Figma-only 任务在结构/视觉评审后结束，不要求 Godot 场景、目标构建或十段引擎交付。需要落到 Godot 时，先通过 `--ui-figma-only` 检查完整交接，再按 `prototype`、`greybox`、`style-pass`、`final` 执行阶段 B；固定 UI 优先使用编辑器预置 Control/Container 场景并序列化到 `.tscn`/`.tres`，运行时只实例化已定义组件。验收状态只能是 `greybox`、`implementation_ready`、`review_pending`、`approved` 或 `blocked`，失败沿 `UI_VISUAL`、`UI_STRUCTURE`、`UI_TECH`、`UI_READABILITY` 路由；自动验收不能代替 Figma 视觉评审或目标构建检查。
+需要制作 Penpot 视觉系统或原型时，使用 [`Penpot UI 设计与生产 Agent`](agents/ui-production.md) 与 [`Penpot UI 设计与 Godot 生产工作流`](workflows/ui-production.md)，并读取顶层 [`ui-ux-pro-max`](../../skills/ui-ux-pro-max/SKILL.md) 的 [Penpot handoff reference](../../skills/ui-ux-pro-max/references/penpot-handoff.md)。Penpot-only 任务在结构/视觉评审后结束，不要求 Godot 场景、目标构建或十段引擎交付。需要落到 Godot 时，先通过 `--ui-penpot-only` 检查完整交接，再按 `prototype`、`greybox`、`style-pass`、`final` 执行阶段 B；固定 UI 优先使用编辑器预置 Control/Container 场景并序列化到 `.tscn`/`.tres`，运行时只实例化已定义组件。验收状态只能是 `greybox`、`implementation_ready`、`review_pending`、`approved` 或 `blocked`，失败沿 `UI_VISUAL`、`UI_STRUCTURE`、`UI_TECH`、`UI_READABILITY` 路由；自动验收不能代替 Penpot 视觉评审或目标构建检查。旧 Figma 项目仍可通过兼容映射继续验证。
 
 ## 专业资产公共底座
 

@@ -1,11 +1,7 @@
-# Optional project fragment. Do not merge this entry into
-# contracts/tool-registry.template.yaml: the default fixture registry must keep
-# its own digest and remain usable without a Figma host plugin.
-#
-# Copy the mapping into a project execution/tools.yaml only after the Codex host
-# exposes the required Figma operations and the project records a local source
-# snapshot. Values below are intentionally unresolved; do not replace them with
-# a guessed plugin version, URL digest, or rollback promise.
+# Legacy Figma registry entry (compatibility only). New projects use
+# penpot-tool-registry-entry.template.yaml and tool:penpot-mcp.
+# Figma values remain valid for existing projects during the migration window; this
+# fragment must never be treated as proof that a Figma host is connected.
 figma_tool_registry_entry:
   tool_id: tool:figma-codex-plugin
   provider: <host-provider-recorded-by-project>
@@ -22,13 +18,9 @@ figma_tool_registry_entry:
   - capture:figma
   deterministic: false
   rollback:
-    # A Figma version history or duplicate is not an adapter rollback contract.
-    # Change to true only after a project-local procedure is verified.
     supported: false
     procedure_ref: null
   source:
-    # Figma URLs are provenance only. The registry digest must cover a local
-    # adapter/schema snapshot whose bytes are available to the validator.
     path: game-pipeline/execution/tool-snapshots/figma-codex-plugin.yaml
     sha256: <sha256-of-local-source-snapshot>
   capability_verification:

@@ -2,14 +2,13 @@ skill_bindings:
   schema_version: game-production-skill-bindings/v1
   project_id: "<project-id>"
   # For a UI project, bind a project-local UI dispatcher Skill (source:
-  # project) and bind tool:figma-codex-plugin in that preset's frontmatter.
-  # The dispatcher records which host Figma skills are required; the actual
-  # host plugin is not under this repository's source_root and must not be
+  # project) and bind tool:penpot-mcp in that preset's frontmatter.
+  # The dispatcher records which host Penpot MCP capabilities are required; the actual
+  # host MCP server is not under this repository's source_root and must not be
   # given a guessed plugin path or digest here. Record its verified schema and
-  # local snapshot through assets/figma-tool-registry-entry.template.yaml.
-  # The dispatcher should require, as applicable:
-  #   figma-use; figma-create-new-file; figma-generate-design;
-  #   figma-generate-library
+  # local snapshot through assets/penpot-tool-registry-entry.template.yaml.
+  # The dispatcher should record the Penpot MCP capabilities verified by the
+  # project (for example inspect, write, export/capture); do not invent names.
   # Keep this separate from Godot runtime UI implementation, which must use
   # authored .tscn/.tres scenes.
   bindings:

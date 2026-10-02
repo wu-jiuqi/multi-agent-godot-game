@@ -31,4 +31,4 @@ sandbox_mode: workspace-write
 
 ## 工具绑定（使用时加入 frontmatter）
 
-可选 `tool_registry_ref: {path: game-pipeline/execution/tools.yaml, sha256: <文件摘要>}` 和 `tool_ids: [tool:<工具名>]` 必须成对提供。它们纳入 Preset 审批摘要，生成时验证实际工具来源；不声明时保留旧版行为。UI 视觉原型若通过 Codex Figma 插件制作，应明确声明 `tool:figma-codex-plugin`，并由项目内 UI dispatcher Skill 记录适用的宿主前置能力（`figma-use`、新建文件时的 `figma-create-new-file`、完整页面的 `figma-generate-design`、组件/设计系统的 `figma-generate-library`）。实际插件版本、来源快照和能力核实写入可选 Figma tool registry entry，不得猜测。该绑定不能代替宿主权限或 Production Charter 的执行授权。
+可选 `tool_registry_ref: {path: game-pipeline/execution/tools.yaml, sha256: <文件摘要>}` 和 `tool_ids: [tool:<工具名>]` 必须成对提供。它们纳入 Preset 审批摘要，生成时验证实际工具来源；不声明时保留旧版行为。UI 视觉原型若通过 Penpot MCP 制作，应明确声明 `tool:penpot-mcp`，并由项目内 UI dispatcher Skill 记录项目实际核实的 MCP 能力。Penpot MCP server URL 形态为 `https://<your-penpot-domain>/mcp/stream?userToken=YOUR_MCP_KEY`；URL 和 token 只在宿主配置，不能写入仓库。实际宿主版本、来源快照和能力核实写入可选 Penpot tool registry entry，不得猜测；当前宿主未连接时不得声称已可写。该绑定不能代替宿主权限或 Production Charter 的执行授权。

@@ -1,0 +1,43 @@
+# Optional project fragment for the official Penpot remote MCP server. Do not merge this
+# entry into contracts/tool-registry.template.yaml: the default fixture registry must keep
+# its own digest and remain usable without a Penpot host connection.
+#
+# Copy this mapping into a project execution/tools.yaml only after the Codex host is
+# configured with the official Penpot MCP URL from Penpot Account → Integrations →
+# MCP Server and a project-local schema/source snapshot is captured. The URL contains
+# a userToken; never put that URL, token, or secret in this repository. Values below are
+# intentionally unresolved; do not replace them with a guessed version, URL digest, or
+# rollback promise. A registry entry records approved scope; it does not imply that the
+# current host is connected.
+
+penpot_tool_registry_entry:
+
+  tool_id: tool:penpot-mcp
+  provider: <host-provider-recorded-by-project>
+  name: penpot-mcp
+  version: <host-mcp-version-recorded-by-project>
+  capabilities:
+  - inspect-design-file
+  - create-or-update-visual-system
+  - create-prototype
+  - capture-design-evidence
+  permission_scope:
+  - read:penpot
+  - write:penpot
+  - capture:penpot
+  deterministic: false
+  rollback:
+    # A Penpot version history or duplicate is not an adapter rollback contract.
+    # Change to true only after a project-local procedure is verified.
+    supported: false
+    procedure_ref: null
+  source:
+    # Penpot server URLs are provenance only. The registry digest must cover a local
+    # adapter/schema snapshot whose bytes are available to the validator.
+    path: game-pipeline/execution/tool-snapshots/penpot-mcp.yaml
+    sha256: <sha256-of-local-source-snapshot>
+  capability_verification:
+    status: pending
+    verified_against: <host-tool-schema-or-evidence-reference>
+    verified_at: null
+    evidence_refs: []

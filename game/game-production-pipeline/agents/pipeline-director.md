@@ -24,7 +24,7 @@ status: draft
 - 人工闸门是否满足前置条件的证据；
 - 项目级风险、阻塞、冲突、回退和重新规划记录；
 - 项目简报的结构、事实源索引、结论状态、未知项、风险和变更记录；
-- UI 前置产品输入：从 brief/PRD/GDD 整理标题、slogan、产品名和决定来源，协调所有者确认；把视觉要求交主美、UX 交 UI/UX、视觉系统原型交 Codex Figma 执行者，按 [UI 四步流程](../workflows/ui-production.md) 追踪依赖；
+- UI 前置产品输入：从 brief/PRD/GDD 整理标题、slogan、产品名和决定来源，协调所有者确认；把视觉要求交主美、UX 交 UI/UX、视觉系统原型交 Penpot MCP 执行者，按 [UI 四步流程](../workflows/ui-production.md) 追踪依赖；
 - 从已确认项目简报提炼的责任需求与编制准入报告，但不拥有最终编制方案；
 - 已批准范围内临时跨部门工作组的组建与撤销记录。
 

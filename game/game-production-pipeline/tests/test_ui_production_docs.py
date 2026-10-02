@@ -85,23 +85,25 @@ class UiProductionDocumentationTests(unittest.TestCase):
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, workflow)
-        for marker in ("tool:figma-codex-plugin", "codex_figma_plugin", "brief/PRD/GDD"):
+        for marker in ("tool:penpot-mcp", "penpot_mcp", "brief/PRD/GDD"):
             with self.subTest(marker=marker):
                 self.assertIn(marker, visual_handoff)
 
-    def test_codex_figma_handoff_is_explicit_and_preserves_authored_godot_ui(self) -> None:
+    def test_penpot_handoff_is_explicit_and_preserves_authored_godot_ui(self) -> None:
         skill = (REPO_ROOT / "skills" / "ui-ux-pro-max" / "SKILL.md").read_text(encoding="utf-8")
-        reference_path = REPO_ROOT / "skills" / "ui-ux-pro-max" / "references" / "figma-handoff.md"
+        reference_path = REPO_ROOT / "skills" / "ui-ux-pro-max" / "references" / "penpot-handoff.md"
         godot_reference = (REPO_ROOT / "skills" / "ui-ux-pro-max" / "references" / "godot-production.md").read_text(encoding="utf-8")
-        optional_tool_path = PLUGIN_ROOT / "assets" / "figma-tool-registry-entry.template.yaml"
+        legacy_reference_path = REPO_ROOT / "skills" / "ui-ux-pro-max" / "references" / "figma-handoff.md"
+        optional_tool_path = PLUGIN_ROOT / "assets" / "penpot-tool-registry-entry.template.yaml"
         default_registry_path = PLUGIN_ROOT / "contracts" / "tool-registry.template.yaml"
         self.assertTrue(reference_path.is_file())
+        self.assertTrue(legacy_reference_path.is_file())
         self.assertTrue(optional_tool_path.is_file())
         reference = reference_path.read_text(encoding="utf-8")
-        optional_tool = yaml.safe_load(optional_tool_path.read_text(encoding="utf-8"))["figma_tool_registry_entry"]
+        optional_tool = yaml.safe_load(optional_tool_path.read_text(encoding="utf-8"))["penpot_tool_registry_entry"]
         default_registry = yaml.safe_load(default_registry_path.read_text(encoding="utf-8"))
-        self.assertEqual("tool:figma-codex-plugin", optional_tool["tool_id"])
-        self.assertEqual("<host-plugin-version-recorded-by-project>", optional_tool["version"])
+        self.assertEqual("tool:penpot-mcp", optional_tool["tool_id"])
+        self.assertEqual("<host-mcp-version-recorded-by-project>", optional_tool["version"])
         self.assertFalse(optional_tool["rollback"]["supported"])
         self.assertIsNone(optional_tool["rollback"]["procedure_ref"])
         self.assertNotIn("http", optional_tool["source"]["path"])
@@ -114,32 +116,30 @@ class UiProductionDocumentationTests(unittest.TestCase):
             registry_digest(default_registry),
         )
         for marker in (
-            "references/figma-handoff.md",
-            "tool:figma-codex-plugin",
-            "figma-use",
-            "figma-generate-design",
+            "references/penpot-handoff.md",
+            "tool:penpot-mcp",
+            "penpot_mcp",
             "input_intake",
             "product_identity_and_visual_direction",
             "ux_flow",
-            "figma_visual_system",
+            "penpot_visual_system",
             "source_document_refs",
             "product_title",
             "slogan",
             "inherited_from_prd",
             "derived_from_inputs",
-            "provider: figma",
-            "integration: codex_figma_plugin",
-            "frame_node_id",
+            "provider: penpot",
+            "integration: penpot_mcp",
+            "shape_id",
+            "page_id",
             "design_system_ref",
             "file_ref",
             "serialized `.tscn`/`.tres`",
-            "Do not export a Figma frame as a runtime UI",
+            "Do not export a Penpot frame as a runtime UI",
             "do not reconstruct a fixed UI tree",
-            "figma-create-new-file",
-            "figma-generate-library",
             "safeToRetryWithoutCanvasRead",
-            "Figma URLs (`file_url`, `prototype_url`, `frame_url`",
-            "Figma-only request",
+            "Penpot URLs (`file_url`, `prototype_url`, `shape_url`",
+            "Penpot-only request",
         ):
             with self.subTest(marker=marker):
                 self.assertIn(marker, skill + "\n" + reference + "\n" + godot_reference)

@@ -180,7 +180,18 @@ application_contract:
     - id: "CONSULT-007"
       rule: "qa 槽位的独立验收意见不得由被测生产槽位覆盖、删除或降级；冲突必须升级。"
     - id: "CONSULT-008"
-      rule: "event_digest 计算遵循 registry-event-canonical-json-v1 规则，previous_event_digest 必须连接同一 consultation 的前一事件。"
+      rule: "event_digest 使用 consultation-event-canonical-json-v1 标识并复用下述 canonical JSON 算法，previous_event_digest 必须连接同一 consultation 的前一事件。"
+
+canonical_event_serialization:
+  canonicalization: "consultation-event-canonical-json-v1"
+  algorithm_reuse: "复用 registry-event-canonical-json-v1 与 scripts/pipeline_common.py 的 canonical_json/canonical_digest 算法；事件类型标识保持独立。"
+  rules:
+    - "仅序列化 consultation_event 映射；模板的 application_contract、field_examples 和本节不参与摘要。"
+    - "计算 event_digest 时，将 integrity.event_digest 设为 null，其他事件字段全部参与；不修改原事件。"
+    - "使用 UTF-8 JSON，对象键按 Unicode 码点排序，保留数组顺序，保留非 ASCII 字符，不添加空白、BOM 或换行。"
+    - "仅允许 JSON 类型和字符串对象键；禁止 NaN、Infinity、日期对象和循环引用。"
+    - "采用 SHA-256，输出 64 位小写十六进制；sequence=1 的 previous_event_digest 为 null，后续值等于前一事件摘要。"
+  runtime_validation_boundary: "确定性校验可验证声明、结构、水位和摘要链；仅有事件自报的 actor/authority/approval 引用不能证明真实授权或人类身份，须由执行层核对可信 Registry/审批记录。"
 
 field_examples:
   opened:

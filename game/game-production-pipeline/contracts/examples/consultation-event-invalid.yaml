@@ -1,0 +1,76 @@
+consultation_event:
+  schema_version: "0.1-alpha"
+  identity:
+    consultation_event_id: "conevt:sample-game:01J00000000000000000000001"
+    mutation_id: "mut:sample-game:01J00000000000000000000002"
+    consultation_id: "con:sample-game:01J00000000000000000000003"
+    project_id: "sample-game"
+    sequence: 2
+    event_type: "peer.question"
+    occurred_at: "2026-10-04T00:00:00Z"
+    recorded_at: "2026-10-04T00:00:01Z"
+  causality:
+    correlation_id: "corr:sample-game:01J00000000000000000000004"
+    causation_event_id: null
+    request_id: null
+  concurrency:
+    expected_consultation_sequence: 0
+    resulting_consultation_sequence: 1
+  topology:
+    mode: "peer_to_peer_with_coordinator"
+    coordinator:
+      actor_kind: "position"
+      actor_id: "pos:sample-game:root:project-manager"
+      role: "project_manager"
+    initiator:
+      actor_kind: "position"
+      actor_id: "pos:sample-game:root:project-manager"
+      role: "project_manager"
+    participants:
+      - actor_kind: "position"
+        actor_id: "pos:sample-game:planning:manager"
+        slot_id: "slot:planning"
+        role: "department_manager"
+        participation: "consulted"
+      - actor_kind: "position"
+        actor_id: "pos:sample-game:root:project-manager"
+        slot_id: null
+        role: "project_manager"
+        participation: "required"
+    direct_peer_links: []
+  governance_binding:
+    organization_snapshot:
+      project_id: "sample-game"
+      organization_revision: 1
+      snapshot_digest: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    project_context:
+      brief_ref: "brief:sample-game:1"
+      prd_ref: null
+      gdd_ref: null
+      context_digest: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    authority_ref:
+      id: "auth:sample-game:consultation"
+      version: "1"
+      digest: "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    approval_refs: []
+  actor:
+    actor_kind: "position"
+    actor_id: "pos:sample-game:root:project-manager"
+    slot_id: null
+    position_id: "pos:sample-game:root:project-manager"
+    instance_id: null
+    role: "project_manager"
+  payload:
+    evidence_refs: []
+  authority_effect:
+    decision_status: "advisory_only"
+    changes_project_fact: false
+    changes_scope_priority_budget: false
+    changes_ownership_or_acceptance: false
+    writes_to_source_of_truth: []
+    required_next_gate: "project_manager_summary"
+  integrity:
+    canonicalization: "registry-event-canonical-json-v1"
+    digest_algorithm: "sha256"
+    previous_event_digest: "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    event_digest: "0000000000000000000000000000000000000000000000000000000000000000"

@@ -336,10 +336,23 @@ python scripts/evaluate_art_direction_gate.py contracts/examples/art-direction-c
 python -c "import sys,yaml; from pathlib import Path; sys.path.insert(0,'scripts'); import validate_loop_registry as v; docs=[yaml.safe_load(Path(p).read_text(encoding='utf-8')) for p in ['contracts/loop-registry-event.template.yaml','contracts/specialist-asset-production.loop-contract.yaml','contracts/loop-state-machine.default.yaml']]; assert not v.validate_static_contracts(*docs)"
 python scripts/validate_organization_registry.py --templates --snapshot contracts/examples/organization-alpha-snapshot.yaml --change-set contracts/examples/organization-alpha-change-set.yaml
 python scripts/validate_organization_extensions.py
+python scripts/validate_consultation_event.py contracts/examples/consultation-event-valid.yaml
+python scripts/run_organization_prototype_validation.py --output <validation-report.json>
 python scripts/render_organization.py --snapshot contracts/examples/organization-alpha-snapshot.yaml --change-set contracts/examples/organization-alpha-change-set.yaml --view change --scope dept:sample-game:design --format mermaid
 python scripts/validate_text_encoding.py --plugin-root .
 python scripts/build_release.py --plugin-root . --output-dir ..\..\dist
 ```
+
+`validate_product_prototype_handoff.py` 只接受项目实例，不直接接受带占位符的插件模板：
+
+```powershell
+python scripts/validate_product_prototype_handoff.py `
+  D:\Game\MyProject\game-pipeline\project-definition\product-prototype-handoff.yaml `
+  --project-root D:\Game\MyProject `
+  --require-ready
+```
+
+`run_organization_prototype_validation.py` 只运行隔离 synthetic 沙盒，报告会明确标记 `execution_mode=synthetic`；它不能证明宿主全局权限、真实模型成本、人工审批或真实 Penpot 连接。真实项目实例需要先有项目授权和 `tool:penpot-mcp` 能力证据，synthetic 结果不能升级为真实交付。
 
 ## 当前限制
 

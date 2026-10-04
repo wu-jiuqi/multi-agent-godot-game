@@ -1,6 +1,6 @@
 # 六部门、P2P 与产品经理原型工作流验证方案
 
-状态：`proposed / not_run`。本文件是可执行的验证设计，尚未运行下述试点，也未创建正式项目编制或 Penpot 文件。
+状态：`partially-executed / live-pilot-blocked`。本轮已运行 V0 的设施检查、V1/V2 的受控子集和 V4 的故障替身；尚未运行正式项目编制、真实审批或 Penpot 文件纵切片。V3 真实试点因当前用户令牌没有连接 Penpot 实例而阻塞，V4 的真实 P2P 成本对照尚未运行。
 
 设计基线：`3c8906c0f2c763c46be9349f7d7afeb5ee104e27`。执行时另行记录实际 commit、插件来源、模型配置和工具能力证据；基线改变后重新判断受影响用例。
 
@@ -18,7 +18,7 @@
 
 ## 2. 当前证据与需要补齐的能力
 
-上一轮实现报告记录了 231 项测试通过、两个新 Skill 快速校验通过和 UTF-8 检查通过；这是历史检查结果，本次设计没有重新运行全套测试。
+本轮补齐了咨询事件实例校验与确定性重放、产品原型交接实例校验、受控组织/工具替身和运行报告。完整回归目前为 250 项测试通过；这些结果只证明本地设施与受控沙盒行为，不替代真实 Registry、宿主权限、审批记录或 Penpot 交付证据。运行证据见 [`docs/validation-runs/2026-10-04-six-department-product-prototype/`](../validation-runs/2026-10-04-six-department-product-prototype/)；真实 Penpot 纵切片仍为 `blocked`。
 
 当前 [组织扩展校验器](../../game/game-production-pipeline/scripts/validate_organization_extensions.py) 主要检查模板字段与声明；[对应测试](../../game/game-production-pipeline/tests/test_organization_extensions.py) 主要检查模板和文档标记。`validate_consultation` 要求模板列出七种事件枚举，不能直接当成单条真实事件的校验器。`validate_handoff` 不核实真实审批记录、源文件摘要或远端原型。现有 Organization Registry 等模块提供部分可复用校验，但不自动覆盖新咨询链路。
 

@@ -1,0 +1,238 @@
+{
+  "report_type": "organization-prototype-validation",
+  "execution_mode": "synthetic",
+  "claim_scope": "仅受控执行器的 F01/F06/F11/F12/F13 设施用例；不是 V1-V4 真实试点结论",
+  "generated_at": "2026-10-04T15:09:17.464872+00:00",
+  "cases": [
+    {
+      "id": "F01",
+      "description": "unused 槽位拒绝实例和调用",
+      "status": "pass",
+      "execution_mode": "synthetic",
+      "evidence": [
+        {
+          "before_digest": "2fff9edf43eb97acd24b11a5c17c04f349f6257d4218ed603aeb427c298668ac",
+          "after_digest": "2fff9edf43eb97acd24b11a5c17c04f349f6257d4218ed603aeb427c298668ac",
+          "calls": [],
+          "audit": [
+            {
+              "action": "spawn",
+              "target": "planner-1",
+              "outcome": "rejected",
+              "reason": "unused slot cannot start an instance",
+              "time": 100
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F06",
+      "description": "禁止越权覆盖 QA 事实",
+      "status": "pass",
+      "execution_mode": "synthetic",
+      "evidence": [
+        {
+          "before_digest": "e155da080590d77903bae18a5b9f69469d262f0dff02085d61dfa0622a4755cd",
+          "after_digest": "e155da080590d77903bae18a5b9f69469d262f0dff02085d61dfa0622a4755cd",
+          "audit": [
+            {
+              "action": "activate",
+              "target": "slot:planning",
+              "outcome": "applied"
+            },
+            {
+              "action": "spawn",
+              "target": "planner-1",
+              "outcome": "applied"
+            },
+            {
+              "action": "write_fact",
+              "target": "scope",
+              "outcome": "rejected",
+              "reason": "foreign fact/QA opinion/human budget is protected",
+              "time": 100
+            }
+          ],
+          "prevention_scope": "sandbox executor only"
+        }
+      ]
+    },
+    {
+      "id": "F11",
+      "description": "写入响应超时后读回确认",
+      "status": "pass",
+      "execution_mode": "synthetic",
+      "evidence": [
+        {
+          "node_id": "synthetic-node-5be48d18-7279-5ac5-b04b-2777d0cb3720",
+          "revision": 1,
+          "recovery": [
+            {
+              "artifact_id": "screen:entry",
+              "action": "timeout_readback_required"
+            },
+            {
+              "artifact_id": "screen:entry",
+              "action": "confirmed_committed_write"
+            }
+          ],
+          "tool_audit": [
+            {
+              "operation": "read",
+              "outcome": "success",
+              "receipt": "read-1",
+              "revision": 0
+            },
+            {
+              "operation": "read",
+              "outcome": "success",
+              "receipt": "read-2",
+              "revision": 0
+            },
+            {
+              "operation": "write",
+              "outcome": "committed",
+              "node_id": "synthetic-node-5be48d18-7279-5ac5-b04b-2777d0cb3720",
+              "mutation_id": "synthetic-mutation:ed7541bff1d51e33131bdb83d9cacfce80c848a4b8d78e399100a5ec30a57496",
+              "revision": 1
+            },
+            {
+              "operation": "read",
+              "outcome": "success",
+              "receipt": "read-4",
+              "revision": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F12",
+      "description": "断连与只读工具拒绝写入",
+      "status": "pass",
+      "execution_mode": "synthetic",
+      "evidence": [
+        {
+          "mode": "disconnected",
+          "before_digest": "2600597d58239f928ea09cdd9d17e56bbc2597b760a6382a62cdd2adfcbafce4",
+          "after_digest": "2600597d58239f928ea09cdd9d17e56bbc2597b760a6382a62cdd2adfcbafce4",
+          "audit": [
+            {
+              "operation": "read",
+              "outcome": "blocked",
+              "reason": "Penpot stub disconnected"
+            }
+          ]
+        },
+        {
+          "mode": "read_only",
+          "before_digest": "2600597d58239f928ea09cdd9d17e56bbc2597b760a6382a62cdd2adfcbafce4",
+          "after_digest": "2600597d58239f928ea09cdd9d17e56bbc2597b760a6382a62cdd2adfcbafce4",
+          "audit": [
+            {
+              "operation": "read",
+              "outcome": "success",
+              "receipt": "read-1",
+              "revision": 0
+            },
+            {
+              "operation": "write",
+              "outcome": "blocked",
+              "reason": "Penpot stub read-only"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F13",
+      "description": "重复运行保持稳定 ID 且幂等",
+      "status": "pass",
+      "execution_mode": "synthetic",
+      "evidence": [
+        {
+          "first": {
+            "screen:entry": "synthetic-node-5be48d18-7279-5ac5-b04b-2777d0cb3720"
+          },
+          "second": {
+            "screen:entry": "synthetic-node-5be48d18-7279-5ac5-b04b-2777d0cb3720"
+          },
+          "revision": 1,
+          "node_count": 1,
+          "tool_audit": [
+            {
+              "operation": "read",
+              "outcome": "success",
+              "receipt": "read-1",
+              "revision": 0
+            },
+            {
+              "operation": "read",
+              "outcome": "success",
+              "receipt": "read-2",
+              "revision": 0
+            },
+            {
+              "operation": "write",
+              "outcome": "committed",
+              "node_id": "synthetic-node-5be48d18-7279-5ac5-b04b-2777d0cb3720",
+              "mutation_id": "synthetic-mutation:ed7541bff1d51e33131bdb83d9cacfce80c848a4b8d78e399100a5ec30a57496",
+              "revision": 1
+            },
+            {
+              "operation": "read",
+              "outcome": "success",
+              "receipt": "read-4",
+              "revision": 1
+            },
+            {
+              "operation": "read",
+              "outcome": "success",
+              "receipt": "read-5",
+              "revision": 1
+            },
+            {
+              "operation": "read",
+              "outcome": "success",
+              "receipt": "read-6",
+              "revision": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "v3_live": {
+    "status": "blocked",
+    "execution_mode": "live",
+    "reason": "未连接真实 Penpot MCP；替身证据不能升级为真实交接"
+  },
+  "v4_cost_ab": {
+    "status": "not_run",
+    "reason": "没有真实模型/token/费用观测；不制造成本数据"
+  },
+  "phase_results": {
+    "V1": {
+      "status": "synthetic_subset",
+      "cases": [
+        "F01",
+        "F06"
+      ]
+    },
+    "V3": {
+      "status": "blocked",
+      "reason": "live Penpot MCP 未连接"
+    },
+    "V4": {
+      "status": "not_run",
+      "reason": "真实恢复与 A/B 对照未执行"
+    }
+  },
+  "limitations": [
+    "沙盒只约束通过其 API 的模拟执行，不能宣称拦截宿主全局调用。",
+    "SyntheticGrant 不是人类批准，也不能写入正式项目 Registry。",
+    "F06 prevention pass 仅适用于沙盒边界；宿主路径需另行 live 验证。"
+  ],
+  "overall": "pass"
+}

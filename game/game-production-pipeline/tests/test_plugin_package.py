@@ -17,6 +17,8 @@ SKILLS = {
     "review-game-gates",
     "adapt-godot-production",
     "direct-game-art",
+    "product-brief-and-identity",
+    "penpot-prototype-orchestration",
 }
 
 

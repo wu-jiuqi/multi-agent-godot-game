@@ -1,0 +1,4 @@
+interface:
+  display_name: "Penpot Prototype Orchestration"
+  short_description: "Create an auditable Penpot visual system and clickable prototype."
+  default_prompt: "Use $penpot-prototype-orchestration to turn an approved product prototype intent into an editable Penpot visual system and clickable prototype with mappings, evidence, and professional review handoff."

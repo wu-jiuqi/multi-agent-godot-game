@@ -2,7 +2,7 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.5.0-alpha.11`。在 alpha.10 的 UI Visual Contract、UI 视觉资源映射、D3/D4 UI 视觉验收和明确返工路由之上，加入 Penpot MCP UI 四步生产流程、独立 Penpot 交接契约和 alpha.10 受摘要保护迁移；仍是 Alpha，角色行为尚待真实项目验证，不是 Production Ready。
+当前版本：`v0.5.0-alpha.11`。当前 main 源码在 alpha.11 的 UI Visual Contract、UI 视觉资源映射和 Penpot MCP UI 四步生产流程之上，增加六部门能力槽位、结构化部门咨询和产品经理原型 Skill；仍是 Alpha，角色行为尚待真实项目验证，不是 Production Ready。新增能力尚未形成新的发布包。
 
 UI 默认先在 Penpot MCP 中完成产品资料提取、产品身份、UX 流程和视觉系统原型，再按需要进入 Godot 场景实现。Penpot-only 交付可通过 `validate_art_direction_contract.py --ui-penpot-only` 验证，不要求先创建 Godot 场景或 Theme 资源；`--ui-figma-only` 仍是旧项目兼容别名。
 
@@ -20,7 +20,7 @@ Codex Plugin
 
 插件不会保存某个游戏的设计答案。把通用插件更新与项目内容演化分离，才能让同一框架被多个游戏复用。
 
-## 七个入口 Skills
+## 九个入口 Skills
 
 - `$bootstrap-game-pipeline`：先生成影响计划和摘要，经确认后初始化项目控制面。
 - `$prepare-game-project-brief`：由项目经理主动辅助人类共同确定玩法、美术方向、实现概要和约束，形成简报与启动授权。
@@ -29,6 +29,8 @@ Codex Plugin
 - `$review-game-gates`：独立检查证据，区分自动结果与必须由人类做出的决定。
 - `$adapt-godot-production`：把通用产物映射为 Godot 场景、资源、节点、测试与构建证据。
 - `$direct-game-art`：先联网研究，再主动提出多条画风方向，建立风格圣经、跨 2D/3D/VFX/UI 翻译、引擎基准、预算、权利和表现验收。
+- `$product-brief-and-identity`：整理产品资料、产品身份候选、slogan 来源和 Prototype Intent，保留人类确认边界。
+- `$penpot-prototype-orchestration`：在已确认输入下调用 Penpot MCP 制作视觉系统、页面、组件状态、可点击原型和交接证据。
 
 ## 游戏机制与玩法策划角色
 
@@ -40,6 +42,8 @@ Codex Plugin
 - [合成交付示例](tests/examples/gameplay-design-salvage.md) 与 [行为验收情境](tests/gameplay-designer-evaluation.md)
 
 此增量是已纳入本版发布、尚待真实项目验证的角色/文档模板，不新增 Skill、机器 Contract 或自动安装的具名 Agent。当前任务可直接读取角色文件使用；正式项目实例化沿用既有组织、Preset 和绑定审批流程。已安装的 `v0.5.0-alpha.3` 不会自动包含这些新增文件；需升级到本版。
+
+当前 main 的组织增量保留“六个部门能力槽位 + 按项目激活”的设计。槽位目录和部门经理模板不会自动创建项目 Department、Position 或 Instance；项目仍必须通过 Organization Change Set 和人工批准后才能物化正式编制。产品经理原型 Skill 可以绑定到项目经理 Preset，也可以在重复需求足够稳定时绑定到单独的 Product Manager Position。
 
 UI/UX 的 `ui-ux-pro-max` 是独立 Skill，源码位于仓库顶层 `skills/ui-ux-pro-max/`，不在游戏管线插件 ZIP 内。本次 Release 提供单独 Skill ZIP；插件安装不会自动安装或覆盖它。
 
@@ -299,7 +303,7 @@ codex plugin list
 
 第二次 `plugin list` 应显示 `game-production-pipeline@personal` 为 `installed, enabled`。在首次安装前，Codex 设置页的插件搜索可能不会显示尚未安装的个人插件，因此不能把 UI 搜索结果作为 Marketplace 发现或安装状态的判据。
 
-安装后新建 Codex 任务，再检查七个 `$skill-name` 是否可发现；当前任务不会热刷新插件能力。正常使用直接描述“初始化项目”“整理项目简报”“设计团队”“建立主美方向”或“继续生产”等目标即可，只有强制路由和发现性测试才需要显式 Skill 名。Codex 能力目录可能显示带插件命名空间的长名，这是防重名标识，不要求每次输入。更新本地插件时应使用构建元数据 cache-buster，并再次执行同一个 `codex plugin add game-production-pipeline@personal` 命令，不要依赖 UI 搜索或当前任务热刷新。
+安装后新建 Codex 任务，再检查九个 `$skill-name` 是否可发现；当前任务不会热刷新插件能力。正常使用直接描述“初始化项目”“整理项目简报”“设计团队”“建立产品原型”或“继续生产”等目标即可，只有强制路由和发现性测试才需要显式 Skill 名。Codex 能力目录可能显示带插件命名空间的长名，这是防重名标识，不要求每次输入。更新本地插件时应使用构建元数据 cache-buster，并再次执行同一个 `codex plugin add game-production-pipeline@personal` 命令，不要依赖 UI 搜索或当前任务热刷新。
 
 ## 中文文本编码
 
@@ -329,6 +333,7 @@ python scripts/validate_art_direction_contract.py contracts/examples/art-directi
 python scripts/evaluate_art_direction_gate.py contracts/examples/art-direction-clockwork-garden.yaml --gate D4
 python -c "import sys,yaml; from pathlib import Path; sys.path.insert(0,'scripts'); import validate_loop_registry as v; docs=[yaml.safe_load(Path(p).read_text(encoding='utf-8')) for p in ['contracts/loop-registry-event.template.yaml','contracts/specialist-asset-production.loop-contract.yaml','contracts/loop-state-machine.default.yaml']]; assert not v.validate_static_contracts(*docs)"
 python scripts/validate_organization_registry.py --templates --snapshot contracts/examples/organization-alpha-snapshot.yaml --change-set contracts/examples/organization-alpha-change-set.yaml
+python scripts/validate_organization_extensions.py
 python scripts/render_organization.py --snapshot contracts/examples/organization-alpha-snapshot.yaml --change-set contracts/examples/organization-alpha-change-set.yaml --view change --scope dept:sample-game:design --format mermaid
 python scripts/validate_text_encoding.py --plugin-root .
 python scripts/build_release.py --plugin-root . --output-dir ..\..\dist

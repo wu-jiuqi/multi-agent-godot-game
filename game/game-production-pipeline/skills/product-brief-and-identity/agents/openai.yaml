@@ -1,0 +1,4 @@
+interface:
+  display_name: "Product Brief and Identity"
+  short_description: "Coordinate department consultation and prepare an approved product packet."
+  default_prompt: "Use $product-brief-and-identity to coordinate the six department manager consultation, prepare traceable PRD/GDD and product identity proposals, and return a human-reviewable prototype intent."

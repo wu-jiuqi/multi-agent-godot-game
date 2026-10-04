@@ -1,0 +1,293 @@
+# Project-local instance template for product-manager consultation and Penpot
+# prototype handoff. Copy this file into game-pipeline/project-definition/ and
+# replace placeholders with project facts; do not treat this plugin template as
+# an approval or as a live Penpot connection.
+
+product_prototype_handoff:
+  schema_version: "game-production-product-prototype-handoff/v1"
+
+  identity:
+    handoff_id: "handoff:<project_id>:<slug>"
+    project_id: "<project-id>"
+    revision: 1
+    previous_revision_digest: null
+    lifecycle_state: "draft"
+    owner_position_id: "pos:<project_id>:root:product-manager"
+    prepared_by_instance_id: "inst:<ulid>"
+
+  authority:
+    project_manager_position_id: "pos:<project_id>:root:project-manager"
+    product_owner: "human:<owner-id>"
+    direction_gate_refs: ["GATE-0", "GATE-1"]
+    visual_gate_refs: ["D2", "UI_VISUAL"]
+    final_decision_owner: "human:<owner-id>"
+    approval_required_before:
+      - "product_identity"
+      - "project_scope"
+      - "core_experience"
+      - "penpot_implementation_ready"
+
+  source_document_refs:
+    - artifact_id: "product-doc:<project-id>:<slug>"
+      version: 1
+      document_kind: "brief|prd|gdd|brand|other"
+      title: "<source document title>"
+      uri: "repo://game-pipeline/product-docs/<document>.md"
+      sha256: "<64-lowercase-hex>"
+      content_digest: "<64-lowercase-hex>"
+      status: "confirmed|proposal|hypothesis|unknown"
+      role: "goal|requirements|game-design|constraint|identity|ux|visual"
+
+  consultation:
+    topology: "project-manager-led-p2p"
+    consultation_id: "con:<project-id>:<26 位 ULID>"
+    requested_by_position_id: "pos:<project_id>:root:project-manager"
+    requested_by_instance_id: "inst:<ulid>"
+    input_revision: 1
+    input_subject_digest: "<64-lowercase-hex>"
+    objective: "<what this round must decide or clarify>"
+    response_deadline: "<ISO-8601 or null>"
+    budget:
+      max_manager_instances: 6
+      max_peer_rounds: 2
+      max_retries: 3
+    fixed_department_slots:
+      - slot_id: "slot:planning"
+        display_name: "策划"
+      - slot_id: "slot:art"
+        display_name: "美术"
+      - slot_id: "slot:programming"
+        display_name: "程序"
+      - slot_id: "slot:audio"
+        display_name: "音频"
+      - slot_id: "slot:qa"
+        display_name: "测试"
+      - slot_id: "slot:tools"
+        display_name: "工具"
+    participants:
+      - slot_id: "slot:planning"
+        activation: "requested|active|not_requested|blocked"
+        manager_position_id: "pos:<project_id>:planning:manager"
+        manager_instance_id: "inst:<ulid>|null"
+        preset_ref: "preset:<namespace>:<slug>@<semver>"
+        request_ref: "consult-request:<id>"
+        response_ref: "consult-response:<id>|null"
+        response_digest: "<64-lowercase-hex>|null"
+        status: "pending|responded|not_applicable|blocked"
+        reason: "<why inactive or blocked, if applicable>"
+      - slot_id: "slot:art"
+        activation: "requested|active|not_requested|blocked"
+        manager_position_id: "pos:<project_id>:art:manager"
+        manager_instance_id: "inst:<ulid>|null"
+        preset_ref: "preset:<namespace>:<slug>@<semver>"
+        request_ref: "consult-request:<id>"
+        response_ref: "consult-response:<id>|null"
+        response_digest: "<64-lowercase-hex>|null"
+        status: "pending|responded|not_applicable|blocked"
+        reason: "<why inactive or blocked, if applicable>"
+      - slot_id: "slot:programming"
+        activation: "requested|active|not_requested|blocked"
+        manager_position_id: "pos:<project_id>:programming:manager"
+        manager_instance_id: "inst:<ulid>|null"
+        preset_ref: "preset:<namespace>:<slug>@<semver>"
+        request_ref: "consult-request:<id>"
+        response_ref: "consult-response:<id>|null"
+        response_digest: "<64-lowercase-hex>|null"
+        status: "pending|responded|not_applicable|blocked"
+        reason: "<why inactive or blocked, if applicable>"
+      - slot_id: "slot:audio"
+        activation: "requested|active|not_requested|blocked"
+        manager_position_id: "pos:<project_id>:audio:manager"
+        manager_instance_id: "inst:<ulid>|null"
+        preset_ref: "preset:<namespace>:<slug>@<semver>"
+        request_ref: "consult-request:<id>"
+        response_ref: "consult-response:<id>|null"
+        response_digest: "<64-lowercase-hex>|null"
+        status: "pending|responded|not_applicable|blocked"
+        reason: "<why inactive or blocked, if applicable>"
+      - slot_id: "slot:qa"
+        activation: "requested|active|not_requested|blocked"
+        manager_position_id: "pos:<project_id>:qa:manager"
+        manager_instance_id: "inst:<ulid>|null"
+        preset_ref: "preset:<namespace>:<slug>@<semver>"
+        request_ref: "consult-request:<id>"
+        response_ref: "consult-response:<id>|null"
+        response_digest: "<64-lowercase-hex>|null"
+        status: "pending|responded|not_applicable|blocked"
+        reason: "<why inactive or blocked, if applicable>"
+      - slot_id: "slot:tools"
+        activation: "requested|active|not_requested|blocked"
+        manager_position_id: "pos:<project_id>:tools:manager"
+        manager_instance_id: "inst:<ulid>|null"
+        preset_ref: "preset:<namespace>:<slug>@<semver>"
+        request_ref: "consult-request:<id>"
+        response_ref: "consult-response:<id>|null"
+        response_digest: "<64-lowercase-hex>|null"
+        status: "pending|responded|not_applicable|blocked"
+        reason: "<why inactive or blocked, if applicable>"
+    peer_discussions:
+      - discussion_id: "peer:<consultation-id>:<ulid>"
+        participants: ["<slot-id>", "<slot-id>"]
+        trigger: "dependency|conflict|missing-evidence"
+        question: "<specific dependency or conflict>"
+        record_ref: "repo://game-pipeline/execution/consultations/<record>.yaml"
+        conclusion_status: "agreement|conflict|unresolved"
+        digest: "<64-lowercase-hex>"
+    decision_matrix_ref: "repo://game-pipeline/execution/consultations/<matrix>.yaml"
+    conflicts:
+      - conflict_id: "conflict:<project-id>:<ulid>"
+        parties: ["<slot-id>", "<slot-id>"]
+        statement: "<conflict>"
+        status: "open|routed|resolved|escalated"
+        route: "project-manager|human|domain-owner"
+        evidence_refs: []
+    synthesis_ref:
+      artifact_id: "consultation-synthesis:<project-id>:<revision>"
+      uri: "repo://game-pipeline/execution/consultations/<synthesis>.yaml"
+      sha256: "<64-lowercase-hex>"
+
+  product_identity:
+    product_name:
+      value: "<stable product name or null>"
+      status: "proposed|confirmed|rejected|unknown"
+      decision_owner: "human:<owner-id>"
+      decision_ref: "product-identity-decision:<project-id>:<revision>|null"
+    product_title:
+      value: "<player-facing title or null>"
+      status: "proposed|confirmed|rejected|unknown"
+      decision_owner: "human:<owner-id>"
+      decision_ref: "product-identity-decision:<project-id>:<revision>|null"
+    slogan:
+      value: "<one-line slogan or null>"
+      status: "proposed|confirmed|rejected|unknown"
+      decision_owner: "human:<owner-id>"
+      decision_ref: "product-identity-decision:<project-id>:<revision>|null"
+    rationale: "<evidence-based rationale; never an approval>"
+    alternatives: []
+
+  product_packet:
+    audience: "<target player or unknown>"
+    player_value: "<player-facing outcome or hypothesis>"
+    design_pillars: []
+    scope:
+      must: []
+      should: []
+      wont: []
+      status: "proposal|confirmed"
+      decision_ref: "scope-decision:<project-id>:<revision>|null"
+    core_loop_ref: "repo://game-pipeline/design/<core-loop>.yaml|null"
+    prd_ref:
+      artifact_id: "prd:<project-id>:<revision>"
+      uri: "repo://game-pipeline/product-docs/<prd>.md"
+      sha256: "<64-lowercase-hex>"
+      status: "draft|review_pending|approved"
+    gdd_ref:
+      artifact_id: "gdd:<project-id>:<revision>"
+      uri: "repo://game-pipeline/product-docs/<gdd>.md"
+      sha256: "<64-lowercase-hex>"
+      status: "draft|review_pending|approved"
+    open_questions: []
+    assumptions: []
+    risk_refs: []
+
+  prototype_intent:
+    intent_id: "prototype-intent:<project-id>:<revision>"
+    purpose: "<what the prototype must learn or communicate>"
+    target_audience: "<who will inspect or play it>"
+    success_criteria: []
+    key_screen_ids: ["<stable-screen-id>"]
+    flow_ids: ["<stable-flow-id>"]
+    required_states: ["normal", "success", "error", "back", "cancel"]
+    source_refs: []
+    visual_requirements: []
+    ux_requirements: []
+    exclusions: ["runtime Godot implementation", "release approval"]
+    review_owners:
+      product: "human:<owner-id>"
+      ui_ux: "position:<project-id>:<ui-ux>"
+      art: "position:<project-id>:<art-director>"
+
+  penpot:
+    requested: false
+    tool_registry_ref:
+      path: "game-pipeline/execution/tools.yaml"
+      sha256: "<64-lowercase-hex>|null"
+    tool_id: "tool:penpot-mcp"
+    approved_scope: ["read:penpot", "write:penpot", "capture:penpot"]
+    capability_verification_ref: "<project-local capability evidence>|null"
+    input_digest: "<64-lowercase-hex>|null"
+    file_ref:
+      artifact_id: "penpot-file:<project-id>:<revision>"
+      uri: "repo://game-pipeline/ui/visual/penpot/<snapshot>.json"
+      sha256: "<64-lowercase-hex>"
+    file_id: "<penpot-file-id>"
+    page_id: "<penpot-page-id>"
+    file_url: "<project-recorded-url-or-null>"
+    prototype_url: "<project-recorded-url-or-null>"
+    version: "<host-recorded-version>"
+    screen_mappings:
+      - screen_id: "<stable-screen-id>"
+        page_id: "<penpot-page-id>"
+        shape_id: "<penpot-shape-id>"
+        evidence_ref: "<snapshot-or-capture-ref>"
+    design_system_ref: "penpot-design-system:<project-id>:<revision>|null"
+    flow_evidence_refs: []
+    unsupported_interactions: []
+    handoff_status: "not_requested|draft|review_pending|implementation_ready|blocked"
+
+  human_gate:
+    required: true
+    gate_refs: ["GATE-0", "GATE-1"]
+    status: "pending|approved|rejected|stale"
+    questions:
+      - "产品身份和核心方向是否确认？"
+      - "PRD/GDD 范围和核心体验是否批准？"
+      - "原型目标与视觉/UX边界是否足以继续？"
+    approval_ref: "<immutable approval record>|null"
+    approval_subject_digest: "<64-lowercase-hex>|null"
+
+  acceptance:
+    automated_checks:
+      - check_id: "source-digests"
+        command: "<project validator command>"
+        expected: "all source and input digests resolve"
+      - check_id: "consultation-coverage"
+        command: "<consultation validator command>"
+        expected: "active slots responded or have explicit not_applicable/blocked state"
+      - check_id: "prototype-mapping"
+        command: "<handoff validator command>"
+        expected: "screen/flow IDs map to evidence without duplicate competing flow"
+    professional_reviews:
+      - reviewer: "position:<project-id>:<ui-ux>"
+        scope: "structure/readability"
+        status: "pending|passed|rework"
+        evidence_refs: []
+      - reviewer: "position:<project-id>:<art-director>"
+        scope: "visual direction"
+        status: "pending|passed|rework"
+        evidence_refs: []
+    human_experience_approval: "pending|approved|rejected"
+
+  rework_routes:
+    PRODUCT_DIRECTION: ["human:<owner-id>", "pos:<project-id>:root:project-manager"]
+    DOMAIN_FACT: ["position:<owning-department-manager>"]
+    P2P_CONFLICT: ["pos:<project-id>:root:project-manager"]
+    PRODUCT_DOCUMENT: ["pos:<project-id>:root:product-manager"]
+    UI_STRUCTURE: ["position:<project-id>:ui-ux"]
+    UI_VISUAL: ["position:<project-id>:art-director"]
+    PENPOT_TOOL: ["position:<project-id>:tools:manager"]
+    HANDOFF_TRACEABILITY: ["pos:<project-id>:root:product-manager"]
+
+  integrity:
+    canonicalization: "product-prototype-handoff-canonical-json-v1"
+    digest_algorithm: "sha256"
+    subject_digest: "<set after replacing this value with null>"
+
+handoff_rules:
+  fact_boundary: "This document is a traceable handoff and proposal until the named human gates approve it."
+  fixed_slot_rule: "Six department slots are framework templates; inactive slots do not create Agent Instances or incur calls."
+  p2p_rule: "Peer messages may resolve bounded domain dependencies but cannot change scope, ownership, facts or approval state."
+  synthesis_rule: "The project manager owns the integrated PRD/GDD packet; the product manager preserves domain references and unresolved conflict records."
+  penpot_rule: "Penpot can create design evidence only within the approved tool registry scope; it does not own product identity, final visual/UX decisions or Godot runtime UI."
+  stale_rule: "Any source, decision, organization, tool registry or upstream Contract digest change invalidates the affected approval and returns the affected section to review."
+  rollback_rule: "On failure preserve partial evidence, inspect the canvas before retry, and return the named reason code without fabricating URLs or approvals."

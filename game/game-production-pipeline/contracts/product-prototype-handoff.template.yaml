@@ -5,6 +5,9 @@
 
 product_prototype_handoff:
   schema_version: "game-production-product-prototype-handoff/v1"
+  # Keep false in real project instances; test fixtures must opt into synthetic
+  # validation explicitly and cannot stand in for a human approval record.
+  synthetic: false
 
   identity:
     handoff_id: "handoff:<project_id>:<slug>"
@@ -215,6 +218,7 @@ product_prototype_handoff:
     tool_id: "tool:penpot-mcp"
     approved_scope: ["read:penpot", "write:penpot", "capture:penpot"]
     capability_verification_ref: "<project-local capability evidence>|null"
+    required_capabilities: ["read:penpot", "write:penpot", "capture:penpot"]
     input_digest: "<64-lowercase-hex>|null"
     file_ref:
       artifact_id: "penpot-file:<project-id>:<revision>"
@@ -232,6 +236,7 @@ product_prototype_handoff:
         evidence_ref: "<snapshot-or-capture-ref>"
     design_system_ref: "penpot-design-system:<project-id>:<revision>|null"
     flow_evidence_refs: []
+    operation_evidence_ref: "<project-local read-write-read operation evidence>|null"
     unsupported_interactions: []
     handoff_status: "not_requested|draft|review_pending|implementation_ready|blocked"
 
@@ -245,6 +250,9 @@ product_prototype_handoff:
       - "原型目标与视觉/UX边界是否足以继续？"
     approval_ref: "<immutable approval record>|null"
     approval_subject_digest: "<64-lowercase-hex>|null"
+    # A separate readiness approval may be needed when the project charter
+    # requires explicit approval before penpot_implementation_ready.
+    handoff_approval_ref: "<immutable readiness approval record>|null"
 
   acceptance:
     automated_checks:
@@ -259,12 +267,16 @@ product_prototype_handoff:
         expected: "screen/flow IDs map to evidence without duplicate competing flow"
     professional_reviews:
       - reviewer: "position:<project-id>:<ui-ux>"
+        role: "ui_ux"
         scope: "structure/readability"
         status: "pending|passed|rework"
+        subject_digest: "<evidence subject SHA-256>"
         evidence_refs: []
       - reviewer: "position:<project-id>:<art-director>"
+        role: "art"
         scope: "visual direction"
         status: "pending|passed|rework"
+        subject_digest: "<evidence subject SHA-256>"
         evidence_refs: []
     human_experience_approval: "pending|approved|rejected"
 
@@ -280,7 +292,10 @@ product_prototype_handoff:
 
   integrity:
     canonicalization: "product-prototype-handoff-canonical-json-v1"
+    direction_canonicalization: "product-prototype-direction-canonical-json-v1"
     digest_algorithm: "sha256"
+    direction_subject_digest: "<set after replacing approval/evidence status fields>"
+    evidence_subject_digest: "<set after replacing integrity with null>"
     subject_digest: "<set after replacing this value with null>"
 
 handoff_rules:

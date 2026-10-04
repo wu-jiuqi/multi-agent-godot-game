@@ -45,6 +45,8 @@ Codex Plugin
 
 当前 main 的组织增量保留“六个部门能力槽位 + 按项目激活”的设计。槽位目录和部门经理模板不会自动创建项目 Department、Position 或 Instance；项目仍必须通过 Organization Change Set 和人工批准后才能物化正式编制。产品经理原型 Skill 可以绑定到项目经理 Preset，也可以在重复需求足够稳定时绑定到单独的 Product Manager Position。
 
+新增架构的[验证方案](../../docs/changes/2026-10-04-six-department-product-prototype-validation-plan.md)区分模板检查、组织/咨询行为与真实 Penpot 交付；包含待补的实例校验设施、故障注入和 P2P 对照实验。方案尚未执行，现有模板检查通过不代表真实工作流已通过验证。
+
 UI/UX 的 `ui-ux-pro-max` 是独立 Skill，源码位于仓库顶层 `skills/ui-ux-pro-max/`，不在游戏管线插件 ZIP 内。本次 Release 提供单独 Skill ZIP；插件安装不会自动安装或覆盖它。
 
 ## 项目实例

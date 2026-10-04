@@ -1,4 +1,4 @@
-# 游戏制作多 Agent 架构 v0.3 Alpha
+# 游戏制作多 Agent 架构
 
 状态：`codex-plugin-alpha-implemented`
 
@@ -8,7 +8,7 @@
 
 ## Codex 插件映射
 
-通用根框架作为全局 `game-production-pipeline` 插件安装。插件通过六个 Skill 暴露初始化、项目简报准备、组织设计、生产循环、门禁审查和 Godot 适配工作流，但不会直接携带某个游戏的项目答案。
+通用根框架作为全局 `game-production-pipeline` 插件安装。插件通过入口 Skill 暴露初始化、项目简报准备、组织设计、生产循环、门禁审查、Godot 适配、画风方向和产品原型工作流，但不会直接携带某个游戏的项目答案。
 
 目标项目通过 `game-pipeline/` 保存 Registry、版本锁、审批、绑定、循环和项目 Agent Preset，通过 `.agents/skills/` 保存项目专属方法。只有已批准且摘要匹配的 Preset 才能确定性生成 `.codex/agents/*.toml`；TOML 是运行适配器，不是审批事实源。
 
@@ -57,7 +57,28 @@ P0～P9 是生产阶段，不默认等于十个 Agent。只有同时满足以下
 
 详细边界见 `agents/`。
 
-UI 默认采用 [Penpot MCP 四步工作流](workflows/ui-production.md)：文档与标题/slogan → 产品名与视觉方向 → 复用或补齐 UX → Penpot 视觉系统原型。项目经理整理命名和来源，项目所有者保留产品身份与核心风格决定，主美负责视觉规则，UI/UX 拥有流程，UI 生产执行者调用 Penpot MCP。四步是任务分工，不自动新增四个岗位。Penpot 设计验收与 Godot 运行验收分开；只有后续引擎任务才要求 `.tscn`/`.tres` 和目标构建证据。
+### 六个部门能力槽位
+
+为便于跨项目理解和路由，根框架固定提供六个部门能力槽位及部门经理 Preset 模板：策划、美术、程序、音频、测试、工具。槽位是框架目录中的能力模板，不是某个项目已经生效的 Department、Position 或 Agent Instance；未激活槽位不会产生模型调用。
+
+每个项目在共同立项和编制设计时，为槽位选择 `active`、`merged` 或 `unused` 的项目映射。只有 `active` 槽位经过 Organization Change Set、人工批准和 Registry 应用后，才能建立正式 Department、Manager Position 或运行实例；`merged` 槽位必须说明合并后的职责、事实源、验收和回退责任。项目可以在 Temporary Grant 额度内启动受限临时实例，但不能用槽位或临时实例绕过长期编制审批。
+
+六个部门经理共用通用部门管理契约，通过 Preset overlay 声明领域边界：
+
+| 槽位 | 默认管理边界 | 必须保持的独立事实或验收 |
+|---|---|---|
+| 策划 | 玩法、系统、内容需求和 GDD 领域章节 | 游戏设计与内容设计的写入 owner 仍需分别声明 |
+| 美术 | Art Direction、UI Visual、资产 brief 和视觉交接 | 不拥有 UI Screen/Flow 或最终人工审美批准 |
+| 程序 | 引擎架构、场景、运行时实现和技术证据 | 不静默修改玩法、内容或视觉事实源 |
+| 音频 | 音频需求、资产规格、集成与回归证据 | 不拥有产品定位或核心玩法决定 |
+| 测试 | 独立验收、缺陷分类、回归和发布证据 | 不由生产者自批，不能被部门初审替代 |
+| 工具 | 编辑器、转换、稳定 ID、导入导出和往返验证 | 不拥有其他部门的内容事实源或运行时架构 |
+
+槽位目录和经理模板见 `contracts/department-slot-catalog.template.yaml`、`agents/department-manager-presets.md`。框架目录可由渲染器显示为只读能力视图，但能力视图不等于 Organization Snapshot，也不授予执行权限。
+
+UI 默认采用 [Penpot MCP 四步工作流](workflows/ui-production.md)：文档与标题/slogan → 产品名与视觉方向 → 复用或补齐 UX → Penpot 视觉系统原型。产品经理可以通过 `product-brief-and-identity` 与 `penpot-prototype-orchestration` Skill 编排这条链路；项目经理负责项目级依赖和交付节奏；项目所有者保留产品身份与核心风格决定，主美负责视觉规则，UI/UX 拥有流程，Penpot 工具 Skill 执行文件和原型操作。四步是任务分工，不自动新增原型部门。Penpot 设计验收与 Godot 运行验收分开；只有后续引擎任务才要求 `.tscn`/`.tres` 和目标构建证据。
+
+产品经理是可选的长期 Position。小型项目可以把产品管理能力绑定到项目经理 Preset；当产品身份、PRD/GDD 整合和原型交付持续重复且需要独立事实源时，项目可以通过编制审批建立 Product Manager Position。产品经理可以生成引用各领域来源的 PRD/GDD 整合草案，但不能重写领域 Agent 的事实源；产品名、slogan、核心方向、视觉方向、UX 事实和最终原型验收仍按各自人工或专业 Gate 决定。详细输入、输出、工具绑定和回退见 `agents/product-manager.md`、`workflows/product-prototyping.md`。
 
 可选专项模板 [游戏机制与玩法策划 Agent](agents/gameplay-designer.md) 负责被委派机制的方案比较、规则规格、数值假设与原型验证设计。`AGT-GD` 保留 P0/P1 整体一致性和系统目录责任，具体机制事实源只设一个写入 owner。小项目可兼任，独立岗位需按项目编制批准；机器 Pipeline Contract 使用已有 `SPECIALIST` 槽位，不新增默认 Agent 枚举。方法、模板与交接见 [玩法策划工作流](workflows/gameplay-design.md)。
 
@@ -93,7 +114,7 @@ UI 默认采用 [Penpot MCP 四步工作流](workflows/ui-production.md)：文�
 | 部门管理 | 项目按需实例化的部门经理 Agent | 承接项目目标，管理本领域工作，整合部门交付并向项目经理汇报 |
 | 专项执行 | 专业 Agent、临时子 Agent 或 Skill 执行者 | 在批准的职责与任务范围内生产具体设计、代码、资产、测试和证据 |
 
-组织层级是通用框架，具体部门不是。根框架提供部门经理的通用职责契约；美术、叙事、关卡、技术、音频或其他部门是否存在，由项目编制方案决定。
+组织层级是通用框架，具体项目的正式部门不是。根框架提供六个部门能力槽位和部门经理的通用职责契约；某个槽位是否物化为 Department、是否与其他槽位合并，由项目编制方案决定。
 
 工具与生产管线部门同样属于可选项目部门。它负责跨生产环节的编辑器、数据转换、导入导出、稳定映射和往返验证，但不拥有玩法、内容、美术方向或运行时架构决定。小型项目可把这些职责并入技术部门；存在持续跨部门工具需求、独立工具链和维护责任时，才建议独立实例化。参考模板见 `departments/tools-and-production-pipeline.md`。
 
@@ -123,6 +144,10 @@ Department 与 Position 使用 `active / suspended / retiring / retired` 的长�
 - 直接协作必须写入 Contract、交接记录或共享依赖记录，使项目经理能够追踪；
 - 改变优先级、范围、期限、资源承诺、产物所有权或事实源的事项，必须交由项目经理协调；
 - 一个部门不能直接命令另一个部门修改其事实源；无法解决的跨部门冲突由项目经理升级给人类。
+
+部门经理之间可以采用逻辑 P2P 协作，以减少项目经理充当所有信息转发节点的瓶颈。P2P 是沟通拓扑，不是权力平等或事实源合并：项目经理仍负责咨询轮、依赖冲突路由和项目级汇总；任何跨部门协作必须记录参与者、输入版本、问题、答复、假设、依赖、风险、冲突、owner、期限和证据引用。涉及范围、优先级、资源、期限、产物所有权或事实源的事项必须回到项目经理或人工闸门。结构化事件模板见 `contracts/consultation-event.template.yaml`。
+
+推荐的部门咨询轮为：项目经理按主题唤起相关部门经理并行答复 → 只对存在依赖冲突的部门开放 P2P 讨论 → 项目经理生成引用来源的 PRD/GDD 整合草案 → 自动校验与独立审阅 → 人类批准当前摘要。PRD/GDD 的批准不自动批准组织、预算、Production Charter 或发布权限；这些对象仍需各自的审批摘要。
 
 ## 分级授权与例外升级
 

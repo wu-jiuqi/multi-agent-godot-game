@@ -1,0 +1,321 @@
+department_slot_catalog:
+  schema_version: "0.1-alpha"
+
+  identity:
+    catalog_id: "catalog:core:department-slots"
+    display_name: "固定六部门能力槽位目录"
+    status: "framework-template"
+    version: "0.1.0"
+    digest: "<将完整规范化文档摘要为 64 位小写 SHA-256>"
+
+  purpose: >-
+    为所有项目提供固定的六类能力入口和部门经理职责边界。槽位是根框架模板，
+    不等同于项目 Department、Position 或运行中的 Agent Instance；只有项目组织
+    Change Set 经人工批准后，才可以把一个槽位映射为项目正式部门或临时工作组。
+
+  fixed_slots:
+    semantics:
+      fixed_set: true
+      slot_count: 6
+      slot_ids_are_immutable: true
+      project_registry_materialization: "never_by_catalog"
+      manager_activation: "on_demand_only"
+      default_runtime_instances: 0
+    allowed_project_operations:
+      - "activate_as_department"
+      - "activate_as_merged_responsibility"
+      - "activate_as_temporary_workgroup"
+      - "keep_unused"
+      - "retire_project_mapping"
+    forbidden_operations:
+      - "copy_catalog_entry_directly_into_organization_registry"
+      - "start_manager_instance_without_project_authority"
+      - "treat_inactive_slot_as_missing_responsibility_without_explanation"
+      - "change_slot_id_or_reuse_a_retired_project_mapping"
+
+  activation_contract:
+    proposal_owner: "AGT-ORG"
+    runtime_coordinator: "AGT-DIR"
+    approval_required_for:
+      - "把槽位映射为长期 Department"
+      - "把槽位映射为正式 Position 或绑定新的 Preset 版本"
+      - "改变产物或事实源所有权"
+      - "扩大工具、数据、网络、预算或独立验收权限"
+      - "把两个槽位长期合并或拆出新的长期职责"
+    no_approval_required_for:
+      - "读取目录和生成组织草案"
+      - "在有效 Temporary Grant 内创建一次性经理实例"
+      - "在已批准绑定不变时重启 Position Instance"
+    required_project_evidence:
+      - "confirmed project brief and staffing-ready digest"
+      - "responsibility coverage matrix"
+      - "department manager preset binding with version and digest"
+      - "authority and temporary workforce limits"
+      - "input/output ownership and acceptance contract"
+      - "human approval record for persistent activation"
+    apply_rule: >-
+      槽位提案先进入 Organization Change Set；批准只产生 approved_pending_apply，
+      只有后续类型化 apply Event 才能改变项目 Registry。目录自身永远不保存项目
+      Department、Position、Instance 或审批事实。
+
+  manager_contract:
+    base_preset:
+      preset_id: "preset:core:department-manager"
+      preset_version: "0.2.0"
+      binding_rule: "必须绑定准确版本和摘要，禁止 latest 别名"
+    required_inputs:
+      - "项目经理下达的目标、优先级、期限、约束和依赖"
+      - "当前项目 Organization Snapshot 水位"
+      - "本槽位拥有的事实源、交付 Contract 和验收标准"
+      - "来自其他槽位的带版本交接或 consultation event"
+    required_outputs:
+      - "部门计划和任务拆解"
+      - "经过整合与初审的部门交付物引用"
+      - "跨部门依赖、风险、容量和预测偏差"
+      - "P2P 咨询记录和需要升级的冲突"
+      - "明确的失败回退、重检和人工判断请求"
+    autonomy_boundary:
+      allowed:
+        - "在批准范围内拆分、排序和分配部门工作"
+        - "选择已批准的 Position、Skill、工具和临时 Agent Instance"
+        - "拒收不符合部门 Contract 的下属产物并要求修复"
+        - "向其他槽位发起专业澄清或依赖咨询"
+      must_escalate:
+        - "改变范围、优先级、期限、预算或资源承诺"
+        - "改变事实源、产物所有权或独立验收关系"
+        - "创建或扩大长期 Department、Position、Preset 绑定"
+        - "跨部门冲突无法按现有 Contract 解决"
+        - "核心体验、审美、价值、成本接受或发布判断"
+    p2p_rules:
+      topology: "peer_to_peer_with_coordinator"
+      coordinator: "AGT-DIR"
+      direct_peer_contact_allowed: true
+      direct_peer_contact_conditions:
+        - "请求必须带 consultation_id、输入摘要、期限和期望输出"
+        - "所有消息必须写入 consultation-event.template.yaml 规定的事件流"
+        - "不得命令对方修改其事实源、优先级或资源承诺"
+        - "范围、所有权、资源和人工保留决定必须回到 AGT-DIR/人类"
+      summary_owner: "AGT-DIR"
+      summary_is_authoritative_only_after: "人类批准对应 PRD/GDD 或项目决定"
+    acceptance_boundary:
+      department_review: "部门经理可执行专业初审"
+      independent_review: "不得替代 QA、审计或指定独立 Reviewer"
+      human_gate: "方向、体验、审美、价值、预算和发布仍由人类保留"
+    failure_policy:
+      ordinary_failure: "回到产生问题的部门工作项，保留事件、摘要和修复预算"
+      cross_department_failure: "提交带证据的冲突升级给 AGT-DIR"
+      authority_failure: "停止越界动作，提交最小决策包给上级或人类"
+      digest_or_version_drift: "拒绝交接并返回事实源所有者重新生成"
+
+  slots:
+    - slot_id: "slot:planning"
+      slug: "planning"
+      display_name: "策划"
+      purpose: "玩法、系统、数值、关卡和设计意图的统一规划入口"
+      manager_preset:
+        preset_id: "preset:core:department-manager-planning"
+        preset_version: "0.1.0"
+        profile_ref: "department-manager-presets.md#planning"
+      default_responsibility_domains:
+        - "core_loop_and_player_verbs"
+        - "system_and_rules_design"
+        - "level_and_encounter_design"
+        - "economy_and_balance"
+        - "design_intent_for_content_and_ui"
+      typical_inputs:
+        - "confirmed project brief"
+        - "product identity and target player"
+        - "technical and scope constraints"
+        - "content and UI questions"
+      typical_outputs:
+        - "GDD chapters and design briefs"
+        - "stable rule and parameter specifications"
+        - "prototype hypotheses and playtest criteria"
+        - "design intent handoff to content, UI and Godot"
+      acceptance_owner: "game design reviewer or human-appointed design reviewer"
+      independent_from: ["slot:qa"]
+      can_merge_with: ["slot:planning", "slot:tools"]
+      activation_hint: "小型项目可由游戏设计 Position 兼任；持续多系统生产时再启用经理层"
+
+    - slot_id: "slot:art"
+      slug: "art"
+      display_name: "美术"
+      purpose: "视觉方向、资产需求、UI 视觉和跨资产一致性的管理入口"
+      manager_preset:
+        preset_id: "preset:core:department-manager-art"
+        preset_version: "0.1.0"
+        profile_ref: "department-manager-presets.md#art"
+      default_responsibility_domains:
+        - "art_direction_and_style_rules"
+        - "character_environment_and_vfx_assets"
+        - "ui_visual_identity"
+        - "asset_briefs_and_rights_metadata"
+        - "engine_visual_benchmark"
+      typical_inputs:
+        - "approved product identity and design intent"
+        - "art direction contract when present"
+        - "UI Screen/Flow facts as read-only input"
+        - "target platform and asset budget"
+      typical_outputs:
+        - "art direction and visual acceptance references"
+        - "specialist asset briefs and asset handoffs"
+        - "Penpot/UI visual review inputs"
+        - "source, runtime, rights and import evidence"
+      acceptance_owner: "approved art lead or human-appointed visual reviewer"
+      independent_from: ["slot:qa"]
+      can_merge_with: ["slot:planning", "slot:tools"]
+      activation_hint: "无持续视觉一致性要求时可由专项 Skill 或临时主美承担"
+
+    - slot_id: "slot:programming"
+      slug: "programming"
+      display_name: "程序"
+      purpose: "Godot 架构、场景、运行时系统、集成和构建的管理入口"
+      manager_preset:
+        preset_id: "preset:core:department-manager-programming"
+        preset_version: "0.1.0"
+        profile_ref: "department-manager-presets.md#programming"
+      default_responsibility_domains:
+        - "godot_scene_and_resource_structure"
+        - "runtime_systems_and_data_flow"
+        - "input_save_load_and_platform_integration"
+        - "performance_and_build_pipeline"
+        - "implementation_handoffs_and_technical_evidence"
+      typical_inputs:
+        - "approved design and content contracts"
+        - "UI Screen/Flow and UI Visual references"
+        - "art/audio asset runtime references"
+        - "target platform and technical constraints"
+      typical_outputs:
+        - "serialized scenes/resources and implementation plans"
+        - "runtime integration and build evidence"
+        - "technical decisions with rollback path"
+        - "known limitations and test hooks"
+      acceptance_owner: "technical reviewer and independent QA"
+      independent_from: ["slot:qa"]
+      can_merge_with: ["slot:tools"]
+      activation_hint: "固定结构优先由 Godot 预置节点和场景承担；脚本只补充必要行为"
+
+    - slot_id: "slot:audio"
+      slug: "audio"
+      display_name: "音频"
+      purpose: "音乐、音效、语音、事件映射和音频运行时规范的管理入口"
+      manager_preset:
+        preset_id: "preset:core:department-manager-audio"
+        preset_version: "0.1.0"
+        profile_ref: "department-manager-presets.md#audio"
+      default_responsibility_domains:
+        - "audio_direction_and_mood"
+        - "music_and_sound_effect_requirements"
+        - "voice_and_localization_audio"
+        - "event_to_audio_mapping"
+        - "mixing_budget_and_runtime_fallback"
+      typical_inputs:
+        - "approved experience and content intent"
+        - "scene/event list and target platform"
+        - "rights and localization policy"
+        - "technical audio budget"
+      typical_outputs:
+        - "audio brief and cue/event map"
+        - "asset and license references"
+        - "runtime integration handoff"
+        - "fallback, mixing and verification evidence"
+      acceptance_owner: "audio reviewer or human-appointed experience reviewer"
+      independent_from: ["slot:qa"]
+      can_merge_with: ["slot:programming", "slot:art"]
+      activation_hint: "短切片可使用占位音频或专项临时实例，不强制长期部门"
+
+    - slot_id: "slot:qa"
+      slug: "qa"
+      display_name: "测试"
+      purpose: "独立质量、回归、可玩性证据和发布验收的管理入口"
+      manager_preset:
+        preset_id: "preset:core:department-manager-qa"
+        preset_version: "0.1.0"
+        profile_ref: "department-manager-presets.md#qa"
+      default_responsibility_domains:
+        - "acceptance_and_regression_strategy"
+        - "playtest_and_usability_observation"
+        - "build_smoke_and_platform_checks"
+        - "evidence_integrity_and_release_risk"
+        - "defect_triage_and_retest"
+      typical_inputs:
+        - "approved contracts and acceptance criteria"
+        - "candidate build or serialized project state"
+        - "known risks and open questions"
+        - "evidence and version/digest bindings"
+      typical_outputs:
+        - "independent test and review reports"
+        - "reproducible defects and severity decisions"
+        - "retest and release evidence"
+        - "human gate question set and recommendation"
+      acceptance_owner: "independent QA reviewer; human gate when required"
+      independent_from: ["slot:programming", "slot:planning", "slot:art", "slot:audio", "slot:tools"]
+      can_merge_with: []
+      activation_hint: "可以没有常驻经理，但不得取消独立验收责任；经理不可审自己的生产结果"
+
+    - slot_id: "slot:tools"
+      slug: "tools"
+      display_name: "工具"
+      purpose: "编辑器、转换、导入导出、数据映射、自动化和生产管线的管理入口"
+      manager_preset:
+        preset_id: "preset:core:department-manager-tools"
+        preset_version: "0.1.0"
+        profile_ref: "department-manager-presets.md#tools"
+      default_responsibility_domains:
+        - "editor_and_production_tools"
+        - "import_export_and_schema_migrations"
+        - "stable_id_and_round_trip_validation"
+        - "batch_operations_and_rollback"
+        - "tool_registry_and_maintenance_evidence"
+      typical_inputs:
+        - "tool request Contract with owner and acceptance"
+        - "source schemas and stable ID rules"
+        - "Godot/project and platform constraints"
+        - "rollback and permission policy"
+      typical_outputs:
+        - "editor/tool implementation or reuse decision"
+        - "schema, migration and round-trip evidence"
+        - "usage instructions and failure diagnosis"
+        - "rollback artifact and maintenance record"
+      acceptance_owner: "requesting department plus independent QA"
+      independent_from: ["slot:qa"]
+      can_merge_with: ["slot:programming"]
+      activation_hint: "工具需求稳定且成为多部门瓶颈时才实例化独立部门"
+
+  consistency_rules:
+    - id: "SLOT-001"
+      rule: "目录必须恰好包含六个固定 slot_id，项目不得修改 slot_id。"
+    - id: "SLOT-002"
+      rule: "slot_id、catalog_id 和 preset_id 只用于框架引用；不能直接写入项目 formal_structure。"
+    - id: "SLOT-003"
+      rule: "任何激活提案必须说明未启用槽位的责任覆盖或合并去向。"
+    - id: "SLOT-004"
+      rule: "每个启用槽位必须绑定准确 manager preset 版本、digest、authority、输入、输出和验收边界。"
+    - id: "SLOT-005"
+      rule: "slot:qa 的独立验收关系不可被 slot:programming、slot:planning 或 slot:tools 的经理取消。"
+    - id: "SLOT-006"
+      rule: "P2P 咨询不得改变项目事实源；所有结论先标记为 proposal 或 recommendation，写入正式 PRD/GDD 前需要项目经理整合并取得所需人类审批。"
+    - id: "SLOT-007"
+      rule: "槽位经理只有在已批准 Position 或有效 Temporary Grant 范围内才能创建 Agent Instance；未激活槽位默认不启动实例。"
+    - id: "SLOT-008"
+      rule: "槽位目录版本变化不自动迁移项目组织；必须生成兼容性检查和独立 Change Set。"
+
+  field_examples:
+    project_mapping_proposal:
+      slot_id: "slot:planning"
+      mapping_mode: "department | merged_responsibility | temporary_workgroup | unused"
+      project_department_id: "dept:<project_id>:planning"
+      manager_position_id: "pos:<project_id>:planning:manager"
+      preset_binding:
+        preset_id: "preset:core:department-manager-planning"
+        version: "0.1.0"
+        digest: "<64 位小写 SHA-256>"
+      change_set_ref: "chg:<project_id>:<26 位 ULID>"
+      approval_ref: null
+      responsibility_coverage_ref: "<带版本和摘要的责任覆盖矩阵>"
+      initial_activation: "unused"
+
+  registry_boundary:
+    catalog_is_authoritative_for: ["固定六槽位的名称、语义、默认边界和框架 Preset 引用"]
+    catalog_is_not_authoritative_for: ["项目 Department、Position、Instance、审批、预算、当前状态和运行负载"]
+    project_authority: "project Organization Registry after approved Change Set apply Event"

@@ -1,0 +1,229 @@
+consultation_event:
+  schema_version: "0.1-alpha"
+
+  identity:
+    consultation_event_id: "conevt:<project_id>:<26 位 ULID>"
+    mutation_id: "mut:<project_id>:<26 位 ULID>"
+    consultation_id: "con:<project_id>:<26 位 ULID>"
+    project_id: "<项目 ID>"
+    sequence: 1
+    event_type: "consultation.opened | peer.question | peer.response | peer.challenge | coordinator.summary | approval.requested | consultation.closed"
+    occurred_at: "<ISO 8601 时间>"
+    recorded_at: "<ISO 8601 时间>"
+
+  causality:
+    correlation_id: "<同一咨询批次的关联 ID>"
+    causation_event_id: null
+    request_id: "<外部请求 ID 或 null>"
+
+  concurrency:
+    expected_consultation_sequence: 0
+    resulting_consultation_sequence: 1
+
+  topology:
+    mode: "peer_to_peer_with_coordinator"
+    coordinator:
+      actor_kind: "position | instance"
+      actor_id: "<项目经理 Position/Instance ID>"
+      role: "project_manager"
+    initiator:
+      actor_kind: "human | position | instance | system"
+      actor_id: "<稳定 Actor ID>"
+      role: "<发起角色>"
+    participants:
+      - actor_kind: "position | instance"
+        actor_id: "<部门经理 Position/Instance ID>"
+        slot_id: "slot:<planning|art|programming|audio|qa|tools>"
+        role: "department_manager"
+        participation: "required | consulted | observer"
+    direct_peer_links:
+      - from_actor_id: "<参与者 ID>"
+        to_actor_id: "<参与者 ID>"
+        purpose: "<澄清、依赖、挑战或联合方案>"
+        expires_at: "<ISO 8601 时间>"
+
+  governance_binding:
+    organization_snapshot:
+      project_id: "<项目 ID>"
+      organization_revision: 1
+      snapshot_digest: "<64 位小写 SHA-256>"
+    project_context:
+      brief_ref: "<带版本和摘要的 Project Brief>"
+      prd_ref: null
+      gdd_ref: null
+      context_digest: "<输入事实、限制和前置交接的 64 位小写 SHA-256>"
+    authority_ref:
+      id: "<有效授权 ID>"
+      version: "<不可变版本>"
+      digest: "<64 位小写 SHA-256>"
+    approval_refs: []
+
+  actor:
+    actor_kind: "human | position | instance | system"
+    actor_id: "<稳定 Actor ID>"
+    slot_id: "slot:<slug> | null"
+    position_id: "<Position ID 或 null>"
+    instance_id: "<Instance ID 或 null>"
+    role: "project_manager | product_manager | department_manager | reviewer | human_owner"
+
+  payload:
+    question:
+      question_id: "q-001"
+      text: "<需要协作回答的问题>"
+      requested_by: "<Actor ID>"
+      recipient_actor_ids: ["<参与者 Actor ID>"]
+      requested_output: "<候选方案、风险、依赖或验收意见>"
+      due_at: "<ISO 8601 时间>"
+    response:
+      response_id: "resp-001"
+      in_reply_to_event_id: null
+      recipient_actor_ids: ["<接收者 Actor ID>"]
+      stance: "proposal | recommendation | objection | clarification | acceptance_note"
+      summary: "<本事件的可读结论>"
+      options:
+        - option_id: "opt-a"
+          title: "<方案标题>"
+          description: "<方案内容>"
+          benefits: ["<收益>"]
+          costs: ["<代价>"]
+          risks: ["<风险>"]
+          dependencies: ["<依赖>"]
+          evidence_refs: ["<带版本和摘要的证据>"]
+      recommended_option_id: "opt-a"
+      assumptions: ["<假设，必须明确标记>"]
+      unknowns: ["<未知项和验证方法>"]
+      conflicts:
+        - conflict_id: "conflict-001"
+          with_actor_id: "<冲突参与者>"
+          subject: "<范围、所有权、优先级或专业判断冲突>"
+          proposed_resolution: "<交由协调者或人类判断>"
+          escalation_required: true
+      requested_action: "<对项目经理或人类的下一步请求>"
+    handoff:
+      owner_actor_id: "<下一步责任人>"
+      output_refs: ["<需生成或更新的交付物引用>"]
+      acceptance_refs: ["<验收 Contract/标准引用>"]
+      rollback: "<失败返回阶段和责任人>"
+    evidence_refs: []
+
+  authority_effect:
+    decision_status: "advisory_only | coordinator_recommendation | pending_human_approval | approved | rejected"
+    changes_project_fact: false
+    changes_scope_priority_budget: false
+    changes_ownership_or_acceptance: false
+    writes_to_source_of_truth: []
+    required_next_gate: "none | project_manager_summary | domain_review | human_approval"
+    rule: >-
+      P2P 事件记录协作事实和建议，不授予任何参与者超出既有授权的权力。只有项目经理
+      在自己的权限内完成结构化整合，并在需要时取得人类审批后，相关结论才可以成为
+      PRD/GDD 或其他正式事实源的新版本。
+
+  integrity:
+    canonicalization: "consultation-event-canonical-json-v1"
+    digest_algorithm: "sha256"
+    previous_event_digest: null
+    event_digest: "<将本字段设为 null 后计算的 64 位小写 SHA-256>"
+
+application_contract:
+  payload_contracts:
+    consultation.opened:
+      required_fields: ["identity.consultation_id", "topology.coordinator", "topology.participants", "governance_binding"]
+      effect: "建立咨询参与者、输入水位和期限；不改变项目事实。"
+    peer.question:
+      required_fields: ["actor", "payload.question"]
+      effect: "向一个或多个已登记参与者提出结构化问题。"
+    peer.response:
+      required_fields: ["actor", "payload.response", "payload.handoff"]
+      effect: "提交建议、证据、假设、未知项和交接；不授予跨部门权限。"
+    peer.challenge:
+      required_fields: ["actor", "payload.response.conflicts", "payload.handoff"]
+      effect: "记录反对、冲突或风险，并将需要升级的事项标记为 escalation_required。"
+    coordinator.summary:
+      required_fields: ["actor", "payload.response", "payload.handoff", "authority_effect"]
+      effect: "由项目经理整合咨询结果，生成待专业评审或人类审批的建议摘要。"
+    approval.requested:
+      required_fields: ["payload.response", "governance_binding.approval_refs", "authority_effect"]
+      effect: "把方向、范围、所有权或其他人类保留事项提交到既有审批流程。"
+    consultation.closed:
+      required_fields: ["payload.response", "payload.handoff", "evidence_refs"]
+      effect: "固化咨询结论、开放问题、风险、证据和下一步；不自动批准提案。"
+  event_stream:
+    - "同一 consultation_id 的 sequence 从 1 连续递增，事件追加不可覆盖或删除。"
+    - "mutation_id 和 consultation_event_id 必须幂等；重复提交不得产生第二份事实。"
+    - "expected_consultation_sequence 必须等于当前最后 sequence，resulting_consultation_sequence 必须递增 1。"
+    - "每个事件绑定当时的 Organization Snapshot revision、输入 context_digest 和 authority_ref。"
+    - "参与者列表按 actor_id 稳定排序；direct_peer_links 不能形成隐藏的越权管理链。"
+    - "consultation.closed 只能在 coordinator.summary 已记录结论、开放问题、风险、证据和下一步后写入。"
+  p2p_boundary:
+    - "部门经理可以直接询问、澄清、挑战和联合提出方案；不得直接修改其他部门事实源。"
+    - "部门经理不得借 P2P 事件承诺跨部门资源、改变优先级、改变预算或替人类选择产品方向。"
+    - "涉及范围、期限、所有权、事实源、独立验收或人工保留判断时，必须设置 escalation_required=true。"
+    - "项目经理的 summary 也是 recommendation，除非已有授权且不触及人类保留事项；方向性结论必须进入人类审批记录。"
+    - "未答复、冲突和过期输入不得被摘要成 confirmed；必须保留 unknown、hypothesis 或 pending 状态。"
+  source_write_boundary:
+    - "事件正文只保存结构化摘要和不可变引用，不复制 PRD/GDD、代码、资产或测试报告正文。"
+    - "写入 PRD/GDD 时必须产生新版本、subject digest、来源 event refs 和对应人工 approval_ref（如需要）。"
+    - "事实源摘要或组织水位漂移时，事件只可作为历史记录，不能用于当前决策，必须重新咨询。"
+  validation_rules:
+    - id: "CONSULT-001"
+      rule: "event_type 必须来自本模板枚举，未知扩展必须使用 project.<project_id>.<event_name> 命名空间。"
+    - id: "CONSULT-002"
+      rule: "participants 至少包含 coordinator 和一个咨询参与者；参与者必须引用当前有效 Position/Instance 或明确的人类。"
+    - id: "CONSULT-003"
+      rule: "direct_peer_links 的两端必须都在 participants，且必须提供 purpose 与 expires_at；question/response 的 recipient_actor_ids 也必须来自 participants。"
+    - id: "CONSULT-004"
+      rule: "response.stance=acceptance_note 不等于人工批准；authority_effect.required_next_gate 仍按权限计算。"
+    - id: "CONSULT-005"
+      rule: "recommended_option_id 必须引用 options 中存在的 option_id；选项、冲突、假设和未知项的 ID 在 consultation 内唯一。"
+    - id: "CONSULT-006"
+      rule: "若 authority_effect 任一 changes_* 为 true，decision_status 不能为 approved，必须转为 pending_human_approval。"
+    - id: "CONSULT-007"
+      rule: "qa 槽位的独立验收意见不得由被测生产槽位覆盖、删除或降级；冲突必须升级。"
+    - id: "CONSULT-008"
+      rule: "event_digest 计算遵循 registry-event-canonical-json-v1 规则，previous_event_digest 必须连接同一 consultation 的前一事件。"
+
+field_examples:
+  opened:
+    event_type: "consultation.opened"
+    topology:
+      mode: "peer_to_peer_with_coordinator"
+      coordinator: {actor_kind: position, actor_id: "pos:<project_id>:root:project-manager", role: project_manager}
+      initiator: {actor_kind: position, actor_id: "pos:<project_id>:root:product-manager", role: product_manager}
+      participants:
+        - {actor_kind: position, actor_id: "pos:<project_id>:art:manager", slot_id: "slot:art", role: department_manager, participation: consulted}
+        - {actor_kind: position, actor_id: "pos:<project_id>:planning:manager", slot_id: "slot:planning", role: department_manager, participation: consulted}
+        - {actor_kind: position, actor_id: "pos:<project_id>:root:project-manager", slot_id: null, role: project_manager, participation: required}
+    authority_effect:
+      decision_status: "advisory_only"
+      changes_project_fact: false
+      changes_scope_priority_budget: false
+      changes_ownership_or_acceptance: false
+      writes_to_source_of_truth: []
+      required_next_gate: "project_manager_summary"
+
+  coordinator_summary:
+    event_type: "coordinator.summary"
+    payload:
+      response:
+        response_id: "summary-001"
+        stance: "recommendation"
+        summary: "<项目经理整合的候选结论>"
+        options: []
+        recommended_option_id: null
+        assumptions: []
+        unknowns: ["<仍需人类判断的方向问题>"]
+        conflicts: []
+        requested_action: "<提交人类审批或继续验证>"
+      handoff:
+        owner_actor_id: "<项目经理或领域负责人>"
+        output_refs: ["<PRD/GDD 草案引用>"
+        ]
+        acceptance_refs: ["<专业评审或人工 Gate 引用>"]
+        rollback: "<失败回退路径>"
+    authority_effect:
+      decision_status: "pending_human_approval"
+      changes_project_fact: false
+      changes_scope_priority_budget: true
+      changes_ownership_or_acceptance: false
+      writes_to_source_of_truth: []
+      required_next_gate: "human_approval"

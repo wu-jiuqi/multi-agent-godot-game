@@ -305,7 +305,7 @@ class RuntimeBindingMigrationTests(unittest.TestCase):
         self.assertEqual(self.project_skill_digest, project_skill["digest"])
         for action in plan["agent_adapter_actions"]:
             text = (self.project_root / action["path"]).read_text(encoding="utf-8")
-            self.assertIn("# generator-version: 0.5.0-alpha.11", text)
+            self.assertIn("# generator-version: 0.5.0-alpha.12", text)
         validation = project_validator.validate_instance(self.project_root, PLUGIN_ROOT)
         self.assertEqual("normal", validation["state"], validation)
 
@@ -338,7 +338,7 @@ class RuntimeBindingMigrationTests(unittest.TestCase):
         self._write_yaml("game-pipeline/plugin-lock.yaml", lock)
         for path in self.project_root.glob(".codex/agents/*.toml"):
             path.write_text(path.read_text(encoding="utf-8").replace(
-                "# generator-version: 0.5.0-alpha.11", "# generator-version: 0.5.0-alpha.3"
+                "# generator-version: 0.5.0-alpha.12", "# generator-version: 0.5.0-alpha.3"
             ), encoding="utf-8", newline="\n")
         before = self._snapshot_without_migration_cache()
         plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)
@@ -379,7 +379,7 @@ class RuntimeBindingMigrationTests(unittest.TestCase):
         self._write_yaml("game-pipeline/plugin-lock.yaml", lock)
         for path in self.project_root.glob(".codex/agents/*.toml"):
             path.write_text(path.read_text(encoding="utf-8").replace(
-                "# generator-version: 0.5.0-alpha.11", "# generator-version: 0.5.0-alpha.4"
+                "# generator-version: 0.5.0-alpha.12", "# generator-version: 0.5.0-alpha.4"
             ), encoding="utf-8", newline="\n")
         before = self._snapshot_without_migration_cache()
         plan = planner.plan_migration(self.project_root, PLUGIN_ROOT, MIGRATION_AT)

@@ -2,7 +2,7 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.5.0-alpha.11`。当前 main 源码在 alpha.11 的 UI Visual Contract、UI 视觉资源映射和 Penpot MCP UI 四步生产流程之上，增加六部门能力槽位、结构化部门咨询和产品经理原型 Skill；仍是 Alpha，角色行为尚待真实项目验证，不是 Production Ready。新增能力尚未形成新的发布包。
+当前版本：`v0.5.0-alpha.12`。本版在 Penpot MCP UI 四步生产流程之上，正式纳入六部门惰性能力槽位、结构化 P2P 部门咨询、产品经理原型 Skill 与验证设施；仍是 Pre-release，不是 Production Ready，真实 Penpot 试点尚未完成。
 
 UI 默认先在 Penpot MCP 中完成产品资料提取、产品身份、UX 流程和视觉系统原型，再按需要进入 Godot 场景实现。Penpot-only 交付可通过 `validate_art_direction_contract.py --ui-penpot-only` 验证，不要求先创建 Godot 场景或 Theme 资源；`--ui-figma-only` 仍是旧项目兼容别名。
 
@@ -45,7 +45,7 @@ Codex Plugin
 
 当前 main 的组织增量保留“六个部门能力槽位 + 按项目激活”的设计。槽位目录和部门经理模板不会自动创建项目 Department、Position 或 Instance；项目仍必须通过 Organization Change Set 和人工批准后才能物化正式编制。产品经理原型 Skill 可以绑定到项目经理 Preset，也可以在重复需求足够稳定时绑定到单独的 Product Manager Position。
 
-新增架构的[验证方案](../../docs/changes/2026-10-04-six-department-product-prototype-validation-plan.md)区分模板检查、组织/咨询行为与真实 Penpot 交付；包含待补的实例校验设施、故障注入和 P2P 对照实验。方案尚未执行，现有模板检查通过不代表真实工作流已通过验证。
+新增架构的[验证方案](../../docs/changes/2026-10-04-six-department-product-prototype-validation-plan.md)区分模板检查、组织/咨询行为与真实 Penpot 交付。本版已执行本地回归和 synthetic 沙盒；[验证报告](../../docs/validation-runs/2026-10-04-six-department-product-prototype/report.md)记录 V3 真实 Penpot 因无连接实例而阻塞，synthetic 通过不等于真实工作流已通过验收。
 
 UI/UX 的 `ui-ux-pro-max` 是独立 Skill，源码位于仓库顶层 `skills/ui-ux-pro-max/`，不在游戏管线插件 ZIP 内。本次 Release 提供单独 Skill ZIP；插件安装不会自动安装或覆盖它。
 
@@ -338,6 +338,7 @@ python scripts/validate_organization_registry.py --templates --snapshot contract
 python scripts/validate_organization_extensions.py
 python scripts/validate_consultation_event.py contracts/examples/consultation-event-valid.yaml
 python scripts/run_organization_prototype_validation.py --output <validation-report.json>
+python scripts/validate_product_prototype_handoff.py <project-handoff.yaml> --project-root <project-root> --require-ready
 python scripts/render_organization.py --snapshot contracts/examples/organization-alpha-snapshot.yaml --change-set contracts/examples/organization-alpha-change-set.yaml --view change --scope dept:sample-game:design --format mermaid
 python scripts/validate_text_encoding.py --plugin-root .
 python scripts/build_release.py --plugin-root . --output-dir ..\..\dist

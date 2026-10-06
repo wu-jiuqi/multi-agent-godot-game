@@ -18,6 +18,7 @@ SKILLS = {
     "adapt-godot-production",
     "direct-game-art",
     "product-brief-and-identity",
+    "product-discovery",
     "penpot-prototype-orchestration",
 }
 

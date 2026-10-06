@@ -150,6 +150,23 @@ class ProductPrototypeHandoffTests(unittest.TestCase):
         self.assertEqual("invalid", result["state"])
         self.assertTrue(any("external human approval" in error for error in result["errors"]))
 
+    def test_empty_referenced_document_cannot_be_a_complete_handoff(self):
+        """A no-document intake must fail closed even when its empty file has a valid digest."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            document = self.instance(root)
+            source = document["product_prototype_handoff"]["source_document_refs"][0]
+            path = root / "inputs" / "brief.yaml"
+            path.write_text(" \n", encoding="utf-8")
+            source["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+            document["product_prototype_handoff"]["integrity"].update(validator.handoff_digests(document))
+            result = validator.validate_product_prototype_handoff(
+                document, project_root=root, allow_synthetic=True
+            )
+        self.assertEqual("invalid", result["state"], result)
+        self.assertTrue(any("must not be empty" in error for error in result["errors"]))
+        self.assertFalse(result["local_evidence_ready"])
+
     def test_f10_repo_reference_escape_and_digest_mismatch_fail_closed(self):
         with tempfile.TemporaryDirectory() as directory:
             document = self.instance(Path(directory))

@@ -1,0 +1,89 @@
+organization_registration_request:
+  schema_version: "game-production-organization-registration-request/v1"
+
+  identity:
+    request_id: "org-reg-request:<project_id>:<26 位 ULID>"
+    project_id: "<project-id>"
+    status: "submitted"
+    created_at: "<ISO 8601 时间>"
+    updated_at: "<ISO 8601 时间>"
+
+  requester:
+    actor_kind: "position | instance | human"
+    actor_id: "<稳定 Actor ID>"
+    position_id: "pos:<project_id>:root:product-manager"
+    agent_id: "AGT-PM"
+    role: "product_manager"
+
+  target:
+    registration_kind: "project_organization"
+    requested_slots: ["slot:planning", "slot:art", "slot:programming", "slot:audio", "slot:qa", "slot:tools"]
+    requested_mapping_modes: ["department | merged_responsibility | temporary_workgroup | unused"]
+
+  request:
+    rationale: "<产品经理为何需要建立或调整项目组织>"
+    desired_outcome: "<希望 AGT-ORG 评估并提出什么组织结果>"
+    responsibility_needs: ["<带来源的长期责任或验收缺口>"]
+    constraints: ["<范围、成本、期限、平台或权限约束>"]
+    acceptance: ["<组织提案必须满足的可验证条件>"]
+
+  evidence:
+    project_brief_ref: {uri: "<项目简报引用>", revision: "<版本>", digest: "<64 位小写 SHA-256>"}
+    organization_snapshot_ref: {uri: "<当前 Snapshot 引用>", organization_revision: 1, digest: "<64 位小写 SHA-256>"}
+    fact_refs: []
+
+  routing:
+    coordinator_agent_id: "AGT-ORG"
+    handoff:
+      submitted_at: "<ISO 8601 时间>"
+      change_set_ref: null
+      change_set_digest: null
+      response_due_at: null
+
+  approval:
+    human_approval_required: true
+    approval_ref: null
+    decision: "pending | approved | rejected | withdrawn | stale"
+    decision_basis: null
+
+  application:
+    apply_event_ref: null
+    applied_at: null
+
+  integrity:
+    canonicalization: "organization-registration-request-canonical-json-v1"
+    digest_algorithm: "sha256"
+    request_digest: "<将本字段设为 null 后计算的 64 位小写 SHA-256>"
+
+registration_request_contract:
+  fact_boundary: "PM 请求是输入事实和意图，不是 Organization Registry 事实；提交请求不得创建 Department、Position、Preset、Skill Binding 或 Instance。"
+  authority_boundary:
+    requester: "AGT-PM 只能提交、补充或撤回自己发起的请求，不能生成、批准或应用 Change Set。"
+    proposal_owner: "AGT-ORG 读取当前 Snapshot 和证据，生成绑定决策基线的 Organization Change Set；不能代替人类批准。"
+    approver: "人类审批者决定批准、拒绝或撤回 Change Set；决定必须绑定 request_id、change_set_id、change_set_digest 和基线摘要。"
+    applier: "只有批准后的类型化 core.change_set_applied Event 才能改变 Organization Registry；AGT-PM 和 AGT-ORG 都不能直接写 Snapshot。"
+  lifecycle:
+    - "submitted -> change_set_generated：AGT-ORG 校验输入并生成 Change Set 引用。"
+    - "change_set_generated -> awaiting_human_approval：Change Set 校验通过并等待人审。"
+    - "awaiting_human_approval -> approved_pending_apply：人类批准 Change Set；批准不等于已应用。"
+    - "awaiting_human_approval -> rejected | withdrawn | stale：人类拒绝/撤回，或决策基线漂移。"
+    - "approved_pending_apply -> applied：仅通过 core.change_set_applied Event 原子应用。"
+  required_handoffs:
+    pm_to_agt_org:
+      required_fields: [request_id, project_id, requester, target, request, evidence, organization_snapshot_ref]
+      output: "AGT-ORG 接收后返回 change_set_ref、change_set_digest、验证结果和待人审事项。"
+    agt_org_to_human:
+      required_fields: [request_id, change_set_ref, change_set_digest, base_organization_revision, base_snapshot_digest, decision_basis_digest, impact, risks, rollback]
+      output: "人类可审阅的 Organization Change Set 审批包；未批准时不得进入正式编制。"
+    human_to_apply:
+      required_fields: [approval_ref, request_id, change_set_ref, change_set_digest, decision_ref]
+      output: "独立 apply 请求或 core.change_set_applied Event；应用前重新校验决策基线。"
+  no_approval_bypass:
+    - "请求、Change Set 草案、审批决定和 apply Event 必须分开留痕。"
+    - "空 approval_ref、过期审批、摘要漂移或 stale Change Set 必须阻断 apply。"
+    - "项目初始化、插件安装或读取槽位目录不得被解释为注册批准。"
+  failure_routes:
+    missing_evidence: "返回 AGT-PM 补充证据，不生成可应用 Change Set。"
+    validation_failure: "AGT-ORG 返回结构化错误并保留请求，不写正式 Registry。"
+    stale_before_apply: "停止 apply，要求 AGT-ORG 依据最新 Snapshot 重建 Change Set 并重新人审。"
+    human_rejection: "保留请求和决定历史；不改变当前正式组织。"

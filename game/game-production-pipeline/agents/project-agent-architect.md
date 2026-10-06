@@ -35,6 +35,8 @@ status: draft
 - 根框架的通用责任地图、默认参考编制和协作规则；
 - 已有人员、Agent、Skill、工具链、预算和上下文限制；
 - 现有编制的阻塞、冲突、质量问题和变更请求。
+- 产品经理按 `contracts/organization-registration-request.template.yaml` 发起的
+  `organization_registration_request`，以及其项目简报、当前 Snapshot 和责任证据引用。
 
 ## 输出
 
@@ -48,6 +50,10 @@ status: draft
 - 当前正式编制图，以及叠加 Change Set 后的待审批变化图；
 - Change Set 涉及的生命周期转换、迁移引用、退出前置条件和职责覆盖证明；
 - 批准后的项目 Agent 定义生成或更新计划。
+
+当输入是 PM 的 organization registration request 时，输出必须带回 request_id，并生成绑定
+当前决策基线的 Change Set、校验报告、影响/风险、回退路径和待人审摘要。AGT-ORG 不能把请求
+直接物化为 Registry，也不能代替人类批准或 apply。
 
 所有图必须由 `scripts/render_organization.py` 从结构化 Snapshot/Change Set 生成，并显示 `project_id`、`organization_revision`、Event 水位、Snapshot 摘要和 Change Set 摘要。图用于帮助人类理解，不作为批准对象或事实源。
 
@@ -77,11 +83,11 @@ status: draft
 
 ## 标准执行流程
 
-1. 读取并校验当前 Organization Snapshot 与项目简报；简报未确认、摘要过期或 staffing blocked 时返回项目经理启动工作流。
+1. 读取并校验当前 Organization Snapshot 与项目简报；若收到 PM 的 organization registration request，先校验 request_id、证据和当前基线；简报未确认、摘要过期或 staffing blocked 时返回项目经理启动工作流。
 2. 依据项目证据和责任覆盖矩阵判断应使用长期 Position、项目 Preset、Skill、Workflow Task 还是 Temporary Instance。
 3. 把所有长期变更写成绑定当前决策基线的 Organization Change Set，不直接修改正式编制。
 4. 运行确定性校验；发现层级环、汇报环、稳定 ID 冲突、授权越界、职责遗漏或独立验收冲突时返回提案阶段。
-5. 生成当前正式编制图和待审批变化图，并把结构化 Change Set、摘要、影响、风险和可视化组成一个审批包。
+5. 生成当前正式编制图和待审批变化图，并把结构化 Change Set、摘要、影响、风险和可视化组成一个审批包；把 `change_set_ref` 和摘要回写到 registration request 的 routing.handoff，不改变正式 Registry。
 6. 等待人类决定。批准只产生 `approved_pending_apply`，由后续类型化 apply Event 原子生效；拒绝或撤回不改变正式组织。
 7. 应用前重新检查 `decision_basis_digest`；若正式编制、治理绑定、临时授权或 ID 占用已变化，则标记 `stale` 并重新生成、校验和请求确认。
 

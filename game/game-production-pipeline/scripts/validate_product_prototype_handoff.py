@@ -166,6 +166,11 @@ def _validate(document: Any, *, project_root: Path, allow_synthetic: bool,
                 raise ValueError("referenced file does not exist")
             if file_digest(path) != digest:
                 raise ValueError("file SHA-256 mismatch")
+            # A digest proves identity, not usefulness. Empty or whitespace-only
+            # sources/evidence must fail closed so a no-document intake cannot be
+            # mistaken for a complete prototype handoff.
+            if not path.read_bytes().strip():
+                raise ValueError("referenced file must not be empty")
             checked_files.append(uri)
             if load:
                 doc = load_yaml(path)

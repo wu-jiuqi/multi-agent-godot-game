@@ -97,6 +97,26 @@ def validate_catalog(document: Any) -> list[str]:
             errors.append(f"{slot_id}.slug 与 slot_id 不一致")
     if set(actual_ids) != SLOT_IDS or len(actual_ids) != len(set(actual_ids)):
         errors.append(f"catalog.slots 必须恰好包含六个固定槽位: {sorted(SLOT_IDS)}")
+    art = next((mapping(raw, "catalog.slots.art", errors) for raw in slots if isinstance(raw, dict) and raw.get("slot_id") == "slot:art"), {})
+    skill_chain = mapping(art.get("default_skill_chain"), "slot:art.default_skill_chain", errors)
+    if skill_chain.get("owner_slot") != "slot:art":
+        errors.append("slot:art.default_skill_chain 必须由 slot:art 管理")
+    invocation_order = sequence(skill_chain.get("invocation_order"), "slot:art.default_skill_chain.invocation_order", errors)
+    expected_art_skills = ["palette-knife-impasto", "palette-knife-impasto-ui", "impasto-tween-animation"]
+    actual_art_skills = [mapping(item, "slot:art.default_skill_chain.invocation_order", errors).get("skill_id") for item in invocation_order]
+    if actual_art_skills != expected_art_skills:
+        errors.append("slot:art.default_skill_chain 必须按 palette-knife-impasto -> palette-knife-impasto-ui -> impasto-tween-animation 调用")
+    actual_art_orders = [mapping(item, "slot:art.default_skill_chain.invocation_order", errors).get("order") for item in invocation_order]
+    if actual_art_orders != [1, 2, 3]:
+        errors.append("slot:art.default_skill_chain.order 必须严格为 1, 2, 3")
+    if not isinstance(skill_chain.get("sequencing_rule"), str) or "不得跳步" not in skill_chain["sequencing_rule"]:
+        errors.append("slot:art.default_skill_chain 必须声明不得跳步的 sequencing_rule")
+    boundary = mapping(skill_chain.get("programming_consumption_boundary"), "slot:art.default_skill_chain.programming_consumption_boundary", errors)
+    if boundary.get("program_slot") != "slot:programming":
+        errors.append("slot:art 必须声明 slot:programming 消费边界")
+    if not boundary.get("cannot"):
+        errors.append("slot:art.programming_consumption_boundary.cannot 不能为空")
+
     qa = next((mapping(raw, "catalog.slots.qa", errors) for raw in slots if isinstance(raw, dict) and raw.get("slot_id") == "slot:qa"), {})
     if qa.get("can_merge_with") != []:
         errors.append("slot:qa.can_merge_with 必须为空，保持独立验收")

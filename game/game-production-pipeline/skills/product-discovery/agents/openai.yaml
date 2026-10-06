@@ -1,0 +1,4 @@
+interface:
+  display_name: "Product Discovery"
+  short_description: "Turn a game idea with no usable docs into a reviewable proposal packet."
+  default_prompt: "Use $product-discovery to interview me about an undocumented game idea, draft proposal/unknown brief and PRD artifacts, and prepare a gated prototype handoff."

@@ -85,6 +85,23 @@ Snapshot 只保留当前未结束实例和判断当前有效性所需的最近�
 
 Change Set 保留创建时的完整 Snapshot 摘要用于历史审计，同时绑定排除事件水位、运行实例和审批队列的 `decision_basis_digest`。提交和决定事件可以推进全局 revision，但不会令提案因自身治理事件而失效；若正式编制、治理绑定、临时授权、ID 占用或 tombstone 已改变，提案必须标记为 `stale` 并重新确认。
 
+### PM 发起的组织注册请求
+
+产品经理需要新增或调整长期组织能力时，先提交
+[`organization-registration-request.template.yaml`](organization-registration-request.template.yaml) 定义的
+`organization_registration_request`。请求绑定项目简报、当前 Snapshot 和责任证据，只是待处理输入，
+不能直接注册 Department、Position、Preset、Skill Binding 或 Instance。
+
+流程固定为：
+
+1. `AGT-PM` 提交请求并获得 `request_id`；
+2. `AGT-ORG` 校验输入和决策基线，生成带 `change_set_ref`、摘要、影响、风险和回退路径的 Organization Change Set；
+3. 人类绑定请求、Change Set 摘要和 Snapshot 基线做批准或拒绝；批准只进入 `approved_pending_apply`；
+4. 只有独立、类型化的 `core.change_set_applied` Event 在重新校验基线后才能原子更新 Snapshot。
+
+PM 不得代替 AGT-ORG 生成 Change Set，AGT-ORG 不得代替人类批准或 apply。审批缺失、摘要漂移、
+`stale` 或验证失败均必须停止并退回补证据/重建提案；项目初始化和读取槽位目录也不构成注册批准。
+
 ## Registry 不保存的内容
 
 - Agent Prompt、Skill 正文、工具或 Provider 实现；

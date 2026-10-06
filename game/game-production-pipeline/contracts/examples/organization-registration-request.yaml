@@ -1,0 +1,47 @@
+organization_registration_request:
+  schema_version: "game-production-organization-registration-request/v1"
+  identity:
+    request_id: "org-reg-request:sample-game:01J00000000000000000000011"
+    project_id: "sample-game"
+    status: "change_set_generated"
+    created_at: "2026-10-06T00:00:00Z"
+    updated_at: "2026-10-06T00:05:00Z"
+  requester:
+    actor_kind: "position"
+    actor_id: "pos:sample-game:root:product-manager"
+    position_id: "pos:sample-game:root:product-manager"
+    agent_id: "AGT-PM"
+    role: "product_manager"
+  target:
+    registration_kind: "project_organization"
+    requested_slots: ["slot:art", "slot:planning", "slot:programming", "slot:qa"]
+    requested_mapping_modes: ["department", "department", "department", "department"]
+  request:
+    rationale: "产品原型已确认，需要明确责任覆盖和独立验收。"
+    desired_outcome: "请 AGT-ORG 生成最小可行编制 Change Set。"
+    responsibility_needs: ["持续视觉方向", "原型实现", "独立回归验收"]
+    constraints: ["保持 QA 独立", "不得新增未审批工具权限"]
+    acceptance: ["每个长期职责有 Position owner", "所有 Preset 绑定可追溯"]
+  evidence:
+    project_brief_ref: {uri: "repo://game-pipeline/project-definition/project-brief.yaml", revision: "1", digest: "1111111111111111111111111111111111111111111111111111111111111111"}
+    organization_snapshot_ref: {uri: "repo://game-pipeline/organization/snapshot.yaml", organization_revision: 1, digest: "2222222222222222222222222222222222222222222222222222222222222222"}
+    fact_refs: []
+  routing:
+    coordinator_agent_id: "AGT-ORG"
+    handoff:
+      submitted_at: "2026-10-06T00:00:00Z"
+      change_set_ref: "chg:sample-game:01J00000000000000000000012"
+      change_set_digest: "3333333333333333333333333333333333333333333333333333333333333333"
+      response_due_at: null
+  approval:
+    human_approval_required: true
+    approval_ref: null
+    decision: "pending"
+    decision_basis: null
+  application:
+    apply_event_ref: null
+    applied_at: null
+  integrity:
+    canonicalization: "organization-registration-request-canonical-json-v1"
+    digest_algorithm: "sha256"
+    request_digest: "4444444444444444444444444444444444444444444444444444444444444444"

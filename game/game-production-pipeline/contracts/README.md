@@ -35,6 +35,8 @@ Organization Registry 用一个可由不可变事件历史重建的 Snapshot 保
 
 审批不绑定 Mermaid 或 SVG，而绑定 `change_set_id + change_set_digest + base revision + base snapshot_digest`。图片可随时由相同结构化输入重新生成；正式组织只能由批准后的类型化 Event 改变。
 
+产品经理发起长期组织需求时，使用 [`organization-registration-request.template.yaml`](organization-registration-request.template.yaml)。请求只登记 PM 的责任需求和证据，由 `AGT-ORG` 生成绑定当前决策基线的 Change Set；人类审核后仍需独立的 `core.change_set_applied` Event 才能更新 Registry。`examples/organization-registration-request.yaml` 和 `../scripts/validate_organization_registration_request.py` 提供结构样例与轻量校验；它们不会绕过人工审批或直接注册组织。
+
 ## Loop Registry
 
 Loop Registry 保存具体 Loop 实例的运行事实，与可复用规则分离：

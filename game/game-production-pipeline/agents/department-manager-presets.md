@@ -83,6 +83,20 @@ UI/UX 仍拥有 Screen/Flow、布局和交互，Penpot 执行只按批准的 UI 
 最小验收：每项资产有 owner、来源、版本、权利、导入 Profile、目标场景和回退；批量最终
 生产前已有代表性引擎基准和适用的方向 Gate；视觉判断保留给主美/人类。
 
+默认厚涂 UI Skill 链路（由 `slot:art` 管理）
+
+当项目已批准使用刮刀厚涂方向时，美术经理按以下顺序调用 Skill，前一步的输入和 Gate 证据
+缺失就退回美术槽位，不得跳步：
+
+1. `$palette-knife-impasto`：D1 风格方向模块，只提供候选方向、媒介/笔触规则和跨域翻译输入；它不能自行选定项目画风或授予资产权利。
+2. `$palette-knife-impasto-ui`：在方向进入批准的 Art Direction/UI Visual Contract 后执行 D3 UI 组件生成、材质检查和静态拼装，交付组件/状态 manifest 与资源引用。
+3. `$impasto-tween-animation`：仅在 UI 组件拼装完成后执行 D3 动效，交付 motion manifest、H5/Godot 映射和 reduced-motion 证据。
+
+`slot:programming` 只能消费这些交付物的版本、摘要、运行时资源引用、Theme/StyleBox 映射和
+动效参数。程序不得直接调用、修改或改绑上述 Skill，不得自行冻结画风、UI Visual、动效语义
+或权利结论，也不得把 Penpot 原型或静态资产当作已完成 Godot 实现。技术集成失败按交接契约
+回到 `slot:art` 或程序实现责任人，并继续经过独立 QA 与 D2/D3/D4 人工 Gate。
+
 ### `#programming` 程序经理
 
 ```yaml

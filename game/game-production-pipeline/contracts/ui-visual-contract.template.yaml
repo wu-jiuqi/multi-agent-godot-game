@@ -130,6 +130,50 @@ ui_visual_contract:
         sha256: <64-lowercase-hex>
     review_evidence_refs: []
 
+    # Optional local-project -> dot/cloud-browser bridge evidence. This is a
+    # state record only; it does not grant direct browser control or contain
+    # credentials. See contracts/penpot-browser-bridge.md.
+    cloud_browser_open:
+      requested: false
+      status: not_requested|pending|opened|failed
+      request_ref:
+        artifact_id: penpot-request:<project>:<revision>
+        version: 1
+        uri: repo://game-pipeline/ui/evidence/<penpot-request>.yaml
+        sha256: <64-lowercase-hex>
+      ack_ref:
+        artifact_id: penpot-ack:<project>:<revision>
+        version: 1
+        uri: repo://game-pipeline/ui/evidence/<penpot-ack>.yaml
+        sha256: <64-lowercase-hex>
+      result_ref:
+        artifact_id: penpot-result:<project>:<revision>
+        version: 1
+        uri: repo://game-pipeline/ui/evidence/<penpot-result>.yaml
+        sha256: <64-lowercase-hex>
+      failure:
+        code: connection_failed|auth_required|origin_mismatch|timeout|null
+        detail: <failure detail or null>
+        retryable: true
+        route: BRIDGE|HUMAN_REVIEW|UI_VISUAL|UI_STRUCTURE|UI_TECH|UI_READABILITY|null
+    connection_evidence:
+      status: not_requested|pending|verified|failed
+      observed_at: <ISO-8601 timestamp or null>
+      browser: cloud_browser
+      browser_session_id: <opaque session id or null>
+      tab_id: <opaque tab id or null>
+      origin: https://design.penpot.app
+      evidence_ref:
+        artifact_id: penpot-connection:<project>:<revision>
+        version: 1
+        uri: repo://game-pipeline/ui/evidence/<connection-evidence>.yaml
+        sha256: <64-lowercase-hex>
+      failure:
+        code: connection_failed|auth_required|origin_mismatch|timeout|null
+        detail: <failure detail or null>
+        retryable: true
+        route: BRIDGE|HUMAN_REVIEW|UI_VISUAL|UI_STRUCTURE|UI_TECH|UI_READABILITY|null
+
   # State the intended UI signature in rules that can be handed to another artist.
   visual_identity: <one-sentence UI visual identity and player-facing effect>
   shape_language:

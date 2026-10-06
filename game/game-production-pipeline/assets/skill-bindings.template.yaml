@@ -11,18 +11,41 @@ skill_bindings:
   # project (for example inspect, write, export/capture); do not invent names.
   # Keep this separate from Godot runtime UI implementation, which must use
   # authored .tscn/.tres scenes.
+  # The art manager owns this default chain. It is an example binding only:
+  # a project still needs a matching approved Agent Preset, Skill Binding subject
+  # digest and immutable human approval before a generated adapter can run.
   bindings:
-    - preset_id: "preset:project:<project-id>:<agent-slug>"
+    - preset_id: "preset:project:<project-id>:art"
+      slot_id: "slot:art"
       preset_digest: "<Agent Preset 摘要>"
       approval_id: "<人工审批 ID>"
+      skill_call_order: ["palette-knife-impasto", "palette-knife-impasto-ui", "impasto-tween-animation"]
+      programming_consumption_boundary_ref: "department-slot-catalog.template.yaml#slot:art.default_skill_chain.programming_consumption_boundary"
       skills:
-        - skill_id: "<skill-id>"
-          source: "plugin | project"
-          path: "<相对于插件或项目根目录的 Skill 路径>"
-          digest: "<文件或目录摘要>"
+        - skill_id: "palette-knife-impasto"
+          source: "plugin"
+          path: "skills/direct-game-art/style-directions/palette-knife-impasto/SKILL.md"
+          digest: "<palette-knife-impasto 文件或目录摘要>"
+          owner_slot: "slot:art"
+          owned_by_slot: "slot:art"
+          invocation_order: 1
+        - skill_id: "palette-knife-impasto-ui"
+          source: "project"
+          path: ".agents/skills/palette-knife-impasto-ui/SKILL.md"
+          digest: "<palette-knife-impasto-ui 文件或目录摘要>"
+          owner_slot: "slot:art"
+          owned_by_slot: "slot:art"
+          invocation_order: 2
+        - skill_id: "impasto-tween-animation"
+          source: "project"
+          path: ".agents/skills/impasto-tween-animation/SKILL.md"
+          digest: "<impasto-tween-animation 文件或目录摘要>"
+          owner_slot: "slot:art"
+          owned_by_slot: "slot:art"
+          invocation_order: 3
 skill_binding_proposal:
   schema_version: game-production-skill-binding-proposal/v1
-  proposal_id: "binding:<project-id>:approved-agent-skills"
+  proposal_id: "binding:<project-id>:art-default-skill-chain"
   status: approved
   canonicalization: skill-binding-subject-canonical-json-v1
   digest_scope: "skill_bindings 中递归排除 approval_id 的全部字段"
@@ -30,7 +53,7 @@ skill_binding_proposal:
   approval_id: "approval:<project-id>:skill-binding:<摘要前 12 位>"
   preset_count: 1
   binding_count: 1
-  unique_skill_count: 1
+  unique_skill_count: 3
   approval_requirement:
     human_approval_required: true
     required_approver_role: project-owner

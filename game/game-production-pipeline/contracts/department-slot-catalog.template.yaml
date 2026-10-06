@@ -165,6 +165,48 @@ department_slot_catalog:
       independent_from: ["slot:qa"]
       can_merge_with: ["slot:planning", "slot:tools"]
       activation_hint: "无持续视觉一致性要求时可由专项 Skill 或临时主美承担"
+      default_skill_chain:
+        owner_slot: "slot:art"
+        invocation_order:
+          - order: 1
+            skill_id: "palette-knife-impasto"
+            role: "style_direction_module"
+            source: "plugin"
+            path: "skills/direct-game-art/style-directions/palette-knife-impasto/SKILL.md"
+            phase: "D1"
+            prerequisite: "读取 direct-game-art 风格方向注册表；仅作为候选方向输入"
+            produces: "方向假设、媒介/笔触规则和跨域翻译输入"
+          - order: 2
+            skill_id: "palette-knife-impasto-ui"
+            role: "ui_visual_asset_production"
+            source: "project"
+            path: ".agents/skills/palette-knife-impasto-ui/SKILL.md"
+            phase: "D3"
+            prerequisite: "palette-knife-impasto 方向已进入批准的 Art Direction/UI Visual Contract"
+            produces: "UI 组件资产、材质/状态 manifest 和静态拼装证据"
+          - order: 3
+            skill_id: "impasto-tween-animation"
+            role: "ui_motion_production"
+            source: "project"
+            path: ".agents/skills/impasto-tween-animation/SKILL.md"
+            phase: "D3"
+            prerequisite: "palette-knife-impasto-ui 完成组件拼装和材质检查"
+            produces: "motion-manifest、H5/Godot 动效映射和 reduced-motion 证据"
+        sequencing_rule: "严格按 order 1 -> 2 -> 3 调用；前一步缺少输入或 Gate 证据时退回 slot:art，不得跳步"
+        programming_consumption_boundary:
+          owner: "slot:art"
+          program_slot: "slot:programming"
+          can_consume:
+            - "已批准 Art Direction/UI Visual Contract 的版本、摘要和视觉验收引用"
+            - "palette-knife-impasto-ui 交付的组件/状态 manifest、源文件与运行时资源引用"
+            - "impasto-tween-animation 交付的 motion-manifest、Godot Tween 参数和降级规则"
+            - "由美术提供的导入 Profile、Theme/StyleBox/字体/图标映射和目标平台预算"
+          cannot:
+            - "直接调用、修改或重新绑定上述 Skill；Skill Binding 变更必须回到 slot:art/AGT-ORG"
+            - "自行选择或冻结画风、UI Visual 规则、动效语义或权利结论"
+            - "把 Penpot 原型、静态资产或动效方案当成已完成 Godot 场景/运行时实现"
+            - "绕过 D2 人工选向、D3 引擎基准、D4 生产冻结或独立 QA"
+          return_route: "程序集成失败、摘要漂移或技术限制回到 slot:art；结构/输入/运行时问题由 slot:programming 负责修复并回报 AGT-DIR"
 
     - slot_id: "slot:programming"
       slug: "programming"

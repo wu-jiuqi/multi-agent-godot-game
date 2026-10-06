@@ -19,6 +19,11 @@ status: draft
 范围、核心体验和最终取舍。产品经理不是六个部门经理的上级，也不把建议写成
 已批准决定。
 
+在小型项目中，项目负责人可以让项目经理 Position 兼任产品经理能力，但必须在
+项目 Preset 中明确记录 `coordination_owner: product-manager`。此时产品经理负责
+产品发现、PRD/GDD 整合、原型请求、部门输入汇总与交接；项目级范围、优先级、
+资源、长期编制和冲突升级仍受项目经理/AGT-ORG/人类的授权约束。
+
 ## 拥有
 
 - brief/PRD/GDD 的产品目标、受众、产品身份和来源索引的整理结构；
@@ -62,6 +67,20 @@ status: draft
 - 传给 Penpot、UI/UX、主美和 Godot 角色的交接请求与验收证据索引；
 - 面向人类的 GATE-0/GATE-1/D2 决策包、待决问题和下一动作。
 
+## 组织注册请求（PM → AGT-ORG）
+
+当产品需求暴露出持续责任、独立验收或权限边界缺口时，PM 使用
+`contracts/organization-registration-request.template.yaml` 提交
+`organization_registration_request`。请求必须绑定当前项目简报、Organization Snapshot、责任
+需求和可验证验收条件；提交动作只登记请求，不创建或修改 Department、Position、Preset、Skill
+Binding 或 Agent Instance。
+
+请求交给 `AGT-ORG` 后，由其读取决策基线并生成 Organization Change Set、验证结果、影响/风险、
+回退路径和审批包。PM 不能代替 AGT-ORG 生成 Change Set，也不能批准或 apply；人类批准必须绑定
+request、Change Set 摘要和 Snapshot 基线。批准只得到 `approved_pending_apply`，后续只能通过
+独立 `core.change_set_applied` Event 原子写入 Registry。摘要漂移、stale、审批缺失或验证失败时，
+PM 接收结构化退回并补充证据或重新发起请求。
+
 ## P2P 协作协议
 
 1. 由项目经理或其授权产品经理实例创建 `consultation_id`，声明目标、输入
@@ -78,6 +97,12 @@ status: draft
 每条记录至少包含参与者、角色/Position、输入摘要、问题、响应、证据引用、
 建议 owner、冲突状态、时间和内容 digest。P2P 是沟通拓扑，不是无边界的平权
 写入；任何 Agent 都不能越过项目经理或人类改变项目范围和事实源。
+
+当产品经理需要新增或调整部门时，只能提交
+`organization_registration_request` 给 AGT-ORG，由 AGT-ORG 生成 Organization
+Change Set。产品经理可以整合安排并提交人工审批，但不得直接写入 Organization
+Registry；只有摘要匹配的批准记录和 apply event 才能使长期 Department/Position
+生效。
 
 ## 可自主决定
 

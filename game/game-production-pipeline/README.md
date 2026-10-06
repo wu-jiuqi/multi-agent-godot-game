@@ -252,6 +252,10 @@ P6 专业资产使用 [`contracts/specialist-asset-production.loop-contract.yaml
 
 生成器只覆盖带有插件托管标记的 TOML。非空 Skill Binding 必须包含独立提案与 `subject_kind=skill-binding` 的不可变审批记录；摘要算法为对 `skill_bindings` 递归排除所有 `approval_id` 后进行排序键紧凑 JSON 和 SHA-256。缺少审批、摘要过期、Skill 漂移、插件锁异常或目标文件由用户维护时都会停止。
 
+美术槽位的默认厚涂链路示例在 [`assets/skill-bindings.template.yaml`](assets/skill-bindings.template.yaml) 和槽位目录中：按 `palette-knife-impasto` → `palette-knife-impasto-ui` → `impasto-tween-animation` 顺序由 `slot:art` 管理；`slot:programming` 只消费带版本/摘要的交付物和运行时映射，不直接调用或改绑这些 Skill。
+
+产品经理需要长期组织能力时，使用 [`organization-registration-request.template.yaml`](contracts/organization-registration-request.template.yaml) 发起请求。`AGT-ORG` 只生成绑定当前基线的 Change Set；人类批准后仍须独立 `core.change_set_applied` Event 才能 apply，注册请求不会绕过审批直接写入 Registry。
+
 ## 人工审批边界
 
 - 长期 Department、Position、Agent Preset、Skill Binding、授权上限和独立验收关系的变化都要人工批准。

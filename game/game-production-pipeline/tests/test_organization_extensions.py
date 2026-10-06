@@ -53,6 +53,19 @@ class OrganizationExtensionTests(unittest.TestCase):
         self.assertIn("幂等", stream)
         self.assertIn("追加不可覆盖或删除", stream)
 
+    def test_no_document_product_discovery_precedes_prototype_handoff(self) -> None:
+        skill = (PLUGIN_ROOT / "skills" / "product-discovery" / "SKILL.md").read_text(encoding="utf-8")
+        workflow = (PLUGIN_ROOT / "workflows" / "product-discovery.md").read_text(encoding="utf-8")
+        for text in (skill, workflow):
+            self.assertIn("proposal", text)
+            self.assertIn("unknown", text)
+            self.assertIn("GATE-0", text)
+            self.assertIn("GATE-1", text)
+            self.assertIn("product-prototype-handoff", text)
+        self.assertIn("空输入", workflow)
+        self.assertIn("initial brief", skill)
+        self.assertIn("initial PRD", skill)
+
     def test_product_and_penpot_boundaries_are_explicit(self) -> None:
         product_skill = (PLUGIN_ROOT / "skills" / "product-brief-and-identity" / "SKILL.md").read_text(encoding="utf-8")
         penpot_skill = (PLUGIN_ROOT / "skills" / "penpot-prototype-orchestration" / "SKILL.md").read_text(encoding="utf-8")

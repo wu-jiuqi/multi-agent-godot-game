@@ -2,9 +2,9 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.5.0-alpha.13`。本版在 Penpot MCP UI 四步生产流程之上，正式纳入无文档产品发现、组织注册请求、Penpot 云端浏览器文件桥接、厚涂 UI Skill 链路与对应验证器；仍是 Pre-release，不是 Production Ready，真实 Penpot 试点尚未完成。
+当前版本：`v0.5.0-alpha.13`。本版在 Penpot MCP UI 四步生产流程之上，正式纳入无文档产品发现、组织注册请求、Penpot MCP 连接状态校验、厚涂 UI Skill 链路与对应验证器；仍是 Pre-release，不是 Production Ready，真实 Penpot 试点尚未完成。
 
-UI 默认先在 Penpot MCP 中完成产品资料提取、产品身份、UX 流程和视觉系统原型，再按需要进入 Godot 场景实现。没有可用 brief/GDD/PRD 时先使用 `$product-discovery` 形成带 proposal/unknown 标记的初始 brief/PRD，再进入产品原型交接。需要 dot 云端浏览器时只写入 `penpot_browser_task` 请求，由云端回写 ack/result 与连接证据；本地项目不直接控制浏览器。Penpot-only 交付可通过 `validate_art_direction_contract.py --ui-penpot-only` 验证，不要求先创建 Godot 场景或 Theme 资源；`--ui-figma-only` 仍是旧项目兼容别名。
+UI 默认先在 Penpot MCP 中完成产品资料提取、产品身份、UX 流程和视觉系统原型，再按需要进入 Godot 场景实现。没有可用 brief/GDD/PRD 时先使用 `$product-discovery` 形成带 proposal/unknown 标记的初始 brief/PRD，再进入产品原型交接。每次 Penpot 操作前先运行 `scripts/validate_penpot_connection.py`，仅允许 `state=connected` 进入写操作；`disconnected` 或 `error` 必须保持 `blocked`/`review_pending` 并记录恢复动作。本地项目不控制浏览器，也不保存凭据。Penpot-only 交付可通过 `validate_art_direction_contract.py --ui-penpot-only` 验证，不要求先创建 Godot 场景或 Theme 资源；`--ui-figma-only` 仍是旧项目兼容别名。
 
 ## 层级
 
@@ -42,11 +42,11 @@ Codex Plugin
 - [一手研究来源与方法边界](references/gameplay-design-methods.md)
 - [合成交付示例](tests/examples/gameplay-design-salvage.md) 与 [行为验收情境](tests/gameplay-designer-evaluation.md)
 
-产品发现、组织注册请求和 Penpot 浏览器桥接均是已纳入本版发布、尚待真实项目验证的 Skill/契约/验证器；它们不会自动创建正式部门、授予浏览器权限或代替人类 Gate。正式项目实例化沿用既有组织、Preset 和绑定审批流程；旧版本安装不会自动包含这些新增文件，需升级到本版。
+产品发现、组织注册请求和 Penpot MCP 连接状态校验均是已纳入本版发布、尚待真实项目验证的 Skill/契约/验证器；它们不会自动创建正式部门、授予浏览器权限或代替人类 Gate。正式项目实例化沿用既有组织、Preset 和绑定审批流程；旧版本安装不会自动包含这些新增文件，需升级到本版。
 
 当前 main 的组织增量保留“六个部门能力槽位 + 按项目激活”的设计。槽位目录和部门经理模板不会自动创建项目 Department、Position 或 Instance；项目仍必须通过 Organization Change Set 和人工批准后才能物化正式编制。产品经理原型 Skill 可以绑定到项目经理 Preset，也可以在重复需求足够稳定时绑定到单独的 Product Manager Position。
 
-新增架构的[验证方案](../../docs/changes/2026-10-04-six-department-product-prototype-validation-plan.md)区分模板检查、组织/咨询行为与真实 Penpot 交付。本版增加无文档产品发现、组织注册请求和浏览器桥接的结构/失败路由检查；本地回归和 synthetic 沙盒不能代替真实 Penpot 连接、人工审批或目标项目构建验收。V3 真实 Penpot 纵切片仍需在有连接实例的环境完成。
+新增架构的[验证方案](../../docs/changes/2026-10-04-six-department-product-prototype-validation-plan.md)区分模板检查、组织/咨询行为与真实 Penpot 交付。本版增加无文档产品发现、组织注册请求和 MCP 状态校验的失败路由检查；本地回归和 synthetic 沙盒不能代替真实 Penpot 连接、人工审批或目标项目构建验收。V3 真实 Penpot 纵切片仍需在有连接实例的环境完成。
 
 UI/UX 的 `ui-ux-pro-max` 是独立 Skill，源码位于仓库顶层 `skills/ui-ux-pro-max/`，不在游戏管线插件 ZIP 内。本次 Release 提供单独 Skill ZIP；插件安装不会自动安装或覆盖它。
 
@@ -225,7 +225,7 @@ python scripts/validate_project_brief.py `
 
 主美可在 D1 先读取机器可读的[画风方向注册表](skills/direct-game-art/style-directions/registry.yaml)，再按 Brief 和注册元数据选择方向模块。目前登记的 [`palette-knife-impasto`](skills/direct-game-art/style-directions/palette-knife-impasto/SKILL.md) 可作为“刮刀厚涂油画”候选方向输入。运行 `python scripts/validate_style_direction_registry.py skills/direct-game-art/style-directions/registry.yaml` 可检查目录、路径和摘要；模块不会自动成为项目画风，也不会跳过联网研究、至少三条方向、D2 人工选向、D3 引擎基准或 D4 生产冻结。《心界》附加规范只在明确处理该项目时加载。方向模块的解释和跨域翻译规则见 [`style-directions.md`](skills/direct-game-art/references/style-directions.md)。
 
-UI 现在按 Penpot-first 闭环执行：读取 brief/PRD/GDD，提取并确认产品名、标题和 slogan，冻结整体视觉要求；PRD 已有 UX 时直接引用，否则只补齐缺口；最后通过 Penpot MCP 制作视觉系统、组件状态、关键屏幕和可点击原型。没有可用产品资料时先走 `$product-discovery`，把初始 brief/PRD、问题和 proposal/unknown 状态交给人类在 GATE-0/GATE-1 判断。上述记录进入独立的 [`game-production-ui-visual/v1` UI Visual Contract](contracts/ui-visual-contract.template.yaml)，其中 `penpot_prototype` 绑定文件、页面/形状、设计系统、本地快照摘要和评审证据；需要 dot 云端浏览器时额外绑定 `penpot_browser_task` 的 request/ack/result 和 `connection_evidence`。Penpot 设计阶段不需要 Godot 工程；`implementation_ready` 只表示可交给引擎实现。UI Screen/Flow 仍拥有信息架构、布局行为、焦点、响应式规则和交互逻辑，Penpot 与 Godot 的交接顺序及返工路由见 [`ui-visual-handoff.md`](workflows/ui-visual-handoff.md)，自动验收边界见 [`ui-visual-acceptance.md`](contracts/ui-visual-acceptance.md)。
+UI 现在按 Penpot-first 闭环执行：读取 brief/PRD/GDD，提取并确认产品名、标题和 slogan，冻结整体视觉要求；PRD 已有 UX 时直接引用，否则只补齐缺口；最后通过 Penpot MCP 制作视觉系统、组件状态、关键屏幕和可点击原型。没有可用产品资料时先走 `$product-discovery`，把初始 brief/PRD、问题和 proposal/unknown 状态交给人类在 GATE-0/GATE-1 判断。上述记录进入独立的 [`game-production-ui-visual/v1` UI Visual Contract](contracts/ui-visual-contract.template.yaml)，其中 `penpot_prototype` 绑定文件、页面/形状、设计系统、本地快照摘要和评审证据，并记录 `penpot_mcp_status` 的最近一次连接状态。Penpot 设计阶段不需要 Godot 工程；`implementation_ready` 只表示可交给引擎实现。UI Screen/Flow 仍拥有信息架构、布局行为、焦点、响应式规则和交互逻辑，Penpot 与 Godot 的交接顺序及返工路由见 [`ui-visual-handoff.md`](workflows/ui-visual-handoff.md)，自动验收边界见 [`ui-visual-acceptance.md`](contracts/ui-visual-acceptance.md)。
 
 方法依据包括 GDC 的 [独特美术方向框架](https://www.gdcvault.com/play/1028954/Art-Direction-Summit-Building-a)、[AAA UI 美术指导](https://gdcvault.com/play/1025498/Art-Direction-for-AAA)、[风格化 VFX 美术指导](https://www.gdcvault.com/play/1023999/Art-Directing-VFX-for-Stylized)、Riot 的 [Game Art 教学](https://www.riotgames.com/en/artedu/intro-to-game-art) 与 Godot 官方资产导入/Theme/性能文档；详细来源和使用边界保存在 `skills/direct-game-art/references/`。
 
@@ -257,7 +257,7 @@ P6 专业资产使用 [`contracts/specialist-asset-production.loop-contract.yaml
 
 美术槽位的默认厚涂链路示例在 [`assets/skill-bindings.template.yaml`](assets/skill-bindings.template.yaml) 和槽位目录中：按 `palette-knife-impasto` → `palette-knife-impasto-ui` → `impasto-tween-animation` 顺序由 `slot:art` 管理；`slot:programming` 只消费带版本/摘要的交付物和运行时映射，不直接调用或改绑这些 Skill。
 
-产品经理需要长期组织能力时，使用 [`organization-registration-request.template.yaml`](contracts/organization-registration-request.template.yaml) 发起请求，并用 `validate_organization_registration_request.py` 检查请求、证据和审批边界。`AGT-ORG` 只生成绑定当前基线的 Change Set；人类批准后仍须独立 `core.change_set_applied` Event 才能 apply，注册请求不会绕过审批直接写入 Registry。需要 dot 云端浏览器时，使用 [`penpot-browser-bridge.md`](contracts/penpot-browser-bridge.md) 与 `validate_penpot_browser_bridge.py`；验证器只检查本地记录、摘要链、连接证据和失败路由，不打开浏览器或声称远端执行成功。
+产品经理需要长期组织能力时，使用 [`organization-registration-request.template.yaml`](contracts/organization-registration-request.template.yaml) 发起请求，并用 `validate_organization_registration_request.py` 检查请求、证据和审批边界。`AGT-ORG` 只生成绑定当前基线的 Change Set；人类批准后仍须独立 `core.change_set_applied` Event 才能 apply，注册请求不会绕过审批直接写入 Registry。Penpot 操作前使用 `scripts/validate_penpot_connection.py` 检查 MCP 状态；校验器只接受注入的只读探针结果或 JSON 输入，不打开浏览器、不写入 Penpot、不读取凭据。状态为 `disconnected`/`error` 时保留待恢复动作，不能声称远端操作成功。
 
 ## 人工审批边界
 

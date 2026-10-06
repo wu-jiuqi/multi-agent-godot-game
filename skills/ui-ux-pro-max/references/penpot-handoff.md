@@ -2,13 +2,14 @@
 
 Penpot is the default editable visual-system source for this repository. The Codex host must expose the official remote Penpot MCP server before any write operation. Configure the server URL and token in the host or project secret store; never commit either value, an access token, or a guessed capability snapshot to this repository. The public endpoint has the form `https://<your-penpot-domain>/mcp/stream?userToken=YOUR_MCP_KEY` (copy the URL shown by Penpot; the token is a secret), and the project records only the non-secret server identity and local schema snapshot. A connected host is not assumed: if setup, login, or capability verification is missing, keep the handoff at `blocked`/`review_pending` and record the recovery action.
 
-When a local project needs dot's cloud browser, use the repository's
-`penpot_browser_task` request/ack/result contract. The project writes a request;
-dot/cloud browser writes an acknowledgement with `cloud_browser_open` and
-`connection_evidence`, then writes a result and local evidence reference. This is
-an auditable file bridge, not direct browser control by the local project. Never
-put credentials in the request, and never call a URL or screenshot alone proof
-of a connected browser or a completed Penpot operation.
+Before any Penpot operation, run the repository's single read-only connection
+status checker at `game/game-production-pipeline/scripts/validate_penpot_connection.py`.
+It accepts an injected probe result or JSON input and returns `connected`,
+`disconnected`, or `error`. Continue only for `connected`; retain the state and a
+recovery action for the other states. The checker does not open a browser, call
+MCP, write Penpot, or read credentials. Never put credentials in a contract, and
+never treat a URL or screenshot alone as proof of a connected MCP session or a
+completed Penpot operation.
 
 
 Use this reference when a product will have its visual system and prototype made in

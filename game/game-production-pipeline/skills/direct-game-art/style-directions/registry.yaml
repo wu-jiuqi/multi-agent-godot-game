@@ -35,7 +35,7 @@ style_direction_registry:
       revision: 097e9d4bb864ccd1ca3eef3f240bdad0ab212ac9
       rights_state: reference-only
     digests:
-      directory_sha256: 961b2bf27f7151bfd70f690673ad3a20d6ac018abfce2875ef54007d0f3580f9
+      directory_sha256: ddfb9ce97cd197915cb25520b1f9587d8836f79c5a876b27922b48f2df94ef7b
       skill_sha256: 556907e0493bd8fd8e9431beed62ca2af3a42486160a7314874339ebdea165d4
   integrity:
-    registry_digest: cc83446cee55708d4e09210f4064720b10f94760630b8994258158a5b30b8d2c
+    registry_digest: ede06122ef2db7bcf6dceeae193f4f46b021f6ebb584939d57a958d14f41db46

@@ -22,14 +22,14 @@ from pipeline_common import dump_yaml, framework_digest, load_yaml  # noqa: E402
 CREATED_AT = "2026-10-04T10:00:00Z"
 MIGRATION_AT = "2026-10-05T10:00:00Z"
 FROM_VERSION = "0.5.0-alpha.11"
-TO_VERSION = "0.5.0-alpha.12"
+TO_VERSION = "0.5.0-alpha.13"
 SUPPORTED_DIGESTS = (
     "748a68f2325dc832f02c2f76e8d6c7138574bcc7015607c40805d7b678df1a23",
     "e7b6fa8a8422b73c7fbfd66d2f826ac08367540dccfbf2b4ca439ecfe3876e10",
 )
 
 
-class Alpha11ToAlpha12MigrationTests(unittest.TestCase):
+class Alpha11ToAlpha13MigrationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
         self.project_root = Path(self.temp.name)
@@ -80,7 +80,7 @@ class Alpha11ToAlpha12MigrationTests(unittest.TestCase):
                 self.assertEqual("migration_ready", plan["outcome"], plan)
                 self.assertEqual(FROM_VERSION, plan["from_version"])
                 self.assertEqual(TO_VERSION, plan["to_version"])
-                self.assertEqual("migrations/0-5-0-alpha-11__0-5-0-alpha-12.py", plan["migrator"])
+                self.assertEqual("migrations/0-5-0-alpha-11__0-5-0-alpha-13.py", plan["migrator"])
                 self.assertEqual(
                     ["AGENTS.md", "game-pipeline/plugin-lock.yaml"],
                     [action["path"] for action in plan["actions"]],

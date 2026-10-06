@@ -2,9 +2,9 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.5.0-alpha.12`。本版在 Penpot MCP UI 四步生产流程之上，正式纳入六部门惰性能力槽位、结构化 P2P 部门咨询、产品经理原型 Skill 与验证设施；仍是 Pre-release，不是 Production Ready，真实 Penpot 试点尚未完成。
+当前版本：`v0.5.0-alpha.13`。本版在 Penpot MCP UI 四步生产流程之上，正式纳入无文档产品发现、组织注册请求、Penpot 云端浏览器文件桥接、厚涂 UI Skill 链路与对应验证器；仍是 Pre-release，不是 Production Ready，真实 Penpot 试点尚未完成。
 
-UI 默认先在 Penpot MCP 中完成产品资料提取、产品身份、UX 流程和视觉系统原型，再按需要进入 Godot 场景实现。Penpot-only 交付可通过 `validate_art_direction_contract.py --ui-penpot-only` 验证，不要求先创建 Godot 场景或 Theme 资源；`--ui-figma-only` 仍是旧项目兼容别名。
+UI 默认先在 Penpot MCP 中完成产品资料提取、产品身份、UX 流程和视觉系统原型，再按需要进入 Godot 场景实现。没有可用 brief/GDD/PRD 时先使用 `$product-discovery` 形成带 proposal/unknown 标记的初始 brief/PRD，再进入产品原型交接。需要 dot 云端浏览器时只写入 `penpot_browser_task` 请求，由云端回写 ack/result 与连接证据；本地项目不直接控制浏览器。Penpot-only 交付可通过 `validate_art_direction_contract.py --ui-penpot-only` 验证，不要求先创建 Godot 场景或 Theme 资源；`--ui-figma-only` 仍是旧项目兼容别名。
 
 ## 层级
 
@@ -20,7 +20,7 @@ Codex Plugin
 
 插件不会保存某个游戏的设计答案。把通用插件更新与项目内容演化分离，才能让同一框架被多个游戏复用。
 
-## 九个入口 Skills
+## 十个入口 Skills
 
 - `$bootstrap-game-pipeline`：先生成影响计划和摘要，经确认后初始化项目控制面。
 - `$prepare-game-project-brief`：由项目经理主动辅助人类共同确定玩法、美术方向、实现概要和约束，形成简报与启动授权。
@@ -29,23 +29,24 @@ Codex Plugin
 - `$review-game-gates`：独立检查证据，区分自动结果与必须由人类做出的决定。
 - `$adapt-godot-production`：把通用产物映射为 Godot 场景、资源、节点、测试与构建证据。
 - `$direct-game-art`：先联网研究，再主动提出多条画风方向，建立风格圣经、跨 2D/3D/VFX/UI 翻译、引擎基准、预算、权利和表现验收。
+- `$product-discovery`：在缺少可用 brief/GDD/PRD/slogan 时，通过小轮对话形成可追溯的初始 brief、PRD、问题和原型交接提案。
 - `$product-brief-and-identity`：整理产品资料、产品身份候选、slogan 来源和 Prototype Intent，保留人类确认边界。
 - `$penpot-prototype-orchestration`：在已确认输入下调用 Penpot MCP 制作视觉系统、页面、组件状态、可点击原型和交接证据。
 
 ## 游戏机制与玩法策划角色
 
-本版包含 [游戏机制与玩法策划 Agent](agents/gameplay-designer.md) 初稿，提供机制选项、核心循环、规则/参数、风险分析和最小原型任务书。它可由游戏设计 Agent 兼任，也可按项目需要设专项岗位；每个机制只保留一个写入负责人。
+本版包含 [产品发现 Skill](skills/product-discovery/SKILL.md) 和 [游戏机制与玩法策划 Agent](agents/gameplay-designer.md) 初稿。产品发现负责在无文档项目中保留 confirmed/preference/hypothesis/unknown 状态，并在 GATE-0/GATE-1 前阻止虚构方向；玩法策划提供机制选项、核心循环、规则/参数、风险分析和最小原型任务书。每个机制只保留一个写入负责人。
 
 - [工作流与调用示例](workflows/gameplay-design.md)
 - [策划包模板](assets/gameplay-design-brief.template.md)
 - [一手研究来源与方法边界](references/gameplay-design-methods.md)
 - [合成交付示例](tests/examples/gameplay-design-salvage.md) 与 [行为验收情境](tests/gameplay-designer-evaluation.md)
 
-此增量是已纳入本版发布、尚待真实项目验证的角色/文档模板，不新增 Skill、机器 Contract 或自动安装的具名 Agent。当前任务可直接读取角色文件使用；正式项目实例化沿用既有组织、Preset 和绑定审批流程。已安装的 `v0.5.0-alpha.3` 不会自动包含这些新增文件；需升级到本版。
+产品发现、组织注册请求和 Penpot 浏览器桥接均是已纳入本版发布、尚待真实项目验证的 Skill/契约/验证器；它们不会自动创建正式部门、授予浏览器权限或代替人类 Gate。正式项目实例化沿用既有组织、Preset 和绑定审批流程；旧版本安装不会自动包含这些新增文件，需升级到本版。
 
 当前 main 的组织增量保留“六个部门能力槽位 + 按项目激活”的设计。槽位目录和部门经理模板不会自动创建项目 Department、Position 或 Instance；项目仍必须通过 Organization Change Set 和人工批准后才能物化正式编制。产品经理原型 Skill 可以绑定到项目经理 Preset，也可以在重复需求足够稳定时绑定到单独的 Product Manager Position。
 
-新增架构的[验证方案](../../docs/changes/2026-10-04-six-department-product-prototype-validation-plan.md)区分模板检查、组织/咨询行为与真实 Penpot 交付。本版已执行本地回归和 synthetic 沙盒；[验证报告](../../docs/validation-runs/2026-10-04-six-department-product-prototype/report.md)记录 V3 真实 Penpot 因无连接实例而阻塞，synthetic 通过不等于真实工作流已通过验收。
+新增架构的[验证方案](../../docs/changes/2026-10-04-six-department-product-prototype-validation-plan.md)区分模板检查、组织/咨询行为与真实 Penpot 交付。本版增加无文档产品发现、组织注册请求和浏览器桥接的结构/失败路由检查；本地回归和 synthetic 沙盒不能代替真实 Penpot 连接、人工审批或目标项目构建验收。V3 真实 Penpot 纵切片仍需在有连接实例的环境完成。
 
 UI/UX 的 `ui-ux-pro-max` 是独立 Skill，源码位于仓库顶层 `skills/ui-ux-pro-max/`，不在游戏管线插件 ZIP 内。本次 Release 提供单独 Skill ZIP；插件安装不会自动安装或覆盖它。
 
@@ -70,6 +71,8 @@ UI/UX 的 `ui-ux-pro-max` 是独立 Skill，源码位于仓库顶层 `skills/ui-
 ```
 
 `game-pipeline/` 应进入项目 Git。只有 `.runtime/`、`.cache/`、`tmp/`、临时原始证据和生成 SVG 被托管 `.gitignore` 区块忽略。
+
+从 `v0.5.0-alpha.12` 升级到本版时，先用 `scripts/migrate_plugin.py` 执行 dry-run，确认迁移器为 `migrations/0-5-0-alpha-12__0-5-0-alpha-13.py`、来源 framework digest 属于白名单，再由项目所有者批准精确摘要。该迁移只更新受托管的插件元数据、Skill 摘要、适配器和 `plugin-lock.yaml`；产品发现草案、Penpot 记录、项目场景、资源、UI、Registry、Event History 与业务事实不会被自动改写。未知摘要、缺少审批、非托管 Adapter、managed block 损坏或计划后文件漂移都会 fail closed。
 
 ## 初始化
 
@@ -222,7 +225,7 @@ python scripts/validate_project_brief.py `
 
 主美可在 D1 先读取机器可读的[画风方向注册表](skills/direct-game-art/style-directions/registry.yaml)，再按 Brief 和注册元数据选择方向模块。目前登记的 [`palette-knife-impasto`](skills/direct-game-art/style-directions/palette-knife-impasto/SKILL.md) 可作为“刮刀厚涂油画”候选方向输入。运行 `python scripts/validate_style_direction_registry.py skills/direct-game-art/style-directions/registry.yaml` 可检查目录、路径和摘要；模块不会自动成为项目画风，也不会跳过联网研究、至少三条方向、D2 人工选向、D3 引擎基准或 D4 生产冻结。《心界》附加规范只在明确处理该项目时加载。方向模块的解释和跨域翻译规则见 [`style-directions.md`](skills/direct-game-art/references/style-directions.md)。
 
-UI 现在按 Penpot-first 闭环执行：读取 brief/PRD/GDD，提取并确认产品名、标题和 slogan，冻结整体视觉要求；PRD 已有 UX 时直接引用，否则只补齐缺口；最后通过 Penpot MCP 制作视觉系统、组件状态、关键屏幕和可点击原型。上述记录进入独立的 [`game-production-ui-visual/v1` UI Visual Contract](contracts/ui-visual-contract.template.yaml)，其中 `penpot_prototype` 绑定文件、页面/形状、设计系统、本地快照摘要和评审证据。Penpot 设计阶段不需要 Godot 工程；`implementation_ready` 只表示可交给引擎实现。UI Screen/Flow 仍拥有信息架构、布局行为、焦点、响应式规则和交互逻辑，Penpot 与 Godot 的交接顺序及返工路由见 [`ui-visual-handoff.md`](workflows/ui-visual-handoff.md)，自动验收边界见 [`ui-visual-acceptance.md`](contracts/ui-visual-acceptance.md)。
+UI 现在按 Penpot-first 闭环执行：读取 brief/PRD/GDD，提取并确认产品名、标题和 slogan，冻结整体视觉要求；PRD 已有 UX 时直接引用，否则只补齐缺口；最后通过 Penpot MCP 制作视觉系统、组件状态、关键屏幕和可点击原型。没有可用产品资料时先走 `$product-discovery`，把初始 brief/PRD、问题和 proposal/unknown 状态交给人类在 GATE-0/GATE-1 判断。上述记录进入独立的 [`game-production-ui-visual/v1` UI Visual Contract](contracts/ui-visual-contract.template.yaml)，其中 `penpot_prototype` 绑定文件、页面/形状、设计系统、本地快照摘要和评审证据；需要 dot 云端浏览器时额外绑定 `penpot_browser_task` 的 request/ack/result 和 `connection_evidence`。Penpot 设计阶段不需要 Godot 工程；`implementation_ready` 只表示可交给引擎实现。UI Screen/Flow 仍拥有信息架构、布局行为、焦点、响应式规则和交互逻辑，Penpot 与 Godot 的交接顺序及返工路由见 [`ui-visual-handoff.md`](workflows/ui-visual-handoff.md)，自动验收边界见 [`ui-visual-acceptance.md`](contracts/ui-visual-acceptance.md)。
 
 方法依据包括 GDC 的 [独特美术方向框架](https://www.gdcvault.com/play/1028954/Art-Direction-Summit-Building-a)、[AAA UI 美术指导](https://gdcvault.com/play/1025498/Art-Direction-for-AAA)、[风格化 VFX 美术指导](https://www.gdcvault.com/play/1023999/Art-Directing-VFX-for-Stylized)、Riot 的 [Game Art 教学](https://www.riotgames.com/en/artedu/intro-to-game-art) 与 Godot 官方资产导入/Theme/性能文档；详细来源和使用边界保存在 `skills/direct-game-art/references/`。
 
@@ -254,7 +257,7 @@ P6 专业资产使用 [`contracts/specialist-asset-production.loop-contract.yaml
 
 美术槽位的默认厚涂链路示例在 [`assets/skill-bindings.template.yaml`](assets/skill-bindings.template.yaml) 和槽位目录中：按 `palette-knife-impasto` → `palette-knife-impasto-ui` → `impasto-tween-animation` 顺序由 `slot:art` 管理；`slot:programming` 只消费带版本/摘要的交付物和运行时映射，不直接调用或改绑这些 Skill。
 
-产品经理需要长期组织能力时，使用 [`organization-registration-request.template.yaml`](contracts/organization-registration-request.template.yaml) 发起请求。`AGT-ORG` 只生成绑定当前基线的 Change Set；人类批准后仍须独立 `core.change_set_applied` Event 才能 apply，注册请求不会绕过审批直接写入 Registry。
+产品经理需要长期组织能力时，使用 [`organization-registration-request.template.yaml`](contracts/organization-registration-request.template.yaml) 发起请求，并用 `validate_organization_registration_request.py` 检查请求、证据和审批边界。`AGT-ORG` 只生成绑定当前基线的 Change Set；人类批准后仍须独立 `core.change_set_applied` Event 才能 apply，注册请求不会绕过审批直接写入 Registry。需要 dot 云端浏览器时，使用 [`penpot-browser-bridge.md`](contracts/penpot-browser-bridge.md) 与 `validate_penpot_browser_bridge.py`；验证器只检查本地记录、摘要链、连接证据和失败路由，不打开浏览器或声称远端执行成功。
 
 ## 人工审批边界
 
@@ -309,7 +312,7 @@ codex plugin list
 
 第二次 `plugin list` 应显示 `game-production-pipeline@personal` 为 `installed, enabled`。在首次安装前，Codex 设置页的插件搜索可能不会显示尚未安装的个人插件，因此不能把 UI 搜索结果作为 Marketplace 发现或安装状态的判据。
 
-安装后新建 Codex 任务，再检查九个 `$skill-name` 是否可发现；当前任务不会热刷新插件能力。正常使用直接描述“初始化项目”“整理项目简报”“设计团队”“建立产品原型”或“继续生产”等目标即可，只有强制路由和发现性测试才需要显式 Skill 名。Codex 能力目录可能显示带插件命名空间的长名，这是防重名标识，不要求每次输入。更新本地插件时应使用构建元数据 cache-buster，并再次执行同一个 `codex plugin add game-production-pipeline@personal` 命令，不要依赖 UI 搜索或当前任务热刷新。
+安装后新建 Codex 任务，再检查十个 `$skill-name` 是否可发现；当前任务不会热刷新插件能力。正常使用直接描述“初始化项目”“整理项目简报”“开始产品发现”“设计团队”“建立产品原型”或“继续生产”等目标即可，只有强制路由和发现性测试才需要显式 Skill 名。Codex 能力目录可能显示带插件命名空间的长名，这是防重名标识，不要求每次输入。更新本地插件时应使用构建元数据 cache-buster，并再次执行同一个 `codex plugin add game-production-pipeline@personal` 命令，不要依赖 UI 搜索或当前任务热刷新。
 
 ## 中文文本编码
 
@@ -363,7 +366,7 @@ python scripts/validate_product_prototype_handoff.py `
 
 - 治理层仍是文件契约与确定性校验器，没有强制拦截所有手工文件修改的 MCP 或 Hook。
 - Registry 没有数据库事务适配器；脚本会预检和原子写单文件，但不能提供跨文件数据库级事务。
-- 迁移仅覆盖白名单内的 v0.3、v0.4 alpha.2/alpha.3/alpha.4、v0.5 alpha.1/alpha.2/alpha.3/alpha.4 摘要；其他开发快照和更早版本会 fail closed。
+- 迁移仅覆盖白名单内的 v0.3、v0.4 alpha.2/alpha.3/alpha.4、v0.5 alpha.1/alpha.2/alpha.3/alpha.4、alpha.11、alpha.12 摘要；其他开发快照和更早版本会 fail closed。
 - 目前只有 Godot 适配层，Unity 和其他引擎尚未验证。
 - 专业资产公共底座已形成机器闭环，但仍需要首个真实项目提供目标平台预算 Profile、真实 DCC/导入链和发布资产回放证据。
 - 主美 D0–D4 已通过代表性契约纵切片和失败注入；UI Visual Contract 的资源生产和主美 UI 本体评审仍需在真实项目验证风格质量、团队吞吐和目标平台 benchmark。自动检查不判断审美质量。

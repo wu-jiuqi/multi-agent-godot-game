@@ -4,9 +4,9 @@
 
 ## 当前版本
 
-当前版本为 `v0.5.0-alpha.13`：在已批准边界内自主制作，补充无文档产品发现、六部门组织注册请求、Penpot MCP 连接状态校验和可重复验证设施；仍是 Pre-release，真实 Penpot 试点尚未完成。
+当前版本为 `v0.5.0-alpha.14`：在已批准边界内自主制作，补充无文档产品发现、六部门组织注册请求、Penpot MCP 连接状态校验和可重复验证设施；仍是 Pre-release，真实 Penpot 试点尚未完成。
 
-本版 UI 管线改为 **Penpot-first 四步流程**：读取 brief/PRD/GDD 并提取标题与 slogan → 确认产品名及整体视觉风格 → 复用 PRD 已有 UX 或补齐缺口 → 通过 Penpot MCP 制作视觉系统和页面原型。无可用产品文档时先走 [产品发现工作流](game/game-production-pipeline/workflows/product-discovery.md)，不要用空模板代替方向决定；执行 Penpot 操作前先运行 [Penpot MCP 连接状态校验器](game/game-production-pipeline/scripts/validate_penpot_connection.py)，状态为 `disconnected` 或 `error` 时阻塞并记录恢复动作。入口见 [UI 生产工作流](game/game-production-pipeline/workflows/ui-production.md)。Penpot 设计可独立交付，Godot 场景实现是后续任务；旧 Figma 合约保留兼容读取。
+本版 UI 管线改为 **Penpot-first 四步流程**：读取 brief/PRD/GDD 并提取标题与 slogan → 确认产品名及整体视觉风格 → 复用 PRD 已有 UX 或补齐缺口 → 通过 Penpot MCP 制作视觉系统和页面原型。无可用产品文档时先走 [产品发现工作流](game/game-production-pipeline/workflows/product-discovery.md)，不要用空模板代替方向决定；执行 Penpot 操作前先运行 [Penpot MCP 连接状态校验器](game/game-production-pipeline/scripts/validate_penpot_connection.py)，状态为 `disconnected` 或 `error` 时阻塞并记录恢复动作。以后所有 Penpot 操作统一依赖云端 Penpot MCP，本地 Penpot 实例不作为执行依赖。入口见 [UI 生产工作流](game/game-production-pipeline/workflows/ui-production.md)。Penpot 设计可独立交付，Godot 场景实现是后续任务；旧 Figma 合约保留兼容读取。
 
 ## 目录
 

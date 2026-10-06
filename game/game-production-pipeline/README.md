@@ -2,9 +2,9 @@
 
 `game-production-pipeline` 是面向 Codex 的可审计游戏制作多 Agent 管线插件。它提供可复用的组织、授权、审批、生产循环和引擎适配框架，再由每个游戏项目保存自己的剧情、美术风格、玩法决策、验收阈值、项目 Agent Presets 与项目 Skills。
 
-当前版本：`v0.5.0-alpha.13`。本版在 Penpot MCP UI 四步生产流程之上，正式纳入无文档产品发现、组织注册请求、Penpot MCP 连接状态校验、厚涂 UI Skill 链路与对应验证器；仍是 Pre-release，不是 Production Ready，真实 Penpot 试点尚未完成。
+当前版本：`v0.5.0-alpha.14`。本版在 Penpot MCP UI 四步生产流程之上，正式纳入无文档产品发现、组织注册请求、Penpot MCP 连接状态校验、厚涂 UI Skill 链路与对应验证器；仍是 Pre-release，不是 Production Ready，真实 Penpot 试点尚未完成。
 
-UI 默认先在 Penpot MCP 中完成产品资料提取、产品身份、UX 流程和视觉系统原型，再按需要进入 Godot 场景实现。没有可用 brief/GDD/PRD 时先使用 `$product-discovery` 形成带 proposal/unknown 标记的初始 brief/PRD，再进入产品原型交接。每次 Penpot 操作前先运行 `scripts/validate_penpot_connection.py`，仅允许 `state=connected` 进入写操作；`disconnected` 或 `error` 必须保持 `blocked`/`review_pending` 并记录恢复动作。本地项目不控制浏览器，也不保存凭据。Penpot-only 交付可通过 `validate_art_direction_contract.py --ui-penpot-only` 验证，不要求先创建 Godot 场景或 Theme 资源；`--ui-figma-only` 仍是旧项目兼容别名。
+UI 默认先在 Penpot MCP 中完成产品资料提取、产品身份、UX 流程和视觉系统原型，再按需要进入 Godot 场景实现。没有可用 brief/GDD/PRD 时先使用 `$product-discovery` 形成带 proposal/unknown 标记的初始 brief/PRD，再进入产品原型交接。每次 Penpot 操作前先运行 `scripts/validate_penpot_connection.py`，仅允许 `state=connected` 进入写操作；`disconnected` 或 `error` 必须保持 `blocked`/`review_pending` 并记录恢复动作。本地项目不控制浏览器，也不保存凭据。以后所有 Penpot 操作统一依赖云端 Penpot MCP，本地 Penpot 实例不作为执行依赖。Penpot-only 交付可通过 `validate_art_direction_contract.py --ui-penpot-only` 验证，不要求先创建 Godot 场景或 Theme 资源；`--ui-figma-only` 仍是旧项目兼容别名。
 
 ## 层级
 
@@ -72,7 +72,7 @@ UI/UX 的 `ui-ux-pro-max` 是独立 Skill，源码位于仓库顶层 `skills/ui-
 
 `game-pipeline/` 应进入项目 Git。只有 `.runtime/`、`.cache/`、`tmp/`、临时原始证据和生成 SVG 被托管 `.gitignore` 区块忽略。
 
-从 `v0.5.0-alpha.12` 升级到本版时，先用 `scripts/migrate_plugin.py` 执行 dry-run，确认迁移器为 `migrations/0-5-0-alpha-12__0-5-0-alpha-13.py`、来源 framework digest 属于白名单，再由项目所有者批准精确摘要。该迁移只更新受托管的插件元数据、Skill 摘要、适配器和 `plugin-lock.yaml`；产品发现草案、Penpot 记录、项目场景、资源、UI、Registry、Event History 与业务事实不会被自动改写。未知摘要、缺少审批、非托管 Adapter、managed block 损坏或计划后文件漂移都会 fail closed。
+从 `v0.5.0-alpha.13` 升级到本版时，先用 `scripts/migrate_plugin.py` 执行 dry-run，确认迁移器为 `migrations/0-5-0-alpha-13__0-5-0-alpha-14.py`、来源 framework digest 属于白名单，再由项目所有者批准精确摘要。该迁移只更新受托管的插件元数据、Skill 摘要、适配器和 `plugin-lock.yaml`；产品发现草案、Penpot 记录、项目场景、资源、UI、Registry、Event History 与业务事实不会被自动改写。未知摘要、缺少审批、非托管 Adapter、managed block 损坏或计划后文件漂移都会 fail closed。
 
 ## 初始化
 
